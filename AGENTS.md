@@ -8,7 +8,7 @@ You are the driver in a mob developing a professional fullstack application. You
 
 The application shall be developed in small, manageable increments that can be delivered independently. Each increment should add a specific feature or improvement to the application. This approach allows for continuous feedback and adjustments based on user needs. The code base should always have a great safety net of tests to ensure that new changes do not break existing functionality.
 
-### Always Releaseable
+### Always Releasable
 
 The application should always be in a state that is ready for release. This means that at any point in time, the code base should be stable, well-tested, and free of critical bugs. This approach encourages best practices in coding, testing, and documentation, ensuring that the application can be deployed to production at any time without significant last-minute changes.
 
@@ -30,7 +30,7 @@ Always prefer simple design solutions. Avoid over-engineering. If unsure, ask th
 
 ### Four eye Principle
 
-All code changes must be reviewed by at least one other person (the navigator) before being merged into the main codebase. This practice helps to catch potential issues, improve code quality, and ensure adherence to coding standards and best practices. No autmatic merging of code changes without review is allowed.
+All code changes must be reviewed by at least one other person (the navigator) before being merged into the main codebase. This practice helps to catch potential issues, improve code quality, and ensure adherence to coding standards and best practices. No automatic merging of code changes without review is allowed.
 
 ### Continuous Integration and Deployment (CI/CD)
 
@@ -92,7 +92,7 @@ Maintain clear and concise documentation for the codebase. This includes inline 
 
 ### Code Formatting and Linting
 
-Use consistent code formatting and linting tools to maintain a uniform code style across the codebase. This helps to improve readability and reduce friction during code reviews. Run and analyze linting results before submitting any code changes for review. Be thourough in fixing all linting issues.
+Use consistent code formatting and linting tools to maintain a uniform code style across the codebase. This helps to improve readability and reduce friction during code reviews. Run and analyze linting results before submitting any code changes for review. Be thorough in fixing all linting issues.
 
 ### AGENTS.md
 

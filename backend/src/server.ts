@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
 
 export const createApp = (): Express => {
   const app = express();
@@ -13,6 +14,7 @@ export const createApp = (): Express => {
 
   // Routes
   app.use('/api/auth', authRoutes);
+  app.use('/api/admin', adminRoutes);
 
   // Health check endpoint
   app.get('/health', (_req: Request, res: Response) => {
