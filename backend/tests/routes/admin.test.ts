@@ -4,6 +4,7 @@ import { createApp } from '../../src/server';
 import { getSequelize, closeDatabase } from '../../src/database/config';
 import { User } from '../../src/domains/users/User';
 import { Ingredient } from '../../src/domains/ingredients/Ingredient';
+import { Event as EventModel } from '../../src/domains/events/Event';
 import { generateToken } from '../../src/utils/jwt';
 
 describe('Admin Routes', () => {
@@ -37,6 +38,7 @@ describe('Admin Routes', () => {
   beforeEach(async () => {
     await User.destroy({ where: {} });
     await Ingredient.destroy({ where: {} });
+    await EventModel.destroy({ where: {} });
   });
 
   describe('GET /api/admin/users', () => {
@@ -436,6 +438,216 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Ingredient not found');
+    });
+  });
+
+  describe('GET /api/admin/events', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).get('/api/admin/events');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .get('/api/admin/events')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should return an empty array if no events exist', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .get('/api/admin/events')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
+    });
+
+    it('should return all events', async () => {
+      const { token } = await createUserWithToken(true);
+
+      await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+      await EventModel.create({
+        name: 'Pizza Monday',
+        date: new Date('2025-11-18'),
+        location: 'Remote',
+      });
+
+      const response = await request(app)
+        .get('/api/admin/events')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(2);
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(Number),
+            name: 'Pizza Friday',
+            location: 'Office',
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            name: 'Pizza Monday',
+            location: 'Remote',
+          }),
+        ])
+      );
+    });
+  });
+
+  describe('POST /api/admin/events', () => {
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .post('/api/admin/events')
+        .send({ name: 'Pizza Friday', date: '2025-11-15', location: 'Office' });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .post('/api/admin/events')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pizza Friday', date: '2025-11-15', location: 'Office' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should create a new event', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/events')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pizza Friday', date: '2025-11-15', location: 'Office' });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toMatchObject({
+        id: expect.any(Number),
+        name: 'Pizza Friday',
+        location: 'Office',
+      });
+
+      // Verify in database
+      const event = await EventModel.findByPk(response.body.id);
+      expect(event).toBeDefined();
+      expect(event?.name).toBe('Pizza Friday');
+    });
+
+    it('should require name field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/events')
+        .set('Cookie', [`token=${token}`])
+        .send({ date: '2025-11-15', location: 'Office' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Name is required');
+    });
+
+    it('should require date field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/events')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pizza Friday', location: 'Office' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Date is required');
+    });
+
+    it('should require location field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/events')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pizza Friday', date: '2025-11-15' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Location is required');
+    });
+
+    it('should validate date format', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/events')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pizza Friday', date: 'invalid-date', location: 'Office' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid date format');
+    });
+  });
+
+  describe('DELETE /api/admin/events/:id', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).delete('/api/admin/events/1');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .delete('/api/admin/events/1')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should delete an event', async () => {
+      const { token } = await createUserWithToken(true);
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const response = await request(app)
+        .delete(`/api/admin/events/${event.id}`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      // Verify deleted from database
+      const deletedEvent = await EventModel.findByPk(event.id);
+      expect(deletedEvent).toBeNull();
+    });
+
+    it('should return 404 if event not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .delete('/api/admin/events/999')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
     });
   });
 });

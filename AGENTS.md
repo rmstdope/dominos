@@ -96,7 +96,7 @@ Maintain clear and concise documentation for the codebase. This includes inline 
 
 ### Code Formatting and Linting
 
-Use consistent code formatting and linting tools to maintain a uniform code style across the codebase. This helps to improve readability and reduce friction during code reviews. Run and analyze linting results before submitting any code changes for review. Be thorough in fixing all linting issues.
+Use consistent code formatting and linting tools to maintain a uniform code style across the codebase. This helps to improve readability and reduce friction during code reviews. Run and analyze linting results before submitting any code changes for review. Be thorough in fixing all linting issues, both errors and warnings.
 
 ### AGENTS.md
 

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { User } from '../domains/users/User';
 import { Ingredient } from '../domains/ingredients/Ingredient';
+import { Event as EventModel } from '../domains/events/Event';
 
 const router = Router();
 
@@ -134,6 +135,83 @@ router.delete('/ingredients/:id', authenticate, requireAdmin, async (req: Reques
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting ingredient:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/events - List all events
+router.get('/events', authenticate, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const events = await EventModel.findAll({
+      attributes: ['id', 'name', 'date', 'location'],
+      order: [['date', 'DESC']],
+    });
+
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/events - Create new event
+router.post('/events', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, date, location } = req.body;
+
+    // Validate required fields
+    if (!name || name.trim().length === 0) {
+      res.status(400).json({ error: 'Name is required' });
+      return;
+    }
+
+    if (!date) {
+      res.status(400).json({ error: 'Date is required' });
+      return;
+    }
+
+    if (!location || location.trim().length === 0) {
+      res.status(400).json({ error: 'Location is required' });
+      return;
+    }
+
+    // Validate date format
+    const eventDate = new Date(date);
+    if (isNaN(eventDate.getTime())) {
+      res.status(400).json({ error: 'Invalid date format' });
+      return;
+    }
+
+    // Create new event
+    const event = await EventModel.create({
+      name: name.trim(),
+      date: eventDate,
+      location: location.trim(),
+    });
+
+    res.status(201).json(event);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/events/:id - Delete an event
+router.delete('/events/:id', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.id, 10);
+
+    const event = await EventModel.findByPk(eventId);
+
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    await event.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting event:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
