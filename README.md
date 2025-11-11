@@ -11,8 +11,9 @@ The project uses GitHub Actions for automated continuous integration. On every p
 - **Backend Lint**: ESLint checks for code quality (< 5 min)
 - **Backend Test**: Full test suite with coverage reporting (< 5 min)
 - **Backend Build**: TypeScript compilation verification (< 5 min)
+- **Backend Docker**: Docker image build and health check (< 5 min)
 
-**Total CI time**: Under 10 minutes (typically 3-4 minutes)
+**Total CI time**: Under 10 minutes (typically 3-5 minutes)
 
 The pipeline enforces a "stop the line" mentality - all jobs must pass for the build to succeed. Failed builds must be fixed immediately before new work proceeds.
 
