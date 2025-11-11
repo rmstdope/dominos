@@ -17,6 +17,29 @@ The project uses GitHub Actions for automated continuous integration. On every p
 
 The pipeline enforces a "stop the line" mentality - all jobs must pass for the build to succeed. Failed builds must be fixed immediately before new work proceeds.
 
+### Continuous Deployment
+
+When CI passes on the `main` branch, the CD pipeline automatically:
+
+1. **Builds multi-platform Docker images** (amd64, arm64)
+2. **Tags images** with multiple strategies:
+   - `latest` - Most recent main build
+   - `main-<sha>` - Specific commit SHA
+   - `v1.2.3` - Semantic version (when tagged)
+3. **Publishes to GitHub Container Registry** (ghcr.io)
+4. **Creates deployment summary** with pull commands
+
+**Published Images:**
+- `ghcr.io/rmstdope/dominos/backend:latest`
+- `ghcr.io/rmstdope/dominos/backend:main-<sha>`
+
+Pull and run the latest production image:
+
+```bash
+docker pull ghcr.io/rmstdope/dominos/backend:latest
+docker run -p 3000:3000 -e JWT_SECRET=your-secret ghcr.io/rmstdope/dominos/backend:latest
+```
+
 #### Local Development
 
 Run the same checks locally before pushing:
