@@ -4,17 +4,9 @@ import '@radix-ui/themes/styles.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
+import LoginPage from './pages/LoginPage';
 import UsersPage from './pages/UsersPage';
 import IngredientsPage from './pages/IngredientsPage';
-
-function LoginPage() {
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Login Page</h1>
-      <p>Login functionality will be implemented in a future issue</p>
-    </div>
-  );
-}
 
 function DashboardPage() {
   return (
