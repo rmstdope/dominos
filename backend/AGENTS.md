@@ -45,9 +45,10 @@ All domain models follow a consistent pattern:
 1. **Location**: `src/domains/<domain-name>/`
 2. **Naming**: PascalCase (e.g., `User.ts`, `Event.ts`, `EventIngredient.ts`)
 3. **Pattern**:
+
    ```typescript
-   import { Model, DataTypes } from 'sequelize';
-   import { getSequelize } from '../../database/config';
+   import { Model, DataTypes } from "sequelize";
+   import { getSequelize } from "../../database/config";
 
    export class ModelName extends Model {
      declare id: number;
@@ -56,13 +57,16 @@ All domain models follow a consistent pattern:
      declare readonly updatedAt: Date;
    }
 
-   ModelName.init({
-     // field definitions
-   }, {
-     sequelize: getSequelize(),
-     tableName: 'table_name',
-     timestamps: true,
-   });
+   ModelName.init(
+     {
+       // field definitions
+     },
+     {
+       sequelize: getSequelize(),
+       tableName: "table_name",
+       timestamps: true,
+     }
+   );
    ```
 
 4. **Validations**: Use Sequelize built-in validators (`notEmpty`, `len`, `unique`, etc.)
@@ -73,6 +77,7 @@ All domain models follow a consistent pattern:
 1. **Location**: `src/routes/`
 2. **Naming**: Descriptive names like `admin.ts`, `auth.ts`
 3. **Pattern**:
+
    - Use Express Router
    - Apply middleware in route definition: `router.get('/path', authenticate, requireAdmin, handler)`
    - Use async handlers with try-catch blocks
@@ -82,30 +87,36 @@ All domain models follow a consistent pattern:
    - Use consistent error message format: `{ error: 'Message' }`
 
 4. **Endpoint Structure**:
+
    ```typescript
-   router.method('/path', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
-     try {
-       // 1. Validate input
-       if (!requiredField) {
-         res.status(400).json({ error: 'Field is required' });
-         return;
-       }
+   router.method(
+     "/path",
+     authenticate,
+     requireAdmin,
+     async (req: Request, res: Response): Promise<void> => {
+       try {
+         // 1. Validate input
+         if (!requiredField) {
+           res.status(400).json({ error: "Field is required" });
+           return;
+         }
 
-       // 2. Check authorization/existence
-       const resource = await Model.findByPk(id);
-       if (!resource) {
-         res.status(404).json({ error: 'Resource not found' });
-         return;
-       }
+         // 2. Check authorization/existence
+         const resource = await Model.findByPk(id);
+         if (!resource) {
+           res.status(404).json({ error: "Resource not found" });
+           return;
+         }
 
-       // 3. Perform operation
-       // 4. Return response
-       res.status(200).json(result);
-     } catch (error) {
-       console.error('Error description:', error);
-       res.status(500).json({ error: 'Internal server error' });
+         // 3. Perform operation
+         // 4. Return response
+         res.status(200).json(result);
+       } catch (error) {
+         console.error("Error description:", error);
+         res.status(500).json({ error: "Internal server error" });
+       }
      }
-   });
+   );
    ```
 
 ### Authentication & Authorization
@@ -119,14 +130,16 @@ All domain models follow a consistent pattern:
 
 1. **Test-Driven Development (TDD)**: Write tests before implementation (Red-Green-Refactor)
 2. **Test Organization**:
+
    - Model tests in `tests/models/`
    - Route tests in `tests/routes/`
    - Middleware tests in `tests/middleware/`
    - Utility tests in `tests/utils/`
 
 3. **Test Structure**:
+
    ```typescript
-   describe('Feature', () => {
+   describe("Feature", () => {
      beforeAll(async () => {
        // Setup (sync database)
      });
@@ -139,8 +152,8 @@ All domain models follow a consistent pattern:
        // Cleanup (close database)
      });
 
-     describe('Specific Behavior', () => {
-       it('should do something', async () => {
+     describe("Specific Behavior", () => {
+       it("should do something", async () => {
          // Arrange, Act, Assert
        });
      });
@@ -190,21 +203,25 @@ All domain models follow a consistent pattern:
 Current API structure:
 
 - **Authentication**: `/api/auth/*`
+
   - POST `/register` - User registration
   - POST `/login` - User login
   - POST `/logout` - User logout
   - GET `/me` - Get current user
 
 - **Admin Users**: `/api/admin/users`
+
   - GET `/` - List all users (admin only)
   - PATCH `/:id` - Update user admin status (admin only)
 
 - **Admin Ingredients**: `/api/admin/ingredients`
+
   - GET `/` - List all ingredients (admin only)
   - POST `/` - Create ingredient (admin only)
   - DELETE `/:id` - Delete ingredient (admin only)
 
 - **Admin Events**: `/api/admin/events`
+
   - GET `/` - List all events (admin only)
   - POST `/` - Create event (admin only)
   - DELETE `/:id` - Delete event (admin only)
