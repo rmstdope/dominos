@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import UsersPage from './pages/UsersPage';
+import IngredientsPage from './pages/IngredientsPage';
 
 function LoginPage() {
   return (
@@ -20,15 +21,6 @@ function DashboardPage() {
     <div>
       <h1>Dashboard</h1>
       <p>Welcome to the Pizza Admin Dashboard</p>
-    </div>
-  );
-}
-
-function IngredientsPage() {
-  return (
-    <div>
-      <h1>Ingredients Management</h1>
-      <p>Ingredients management will be implemented in Issue #9</p>
     </div>
   );
 }
