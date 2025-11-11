@@ -10,12 +10,30 @@ The project uses GitHub Actions for automated continuous integration. On every p
 
 - **Backend Lint**: ESLint checks for code quality (< 5 min)
 - **Backend Test**: Full test suite with coverage reporting (< 5 min)
+  - **Coverage Threshold**: Minimum 80% coverage required (branches, functions, lines, statements)
 - **Backend Build**: TypeScript compilation verification (< 5 min)
 - **Backend Docker**: Docker image build and health check (< 5 min)
+- **Backend Security**: npm audit for vulnerability scanning (< 5 min)
 
 **Total CI time**: Under 10 minutes (typically 3-5 minutes)
 
 The pipeline enforces a "stop the line" mentality - all jobs must pass for the build to succeed. Failed builds must be fixed immediately before new work proceeds.
+
+### Quality Gates & Security
+
+**Automated Quality Enforcement:**
+
+- **Test Coverage**: Minimum 80% coverage required on all metrics
+- **Security Scanning**: npm audit blocks builds with high/critical vulnerabilities
+- **Static Analysis**: CodeQL scans for security issues and code quality problems (runs weekly and on PRs)
+- **Dependency Updates**: Dependabot automatically creates PRs for security updates and dependency upgrades
+
+**Security Features:**
+
+- Automated vulnerability scanning on every commit
+- Weekly CodeQL security analysis
+- Grouped dependency updates to reduce PR noise
+- Automatic security patch notifications
 
 ### Continuous Deployment
 
@@ -30,6 +48,7 @@ When CI passes on the `main` branch, the CD pipeline automatically:
 4. **Creates deployment summary** with pull commands
 
 **Published Images:**
+
 - `ghcr.io/rmstdope/dominos/backend:latest`
 - `ghcr.io/rmstdope/dominos/backend:main-<sha>`
 
