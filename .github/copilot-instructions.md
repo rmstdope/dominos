@@ -38,6 +38,8 @@ All code changes must be reviewed by at least one other person (the navigator) b
 
 When starting to work on a new issue, always create a new branch from main named after the issue number and a short description of the work to be done, e.g., `42-add-user-authentication`. Once the work is completed and reviewed, merge the branch back into main using a pull request. This approach helps to keep the main codebase stable and allows for isolated development of features or fixes.
 
+When a PR is merged, the issue should be closed and the branch deleted to keep the repository clean and organized.
+
 ### Continuous Integration and Deployment (CI/CD)
 
 Implement a CI/CD pipeline to automate the building, testing, and deployment of the application. This ensures that code changes are integrated smoothly and that the application can be deployed quickly and reliably.
