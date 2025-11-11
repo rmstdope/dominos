@@ -56,6 +56,10 @@ When the CI pipeline fails, it must be immediately visible and addressed as a to
 
 Everything required to rebuild and deploy the application must be stored in version control. This includes build scripts, configuration files, infrastructure definitions, deployment scripts, and environment settings. The repository should be the single source of truth—anyone should be able to check out the code and have everything needed to build, test, and deploy the application.
 
+## Issue Tracking
+
+All work on the application should be tracked using GitHub's issue tracking system. Each feature, bug fix, or improvement should have a corresponding issue that describes the work to be done. This ensures transparency, accountability, and helps in prioritizing tasks effectively. For implementing new features, issues should be created per feature, but broken down into smaller sub-issues to keep them manageable. When starting to work on an issue, it should be assigned to the developer working on it. Once the work is completed and merged, the issue should be closed to reflect its completion.
+
 ## Code and Architecture Standards
 
 ### High Cohesion
