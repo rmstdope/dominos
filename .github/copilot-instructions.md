@@ -34,6 +34,10 @@ Always prefer simple design solutions. Avoid over-engineering. If unsure, ask th
 
 All code changes must be reviewed by at least one other person (the navigator) before being merged into the main codebase. This practice helps to catch potential issues, improve code quality, and ensure adherence to coding standards and best practices. No automatic merging of code changes without review is allowed.
 
+### Issues and branches
+
+When starting to work on a new issue, always create a new branch from main named after the issue number and a short description of the work to be done, e.g., `42-add-user-authentication`. Once the work is completed and reviewed, merge the branch back into main using a pull request. This approach helps to keep the main codebase stable and allows for isolated development of features or fixes.
+
 ### Continuous Integration and Deployment (CI/CD)
 
 Implement a CI/CD pipeline to automate the building, testing, and deployment of the application. This ensures that code changes are integrated smoothly and that the application can be deployed quickly and reliably.

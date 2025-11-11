@@ -4,6 +4,7 @@ import '@radix-ui/themes/styles.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
+import UsersPage from './pages/UsersPage';
 
 function LoginPage() {
   return (
@@ -19,15 +20,6 @@ function DashboardPage() {
     <div>
       <h1>Dashboard</h1>
       <p>Welcome to the Pizza Admin Dashboard</p>
-    </div>
-  );
-}
-
-function UsersPage() {
-  return (
-    <div>
-      <h1>Users Management</h1>
-      <p>User management will be implemented in Issue #8</p>
     </div>
   );
 }
