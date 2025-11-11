@@ -3,6 +3,7 @@ import { authenticate, requireAdmin } from '../middleware/auth';
 import { User } from '../domains/users/User';
 import { Ingredient } from '../domains/ingredients/Ingredient';
 import { Event as EventModel } from '../domains/events/Event';
+import { EventIngredient } from '../domains/events/EventIngredient';
 
 const router = Router();
 
@@ -212,6 +213,131 @@ router.delete('/events/:id', authenticate, requireAdmin, async (req: Request, re
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/events/:eventId/ingredients - List ingredients for an event
+router.get('/events/:eventId/ingredients', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.eventId, 10);
+
+    // Check if event exists
+    const event = await EventModel.findByPk(eventId);
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    // Get all ingredients for this event
+    const eventIngredients = await EventIngredient.findAll({
+      where: { eventId },
+      attributes: ['ingredientId'],
+    });
+
+    const ingredientIds = eventIngredients.map((ei) => ei.ingredientId);
+
+    if (ingredientIds.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const ingredients = await Ingredient.findAll({
+      where: { id: ingredientIds },
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
+    });
+
+    res.json(ingredients);
+  } catch (error) {
+    console.error('Error fetching event ingredients:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/events/:eventId/ingredients - Add ingredient to event
+router.post('/events/:eventId/ingredients', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.eventId, 10);
+    const { ingredientId } = req.body;
+
+    // Validate ingredientId is provided
+    if (!ingredientId) {
+      res.status(400).json({ error: 'ingredientId is required' });
+      return;
+    }
+
+    // Check if event exists
+    const event = await EventModel.findByPk(eventId);
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    // Check if ingredient exists
+    const ingredient = await Ingredient.findByPk(ingredientId);
+    if (!ingredient) {
+      res.status(404).json({ error: 'Ingredient not found' });
+      return;
+    }
+
+    // Check if association already exists
+    const existing = await EventIngredient.findOne({
+      where: { eventId, ingredientId },
+    });
+
+    if (existing) {
+      res.status(409).json({ error: 'Ingredient already added to this event' });
+      return;
+    }
+
+    // Create association
+    const eventIngredient = await EventIngredient.create({
+      eventId,
+      ingredientId,
+    });
+
+    res.status(201).json(eventIngredient);
+  } catch (error) {
+    console.error('Error adding ingredient to event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/events/:eventId/ingredients/:ingredientId - Remove ingredient from event
+router.delete('/events/:eventId/ingredients/:ingredientId', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.eventId, 10);
+    const ingredientId = parseInt(req.params.ingredientId, 10);
+
+    // Check if event exists
+    const event = await EventModel.findByPk(eventId);
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    // Check if ingredient exists
+    const ingredient = await Ingredient.findByPk(ingredientId);
+    if (!ingredient) {
+      res.status(404).json({ error: 'Ingredient not found' });
+      return;
+    }
+
+    // Find the association
+    const eventIngredient = await EventIngredient.findOne({
+      where: { eventId, ingredientId },
+    });
+
+    if (!eventIngredient) {
+      res.status(404).json({ error: 'Ingredient not found in this event' });
+      return;
+    }
+
+    await eventIngredient.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error removing ingredient from event:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

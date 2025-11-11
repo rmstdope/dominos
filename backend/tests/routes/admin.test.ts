@@ -5,6 +5,7 @@ import { getSequelize, closeDatabase } from '../../src/database/config';
 import { User } from '../../src/domains/users/User';
 import { Ingredient } from '../../src/domains/ingredients/Ingredient';
 import { Event as EventModel } from '../../src/domains/events/Event';
+import { EventIngredient } from '../../src/domains/events/EventIngredient';
 import { generateToken } from '../../src/utils/jwt';
 
 describe('Admin Routes', () => {
@@ -36,6 +37,7 @@ describe('Admin Routes', () => {
   });
 
   beforeEach(async () => {
+    await EventIngredient.destroy({ where: {} });
     await User.destroy({ where: {} });
     await Ingredient.destroy({ where: {} });
     await EventModel.destroy({ where: {} });
@@ -648,6 +650,318 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Event not found');
+    });
+  });
+
+  describe('GET /api/admin/events/:eventId/ingredients', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).get('/api/admin/events/1/ingredients');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .get('/api/admin/events/1/ingredients')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should return 404 if event not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .get('/api/admin/events/999/ingredients')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
+    });
+
+    it('should return empty array if event has no ingredients', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const response = await request(app)
+        .get(`/api/admin/events/${event.id}/ingredients`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
+    });
+
+    it('should return all ingredients for an event', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const ingredient1 = await Ingredient.create({ name: 'Pepperoni' });
+      const ingredient2 = await Ingredient.create({ name: 'Mushrooms' });
+
+      await EventIngredient.create({
+        eventId: event.id,
+        ingredientId: ingredient1.id,
+      });
+
+      await EventIngredient.create({
+        eventId: event.id,
+        ingredientId: ingredient2.id,
+      });
+
+      const response = await request(app)
+        .get(`/api/admin/events/${event.id}/ingredients`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(2);
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: ingredient1.id,
+            name: 'Pepperoni',
+          }),
+          expect.objectContaining({
+            id: ingredient2.id,
+            name: 'Mushrooms',
+          }),
+        ])
+      );
+    });
+  });
+
+  describe('POST /api/admin/events/:eventId/ingredients', () => {
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .post('/api/admin/events/1/ingredients')
+        .send({ ingredientId: 1 });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .post('/api/admin/events/1/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ ingredientId: 1 });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should return 404 if event not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/events/999/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ ingredientId: 1 });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
+    });
+
+    it('should return 404 if ingredient not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const response = await request(app)
+        .post(`/api/admin/events/${event.id}/ingredients`)
+        .set('Cookie', [`token=${token}`])
+        .send({ ingredientId: 999 });
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Ingredient not found');
+    });
+
+    it('should add ingredient to event', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const ingredient = await Ingredient.create({ name: 'Pepperoni' });
+
+      const response = await request(app)
+        .post(`/api/admin/events/${event.id}/ingredients`)
+        .set('Cookie', [`token=${token}`])
+        .send({ ingredientId: ingredient.id });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toMatchObject({
+        eventId: event.id,
+        ingredientId: ingredient.id,
+      });
+
+      // Verify in database
+      const eventIngredient = await EventIngredient.findOne({
+        where: { eventId: event.id, ingredientId: ingredient.id },
+      });
+      expect(eventIngredient).toBeDefined();
+    });
+
+    it('should return 409 if ingredient already added to event', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const ingredient = await Ingredient.create({ name: 'Pepperoni' });
+
+      await EventIngredient.create({
+        eventId: event.id,
+        ingredientId: ingredient.id,
+      });
+
+      const response = await request(app)
+        .post(`/api/admin/events/${event.id}/ingredients`)
+        .set('Cookie', [`token=${token}`])
+        .send({ ingredientId: ingredient.id });
+
+      expect(response.status).toBe(409);
+      expect(response.body.error).toBe('Ingredient already added to this event');
+    });
+
+    it('should require ingredientId field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const response = await request(app)
+        .post(`/api/admin/events/${event.id}/ingredients`)
+        .set('Cookie', [`token=${token}`])
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('ingredientId is required');
+    });
+  });
+
+  describe('DELETE /api/admin/events/:eventId/ingredients/:ingredientId', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).delete('/api/admin/events/1/ingredients/1');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .delete('/api/admin/events/1/ingredients/1')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should return 404 if event not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .delete('/api/admin/events/999/ingredients/1')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
+    });
+
+    it('should return 404 if ingredient not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const response = await request(app)
+        .delete(`/api/admin/events/${event.id}/ingredients/999`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Ingredient not found');
+    });
+
+    it('should return 404 if ingredient not associated with event', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const ingredient = await Ingredient.create({ name: 'Pepperoni' });
+
+      const response = await request(app)
+        .delete(`/api/admin/events/${event.id}/ingredients/${ingredient.id}`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Ingredient not found in this event');
+    });
+
+    it('should remove ingredient from event', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const event = await EventModel.create({
+        name: 'Pizza Friday',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const ingredient = await Ingredient.create({ name: 'Pepperoni' });
+
+      await EventIngredient.create({
+        eventId: event.id,
+        ingredientId: ingredient.id,
+      });
+
+      const response = await request(app)
+        .delete(`/api/admin/events/${event.id}/ingredients/${ingredient.id}`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      // Verify removed from database
+      const eventIngredient = await EventIngredient.findOne({
+        where: { eventId: event.id, ingredientId: ingredient.id },
+      });
+      expect(eventIngredient).toBeNull();
     });
   });
 });
