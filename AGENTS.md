@@ -114,7 +114,7 @@ The application to be developed is a full-stack TypeScript web application for m
 
 The backend will be built using Node.js with Express.js framework. It will provide RESTful API endpoints for managing pizza topping preferences, including endpoints for retrieving available toppings, saving user preferences, and fetching aggregated topping data.
 
-The backend will use a PostgreSQL database to store user preferences and topping information. Sequelize ORM will be used for database interactions, ensuring a clean and maintainable data access layer.
+The backend will use a SQLite database to store user preferences and topping information. Sequelize ORM will be used for database interactions, ensuring a clean and maintainable data access layer.
 
 For administrator users, it shall be possible to access administrator functions in the backend, like adding and removing users, available pizza toppings, etc.
 
