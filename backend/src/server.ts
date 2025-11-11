@@ -1,5 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/auth';
 
 export const createApp = (): Express => {
   const app = express();
@@ -7,6 +9,10 @@ export const createApp = (): Express => {
   // Middleware
   app.use(cors());
   app.use(express.json());
+  app.use(cookieParser());
+
+  // Routes
+  app.use('/api/auth', authRoutes);
 
   // Health check endpoint
   app.get('/health', (_req: Request, res: Response) => {
