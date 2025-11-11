@@ -17,7 +17,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
   try {
     return await bcrypt.compare(password, hash);
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

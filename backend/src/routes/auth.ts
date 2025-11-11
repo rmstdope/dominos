@@ -114,7 +114,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     };
 
     res.status(200).json({ user: userResponse });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -146,7 +146,7 @@ router.get('/me', authenticate, async (req: Request, res: Response): Promise<voi
     };
 
     res.status(200).json({ user: userResponse });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });

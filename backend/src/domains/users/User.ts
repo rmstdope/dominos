@@ -11,9 +11,9 @@ interface UserAttributes {
   updatedAt?: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'isAdmin'> {}
+type UserCreationAttributes = Optional<UserAttributes, 'id' | 'isAdmin'>;
 
-export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+export class User extends Model<UserAttributes, UserCreationAttributes> {
   declare id: number;
   declare username: string;
   declare email: string;

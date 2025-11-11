@@ -8,9 +8,9 @@ interface IngredientAttributes {
   updatedAt?: Date;
 }
 
-interface IngredientCreationAttributes extends Optional<IngredientAttributes, 'id'> {}
+type IngredientCreationAttributes = Optional<IngredientAttributes, 'id'>;
 
-export class Ingredient extends Model<IngredientAttributes, IngredientCreationAttributes> implements IngredientAttributes {
+export class Ingredient extends Model<IngredientAttributes, IngredientCreationAttributes> {
   declare id: number;
   declare name: string;
 
