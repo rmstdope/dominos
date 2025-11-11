@@ -111,12 +111,29 @@ router.post('/ingredients', authenticate, requireAdmin, async (req: Request, res
     // Create new ingredient
     const ingredient = await Ingredient.create({ name: trimmedName });
 
-    res.status(201).json({
-      id: ingredient.id,
-      name: ingredient.name,
-    });
+    res.status(201).json(ingredient);
   } catch (error) {
     console.error('Error creating ingredient:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/ingredients/:id - Delete an ingredient
+router.delete('/ingredients/:id', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const ingredientId = parseInt(req.params.id, 10);
+
+    const ingredient = await Ingredient.findByPk(ingredientId);
+
+    if (!ingredient) {
+      res.status(404).json({ error: 'Ingredient not found' });
+      return;
+    }
+
+    await ingredient.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting ingredient:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

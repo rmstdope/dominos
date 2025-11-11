@@ -391,4 +391,51 @@ describe('Admin Routes', () => {
       expect(response.body.error).toBe('Name must be between 1 and 100 characters');
     });
   });
+
+  describe('DELETE /api/admin/ingredients/:id', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).delete('/api/admin/ingredients/1');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .delete('/api/admin/ingredients/1')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should delete an ingredient', async () => {
+      const { token } = await createUserWithToken(true);
+      const ingredient = await Ingredient.create({ name: 'Pepperoni' });
+
+      const response = await request(app)
+        .delete(`/api/admin/ingredients/${ingredient.id}`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      // Verify deleted from database
+      const deletedIngredient = await Ingredient.findByPk(ingredient.id);
+      expect(deletedIngredient).toBeNull();
+    });
+
+    it('should return 404 if ingredient not found', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .delete('/api/admin/ingredients/999')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Ingredient not found');
+    });
+  });
 });
