@@ -27,7 +27,7 @@ describe('App', () => {
     
     // Should redirect to login page when accessing protected routes
     await waitFor(() => {
-      expect(screen.getByText(/Login Page/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     });
   });
 });
