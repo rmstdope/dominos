@@ -38,10 +38,6 @@ All code changes must be reviewed by at least one other person (the navigator) b
 
 Implement a CI/CD pipeline to automate the building, testing, and deployment of the application. This ensures that code changes are integrated smoothly and that the application can be deployed quickly and reliably.
 
-### Continuous Integration and Deployment (CI/CD)
-
-Implement a CI/CD pipeline to automate the building, testing, and deployment of the application. This ensures that code changes are integrated smoothly and that the application can be deployed quickly and reliably.
-
 #### Automate Everything
 
 The entire release process must be automated—from building the application to running tests and deploying to production. No manual steps should be required to release the software. This automation reduces human error, ensures consistency, and allows for frequent, reliable releases.

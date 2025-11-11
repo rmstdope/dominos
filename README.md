@@ -26,3 +26,63 @@ npm run lint        # Run linting
 npm test           # Run tests
 npm run build      # Verify build
 ```
+
+## Docker Deployment
+
+The application is fully containerized for consistent deployment across environments.
+
+### Production Deployment
+
+Build and run the application with Docker Compose:
+
+```bash
+# Build and start the backend
+docker-compose up -d
+
+# View logs
+docker-compose logs -f backend
+
+# Stop the application
+docker-compose down
+```
+
+The backend will be available at `http://localhost:3000`.
+
+### Environment Variables
+
+Configure the application using environment variables:
+
+- `JWT_SECRET`: Secret key for JWT token signing (required in production)
+- `PORT`: Port number (default: 3000)
+- `NODE_ENV`: Environment mode (development/production)
+- `DATABASE_PATH`: SQLite database file path
+
+Create a `.env` file in the project root:
+
+```env
+JWT_SECRET=your-secure-secret-key
+PORT=3000
+NODE_ENV=production
+```
+
+### Development with Docker
+
+For development with hot reload:
+
+```bash
+# Start development container
+docker-compose --profile dev up backend-dev
+
+# Run tests in container
+docker-compose exec backend npm test
+```
+
+### Manual Docker Build
+
+Build the backend image directly:
+
+```bash
+cd backend
+docker build -t dominos-backend .
+docker run -p 3000:3000 -e JWT_SECRET=secret dominos-backend
+```
