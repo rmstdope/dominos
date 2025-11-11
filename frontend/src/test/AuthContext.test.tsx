@@ -31,7 +31,7 @@ describe('AuthContext', () => {
         Promise.resolve({
           ok: false,
         } as Response)
-      );
+      ) as typeof window.fetch;
 
       render(
         <AuthProvider>

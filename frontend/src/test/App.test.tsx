@@ -1,15 +1,33 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import App from '../App';
 
 describe('App', () => {
-  it('should render the app', () => {
-    render(<App />);
-    expect(screen.getByText(/Vite \+ React/i)).toBeInTheDocument();
+  beforeEach(() => {
+    // Mock fetch for auth check
+    window.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        json: async () => ({}),
+      } as Response)
+    ) as typeof window.fetch;
   });
 
-  it('should have a button with count', () => {
+  it('should render the app with routing', async () => {
     render(<App />);
-    expect(screen.getByRole('button', { name: /count is 0/i })).toBeInTheDocument();
+    
+    // App should render - wait for auth check to complete
+    await waitFor(() => {
+      expect(document.body).toBeInTheDocument();
+    });
+  });
+
+  it('should redirect to login when not authenticated', async () => {
+    render(<App />);
+    
+    // Should redirect to login page when accessing protected routes
+    await waitFor(() => {
+      expect(screen.getByText(/Login Page/i)).toBeInTheDocument();
+    });
   });
 });

@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
+// AuthContext exports both component (AuthProvider) and hook (useAuth) - intentional pattern
+/* eslint-disable react-refresh/only-export-components */
+
 interface User {
   id: number;
   username: string;
@@ -39,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const data = await response.json();
         setUser(data.user);
       }
-    } catch (error) {
+    } catch (_error) {
       // No existing session
       setUser(null);
     } finally {

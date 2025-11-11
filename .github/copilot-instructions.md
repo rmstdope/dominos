@@ -20,7 +20,7 @@ In the development process, when appropriate, the application should be built us
 2. **Green**: Write the minimum amount of code necessary to make the test pass.
 3. **Refactor**: Clean up the code while ensuring that all tests still pass. This approach helps to ensure that the code is reliable, maintainable, and meets the specified requirements from the outset.
 
-Be sure to let the navigator do a review of the code after each step before proceeding to the next step.
+After each of these three steps, you need to pause and let the navigator do a review of the code and approve moving on to the next step.
 
 ### Collaboration
 

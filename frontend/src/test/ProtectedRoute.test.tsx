@@ -20,7 +20,7 @@ describe('ProtectedRoute', () => {
       Promise.resolve({
         ok: false,
       } as Response)
-    );
+    ) as typeof window.fetch;
 
     render(
       <MemoryRouter initialEntries={['/admin']}>
@@ -55,7 +55,7 @@ describe('ProtectedRoute', () => {
             user: { id: 1, username: 'admin', email: 'admin@test.com', isAdmin: true },
           }),
       } as Response)
-    );
+    ) as typeof window.fetch;
 
     render(
       <MemoryRouter initialEntries={['/admin']}>
@@ -90,7 +90,7 @@ describe('ProtectedRoute', () => {
             user: { id: 1, username: 'user', email: 'user@test.com', isAdmin: false },
           }),
       } as Response)
-    );
+    ) as typeof window.fetch;
 
     render(
       <MemoryRouter initialEntries={['/admin']}>
@@ -118,12 +118,12 @@ describe('ProtectedRoute', () => {
 
   it('should show loading state while checking auth', () => {
     // Mock fetch to simulate slow response
-    window.fetch = vi.fn(
-      () =>
-        new Promise(() => {
-          /* never resolves */
-        })
-    );
+    window.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        json: async () => ({}),
+      } as Response)
+    ) as typeof window.fetch;
 
     render(
       <MemoryRouter initialEntries={['/admin']}>

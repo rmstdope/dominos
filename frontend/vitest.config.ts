@@ -18,7 +18,7 @@ export default defineConfig({
         '**/main.tsx',
         '**/*.css',
         '**/*.svg',
-        'src/App.tsx', // Will be replaced with admin dashboard
+        'src/App.tsx', // Main routing configuration - tested via integration
       ],
       thresholds: {
         branches: 80,

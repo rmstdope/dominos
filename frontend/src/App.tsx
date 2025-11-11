@@ -1,35 +1,108 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Theme } from '@radix-ui/themes';
+import '@radix-ui/themes/styles.css';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminLayout } from './components/AdminLayout';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function LoginPage() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div style={{ padding: '2rem' }}>
+      <h1>Login Page</h1>
+      <p>Login functionality will be implemented in a future issue</p>
+    </div>
+  );
 }
 
-export default App
+function DashboardPage() {
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome to the Pizza Admin Dashboard</p>
+    </div>
+  );
+}
+
+function UsersPage() {
+  return (
+    <div>
+      <h1>Users Management</h1>
+      <p>User management will be implemented in Issue #8</p>
+    </div>
+  );
+}
+
+function IngredientsPage() {
+  return (
+    <div>
+      <h1>Ingredients Management</h1>
+      <p>Ingredients management will be implemented in Issue #9</p>
+    </div>
+  );
+}
+
+function EventsPage() {
+  return (
+    <div>
+      <h1>Events Management</h1>
+      <p>Events management will be implemented in Issue #10</p>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Theme>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <DashboardPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <UsersPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/ingredients"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <IngredientsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/events"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <EventsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/admin" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </Theme>
+  );
+}
+
+export default App;
