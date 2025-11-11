@@ -58,7 +58,7 @@ Everything required to rebuild and deploy the application must be stored in vers
 
 ## Issue Tracking
 
-All work on the application should be tracked using GitHub's issue tracking system. Each feature, bug fix, or improvement should have a corresponding issue that describes the work to be done. This ensures transparency, accountability, and helps in prioritizing tasks effectively. For implementing new features, issues should be created per feature, but broken down into smaller sub-issues to keep them manageable. When starting to work on an issue, it should be assigned to the developer working on it. Once the work is completed and merged, the issue should be closed to reflect its completion.
+All work on the application should be tracked using GitHub's issue tracking system. Each feature, bug fix, or improvement should have a corresponding issue that describes the work to be done. This ensures transparency, accountability, and helps in prioritizing tasks effectively. For implementing new features, issues should be created per feature, but broken down into smaller sub-issues to keep them manageable. When starting to work on an issue, it should be assigned to the developer working on it. Once the work is completed and merged, the issue should be closed to reflect its completion. When code is committed, the commit message should reference the relevant issue number to maintain a clear link between code changes and tracked work.
 
 ## Code and Architecture Standards
 

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { User } from '../domains/users/User';
+import { Ingredient } from '../domains/ingredients/Ingredient';
 
 const router = Router();
 
@@ -57,6 +58,21 @@ router.patch('/users/:id', authenticate, requireAdmin, async (req: Request, res:
     });
   } catch (error) {
     console.error('Error updating user admin status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/ingredients - List all ingredients
+router.get('/ingredients', authenticate, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const ingredients = await Ingredient.findAll({
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
+    });
+
+    res.json(ingredients);
+  } catch (error) {
+    console.error('Error fetching ingredients:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

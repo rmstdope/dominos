@@ -3,6 +3,7 @@ import { Application } from 'express';
 import { createApp } from '../../src/server';
 import { getSequelize, closeDatabase } from '../../src/database/config';
 import { User } from '../../src/domains/users/User';
+import { Ingredient } from '../../src/domains/ingredients/Ingredient';
 import { generateToken } from '../../src/utils/jwt';
 
 describe('Admin Routes', () => {
@@ -23,6 +24,7 @@ describe('Admin Routes', () => {
 
   beforeEach(async () => {
     await User.destroy({ where: {} });
+    await Ingredient.destroy({ where: {} });
   });
 
   describe('GET /api/admin/users', () => {
@@ -269,6 +271,86 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('isAdmin field is required');
+    });
+  });
+
+  describe('GET /api/admin/ingredients', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).get('/api/admin/ingredients');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const user = await User.create({
+        username: 'regularuser',
+        email: 'regular@example.com',
+        password: 'hashedpassword',
+        isAdmin: false,
+      });
+
+      const token = generateToken({ userId: user.id, username: user.username, isAdmin: user.isAdmin });
+      const response = await request(app)
+        .get('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should return empty array when no ingredients exist', async () => {
+      const admin = await User.create({
+        username: 'admin',
+        email: 'admin@example.com',
+        password: 'hashedpassword',
+        isAdmin: true,
+      });
+
+      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
+      const response = await request(app)
+        .get('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
+    });
+
+    it('should return all ingredients', async () => {
+      const admin = await User.create({
+        username: 'admin',
+        email: 'admin@example.com',
+        password: 'hashedpassword',
+        isAdmin: true,
+      });
+
+      await Ingredient.create({ name: 'Pepperoni' });
+      await Ingredient.create({ name: 'Mushrooms' });
+      await Ingredient.create({ name: 'Olives' });
+
+      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
+      const response = await request(app)
+        .get('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveLength(3);
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(Number),
+            name: 'Pepperoni',
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            name: 'Mushrooms',
+          }),
+          expect.objectContaining({
+            id: expect.any(Number),
+            name: 'Olives',
+          }),
+        ])
+      );
     });
   });
 });
