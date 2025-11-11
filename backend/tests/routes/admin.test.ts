@@ -9,6 +9,18 @@ import { generateToken } from '../../src/utils/jwt';
 describe('Admin Routes', () => {
   let app: Application;
 
+  // Helper function to create a user and return their token
+  const createUserWithToken = async (isAdmin: boolean): Promise<{ user: User; token: string }> => {
+    const user = await User.create({
+      username: isAdmin ? 'admin' : 'regularuser',
+      email: isAdmin ? 'admin@example.com' : 'regular@example.com',
+      password: 'hashedpassword',
+      isAdmin,
+    });
+    const token = generateToken({ userId: user.id, username: user.username, isAdmin: user.isAdmin });
+    return { user, token };
+  };
+
   beforeAll(async () => {
     process.env.JWT_SECRET = 'test-secret-key';
     process.env.JWT_EXPIRES_IN = '1h';
@@ -36,14 +48,7 @@ describe('Admin Routes', () => {
     });
 
     it('should require admin privileges', async () => {
-      const user = await User.create({
-        username: 'regularuser',
-        email: 'regular@example.com',
-        password: 'hashedpassword',
-        isAdmin: false,
-      });
-
-      const token = generateToken({ userId: user.id, username: user.username, isAdmin: user.isAdmin });
+      const { token } = await createUserWithToken(false);
       const response = await request(app)
         .get('/api/admin/users')
         .set('Cookie', [`token=${token}`]);
@@ -53,12 +58,7 @@ describe('Admin Routes', () => {
     });
 
     it('should return all users with their admin status', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+      const { token } = await createUserWithToken(true);
 
       await User.create({
         username: 'user1',
@@ -74,7 +74,6 @@ describe('Admin Routes', () => {
         isAdmin: true,
       });
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .get('/api/admin/users')
         .set('Cookie', [`token=${token}`]);
@@ -119,14 +118,7 @@ describe('Admin Routes', () => {
     });
 
     it('should require admin privileges', async () => {
-      const user = await User.create({
-        username: 'regularuser',
-        email: 'regular@example.com',
-        password: 'hashedpassword',
-        isAdmin: false,
-      });
-
-      const token = generateToken({ userId: user.id, username: user.username, isAdmin: user.isAdmin });
+      const { token } = await createUserWithToken(false);
       const response = await request(app)
         .patch('/api/admin/users/1')
         .set('Cookie', [`token=${token}`])
@@ -137,12 +129,7 @@ describe('Admin Routes', () => {
     });
 
     it('should grant admin privileges to a user', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+      const { token } = await createUserWithToken(true);
 
       const user = await User.create({
         username: 'user1',
@@ -151,7 +138,6 @@ describe('Admin Routes', () => {
         isAdmin: false,
       });
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .patch(`/api/admin/users/${user.id}`)
         .set('Cookie', [`token=${token}`])
@@ -172,12 +158,7 @@ describe('Admin Routes', () => {
     });
 
     it('should revoke admin privileges from a user', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+      const { token } = await createUserWithToken(true);
 
       const user = await User.create({
         username: 'user1',
@@ -186,7 +167,6 @@ describe('Admin Routes', () => {
         isAdmin: true,
       });
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .patch(`/api/admin/users/${user.id}`)
         .set('Cookie', [`token=${token}`])
@@ -205,31 +185,20 @@ describe('Admin Routes', () => {
       expect(updatedUser?.isAdmin).toBe(false);
     });
 
-    it('should return 404 if user not found', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+    it('should return 404 if user is not found', async () => {
+      const { token } = await createUserWithToken(true);
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
-        .patch('/api/admin/users/99999')
+        .patch('/api/admin/users/999')
         .set('Cookie', [`token=${token}`])
-        .send({ isAdmin: true });
+        .send({ isAdmin: false });
 
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('User not found');
     });
 
     it('should validate isAdmin field is boolean', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+      const { token } = await createUserWithToken(true);
 
       const user = await User.create({
         username: 'user1',
@@ -238,7 +207,6 @@ describe('Admin Routes', () => {
         isAdmin: false,
       });
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .patch(`/api/admin/users/${user.id}`)
         .set('Cookie', [`token=${token}`])
@@ -249,12 +217,7 @@ describe('Admin Routes', () => {
     });
 
     it('should require isAdmin field in request body', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+      const { token } = await createUserWithToken(true);
 
       const user = await User.create({
         username: 'user1',
@@ -263,7 +226,6 @@ describe('Admin Routes', () => {
         isAdmin: false,
       });
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .patch(`/api/admin/users/${user.id}`)
         .set('Cookie', [`token=${token}`])
@@ -283,14 +245,8 @@ describe('Admin Routes', () => {
     });
 
     it('should require admin privileges', async () => {
-      const user = await User.create({
-        username: 'regularuser',
-        email: 'regular@example.com',
-        password: 'hashedpassword',
-        isAdmin: false,
-      });
+      const { token } = await createUserWithToken(false);
 
-      const token = generateToken({ userId: user.id, username: user.username, isAdmin: user.isAdmin });
       const response = await request(app)
         .get('/api/admin/ingredients')
         .set('Cookie', [`token=${token}`]);
@@ -299,15 +255,9 @@ describe('Admin Routes', () => {
       expect(response.body.error).toBe('Admin access required');
     });
 
-    it('should return empty array when no ingredients exist', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+    it('should return an empty array if no ingredients exist', async () => {
+      const { token } = await createUserWithToken(true);
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .get('/api/admin/ingredients')
         .set('Cookie', [`token=${token}`]);
@@ -317,18 +267,12 @@ describe('Admin Routes', () => {
     });
 
     it('should return all ingredients', async () => {
-      const admin = await User.create({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'hashedpassword',
-        isAdmin: true,
-      });
+      const { token } = await createUserWithToken(true);
 
       await Ingredient.create({ name: 'Pepperoni' });
       await Ingredient.create({ name: 'Mushrooms' });
       await Ingredient.create({ name: 'Olives' });
 
-      const token = generateToken({ userId: admin.id, username: admin.username, isAdmin: admin.isAdmin });
       const response = await request(app)
         .get('/api/admin/ingredients')
         .set('Cookie', [`token=${token}`]);
@@ -351,6 +295,100 @@ describe('Admin Routes', () => {
           }),
         ])
       );
+    });
+  });
+
+  describe('POST /api/admin/ingredients', () => {
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .send({ name: 'Pepperoni' });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pepperoni' });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should create a new ingredient', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Pepperoni' });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toMatchObject({
+        id: expect.any(Number),
+        name: 'Pepperoni',
+      });
+
+      // Verify in database
+      const ingredient = await Ingredient.findByPk(response.body.id);
+      expect(ingredient).toBeDefined();
+      expect(ingredient?.name).toBe('Pepperoni');
+    });
+
+    it('should reject duplicate ingredient name', async () => {
+      const { token } = await createUserWithToken(true);
+
+      await Ingredient.create({ name: 'Mushrooms' });
+
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: 'Mushrooms' });
+
+      expect(response.status).toBe(409);
+      expect(response.body.error).toBe('Ingredient already exists');
+    });
+
+    it('should require name field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Name is required');
+    });
+
+    it('should reject empty name', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: '   ' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Name cannot be empty');
+    });
+
+    it('should reject name exceeding max length', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const longName = 'a'.repeat(101);
+      const response = await request(app)
+        .post('/api/admin/ingredients')
+        .set('Cookie', [`token=${token}`])
+        .send({ name: longName });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Name must be between 1 and 100 characters');
     });
   });
 });
