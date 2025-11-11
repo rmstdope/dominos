@@ -25,13 +25,11 @@ The pipeline enforces a "stop the line" mentality - all jobs must pass for the b
 
 - **Test Coverage**: Minimum 80% coverage required on all metrics
 - **Security Scanning**: npm audit blocks builds with high/critical vulnerabilities
-- **Static Analysis**: CodeQL scans for security issues and code quality problems (runs weekly and on PRs)
 - **Dependency Updates**: Dependabot automatically creates PRs for security updates and dependency upgrades
 
 **Security Features:**
 
 - Automated vulnerability scanning on every commit
-- Weekly CodeQL security analysis
 - Grouped dependency updates to reduce PR noise
 - Automatic security patch notifications
 
