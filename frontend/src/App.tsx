@@ -6,15 +6,7 @@ import LoginPage from './pages/LoginPage';
 import UsersPage from './pages/UsersPage';
 import IngredientsPage from './pages/IngredientsPage';
 import DashboardPage from './pages/DashboardPage';
-
-function EventsPage() {
-  return (
-    <div>
-      <h1>Events Management</h1>
-      <p>Events management will be implemented in Issue #10</p>
-    </div>
-  );
-}
+import EventsPage from './pages/EventsPage';
 
 function App() {
   return (
