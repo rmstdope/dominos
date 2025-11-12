@@ -57,8 +57,9 @@ describe('AdminLayout', () => {
 
     // Check for main admin navigation links
     expect(screen.getByRole('link', { name: /users/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /ingredients/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^ingredients$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /events/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /event ingredients/i })).toBeInTheDocument();
   });
 
   it('should display user information', async () => {
