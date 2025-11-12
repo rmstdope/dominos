@@ -19,12 +19,15 @@ interface Ingredient {
   name: string;
 }
 
+type PizzaSize = 'Standard' | 'Small';
+
 export default function PizzaOrderPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<Set<number>>(new Set());
+  const [selectedSize, setSelectedSize] = useState<PizzaSize>('Standard');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,6 +152,46 @@ export default function PizzaOrderPage() {
               <MapPin className="h-4 w-4" />
               <span>{event.location}</span>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Select Your Size</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {(['Standard', 'Small'] as PizzaSize[]).map((size) => (
+              <div
+                key={size}
+                className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedSize === size
+                    ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                    : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                }`}
+                onClick={() => setSelectedSize(size)}
+              >
+                <input
+                  type="radio"
+                  id={`size-${size.toLowerCase()}`}
+                  name="pizza-size"
+                  value={size}
+                  checked={selectedSize === size}
+                  onChange={() => setSelectedSize(size)}
+                  className="h-4 w-4 text-green-600"
+                  aria-label={size}
+                />
+                <Label
+                  htmlFor={`size-${size.toLowerCase()}`}
+                  className={`cursor-pointer flex-1 text-sm ${
+                    selectedSize === size ? 'font-semibold text-green-900 dark:text-green-100' : ''
+                  }`}
+                >
+                  {size}
+                </Label>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

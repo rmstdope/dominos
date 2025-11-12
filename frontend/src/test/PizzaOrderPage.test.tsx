@@ -353,4 +353,162 @@ describe('PizzaOrderPage', () => {
       });
     });
   });
+
+  describe('Pizza Size Selection', () => {
+    it('should display available pizza sizes', async () => {
+      const mockFetch = vi.fn((url) => {
+        if (typeof url === 'string' && url.includes('/api/auth/me')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ ingredients: [] }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 123,
+                name: 'Friday Pizza Party',
+                date: '2025-11-15T00:00:00.000Z',
+                location: 'Main Office',
+              }),
+          } as Response);
+        }
+        return Promise.resolve({ ok: false } as Response);
+      }) as typeof window.fetch;
+      window.fetch = mockFetch;
+
+      render(
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/events/123/order"]}>
+            <Routes>
+              <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Standard')).toBeInTheDocument();
+        expect(screen.getByText('Small')).toBeInTheDocument();
+      });
+    });
+
+    it('should have Standard size pre-selected by default', async () => {
+      const mockFetch = vi.fn((url) => {
+        if (typeof url === 'string' && url.includes('/api/auth/me')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ ingredients: [] }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 123,
+                name: 'Friday Pizza Party',
+                date: '2025-11-15T00:00:00.000Z',
+                location: 'Main Office',
+              }),
+          } as Response);
+        }
+        return Promise.resolve({ ok: false } as Response);
+      }) as typeof window.fetch;
+      window.fetch = mockFetch;
+
+      render(
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/events/123/order"]}>
+            <Routes>
+              <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      );
+
+      const standardRadio = await screen.findByRole('radio', { name: /standard/i });
+      expect(standardRadio).toBeChecked();
+    });
+
+    it('should allow selecting a different size', async () => {
+      const mockFetch = vi.fn((url) => {
+        if (typeof url === 'string' && url.includes('/api/auth/me')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ ingredients: [] }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 123,
+                name: 'Friday Pizza Party',
+                date: '2025-11-15T00:00:00.000Z',
+                location: 'Main Office',
+              }),
+          } as Response);
+        }
+        return Promise.resolve({ ok: false } as Response);
+      }) as typeof window.fetch;
+      window.fetch = mockFetch;
+
+      const user = userEvent.setup();
+
+      render(
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/events/123/order"]}>
+            <Routes>
+              <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      );
+
+      const smallRadio = await screen.findByRole('radio', { name: /small/i });
+      const standardRadio = screen.getByRole('radio', { name: /standard/i });
+
+      // Initially standard is selected
+      expect(standardRadio).toBeChecked();
+      expect(smallRadio).not.toBeChecked();
+
+      // Click small
+      await user.click(smallRadio);
+
+      // Now small is selected and standard is not
+      expect(smallRadio).toBeChecked();
+      expect(standardRadio).not.toBeChecked();
+    });
+  });
 });
