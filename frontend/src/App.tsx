@@ -7,6 +7,7 @@ import UsersPage from './pages/UsersPage';
 import IngredientsPage from './pages/IngredientsPage';
 import DashboardPage from './pages/DashboardPage';
 import EventsPage from './pages/EventsPage';
+import EventIngredientsPage from './pages/EventIngredientsPage';
 
 function App() {
   return (
@@ -50,6 +51,16 @@ function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <EventsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/event-ingredients"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <EventIngredientsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
