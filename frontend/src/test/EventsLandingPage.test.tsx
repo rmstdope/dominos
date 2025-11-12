@@ -1,0 +1,149 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import EventsLandingPage from '../pages/EventsLandingPage';
+
+describe('EventsLandingPage', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('should fetch events from API on mount', async () => {
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ 
+          events: [
+            {
+              id: 1,
+              name: 'Friday Pizza Party',
+              date: '2025-11-15T00:00:00.000Z',
+              location: 'Main Office',
+            },
+          ],
+        }),
+      } as Response)
+    );
+    window.fetch = mockFetch;
+
+    render(
+      <MemoryRouter>
+        <EventsLandingPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/api/events');
+    });
+  });
+
+  it('should show loading state while fetching events', () => {
+    window.fetch = vi.fn(() => new Promise(() => {})) as typeof window.fetch; // Never resolves
+
+    render(
+      <MemoryRouter>
+        <EventsLandingPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Loading events...')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /pizza events/i })).toBeInTheDocument();
+  });
+
+  it('should show error state when fetch fails', async () => {
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+      } as Response)
+    );
+    window.fetch = mockFetch;
+
+    render(
+      <MemoryRouter>
+        <EventsLandingPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/failed to load events/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should show empty state when no events exist', async () => {
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ events: [] }),
+      } as Response)
+    );
+    window.fetch = mockFetch;
+
+    render(
+      <MemoryRouter>
+        <EventsLandingPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/no events scheduled/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should display events when fetch succeeds', async () => {
+    const mockFetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          events: [
+            {
+              id: 1,
+              name: 'Friday Pizza Party',
+              date: '2025-11-15T00:00:00.000Z',
+              location: 'Main Office, Conference Room A',
+            },
+            {
+              id: 2,
+              name: 'Sprint Planning Pizza',
+              date: '2025-11-20T00:00:00.000Z',
+              location: 'Remote (Zoom)',
+            },
+          ],
+        }),
+      } as Response)
+    );
+    window.fetch = mockFetch;
+
+    render(
+      <MemoryRouter>
+        <EventsLandingPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Friday Pizza Party')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Friday Pizza Party')).toBeInTheDocument();
+    expect(screen.getByText('Sprint Planning Pizza')).toBeInTheDocument();
+    expect(screen.getByText('Main Office, Conference Room A')).toBeInTheDocument();
+    expect(screen.getByText('Remote (Zoom)')).toBeInTheDocument();
+  });
+
+  it('should handle network errors gracefully', async () => {
+    const mockFetch = vi.fn(() =>
+      Promise.reject(new Error('Network error'))
+    );
+    window.fetch = mockFetch;
+
+    render(
+      <MemoryRouter>
+        <EventsLandingPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/network error/i)).toBeInTheDocument();
+    });
+  });
+});
