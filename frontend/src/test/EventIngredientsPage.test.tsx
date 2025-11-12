@@ -228,6 +228,57 @@ describe('EventIngredientsPage', () => {
       const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
       expect(eventSection).not.toHaveTextContent('Mozzarella');
     });
+
+    it('should display event ingredients in alphabetical order', async () => {
+      const eventIngredients = [
+        { id: 2, name: 'Pepperoni' },
+        { id: 5, name: 'Bell Peppers' },
+        { id: 1, name: 'Mozzarella' },
+        { id: 3, name: 'Mushrooms' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/') && urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for event ingredients to load
+      await waitFor(() => {
+        expect(screen.getByText('Bell Peppers')).toBeInTheDocument();
+      });
+
+      const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+      expect(eventSection).toBeInTheDocument();
+
+      // Get all ingredient names from the event section (they are in li elements)
+      const ingredientItems = eventSection!.querySelectorAll('li span');
+      const ingredientNames = Array.from(ingredientItems)
+        .map(span => span.textContent?.trim() || '')
+        .filter(name => name && !name.includes('Remove')); // Filter out button text
+
+      // Expected order: Bell Peppers, Mozzarella, Mushrooms, Pepperoni
+      expect(ingredientNames).toEqual(['Bell Peppers', 'Mozzarella', 'Mushrooms', 'Pepperoni']);
+    });
   });
 
   describe('Cycle 3: Display Available Ingredients', () => {

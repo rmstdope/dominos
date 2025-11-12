@@ -24,6 +24,9 @@ export default function EventIngredientsPage() {
   const [eventIngredients, setEventIngredients] = useState<Ingredient[]>([]);
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
 
+  // Sort event ingredients alphabetically
+  const sortedEventIngredients = [...eventIngredients].sort((a, b) => a.name.localeCompare(b.name));
+
   // Compute available ingredients (ingredients not in the event)
   const availableIngredients = allIngredients
     .filter((ingredient) => !eventIngredients.some((ei) => ei.id === ingredient.id))
@@ -218,11 +221,11 @@ export default function EventIngredientsPage() {
                 </CardDescription>
               </CardHeader>
                             <CardContent>
-                {eventIngredients.length === 0 ? (
+                {sortedEventIngredients.length === 0 ? (
                   <p className="text-muted-foreground">No ingredients added to this event yet.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {eventIngredients.map((ingredient) => (
+                    {sortedEventIngredients.map((ingredient) => (
                       <li key={ingredient.id} className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <Pizza className="h-4 w-4" />
@@ -257,11 +260,11 @@ export default function EventIngredientsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-2">
+                <div className="grid gap-1">
                   {availableIngredients.map((ingredient) => (
                     <div
                       key={ingredient.id}
-                      className="flex items-center justify-between p-3 rounded-lg border"
+                      className="flex items-center justify-between p-2 rounded-lg border"
                     >
                       <span>{ingredient.name}</span>
                       <Button
