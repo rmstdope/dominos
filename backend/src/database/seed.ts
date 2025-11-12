@@ -62,6 +62,12 @@ export async function seedDatabase(): Promise<void> {
   ]);
   
   // Create events
+  const pastEvent = await Event.create({
+    name: 'Halloween Pizza Party',
+    date: new Date('2025-10-31'),
+    location: 'Main Office, Conference Room B',
+  });
+
   const event1 = await Event.create({
     name: 'Friday Pizza Party',
     date: new Date('2025-11-15'),
@@ -73,6 +79,13 @@ export async function seedDatabase(): Promise<void> {
     date: new Date('2025-11-20'),
     location: 'Remote (Zoom)',
   });
+
+  // Add ingredients to past event
+  await EventIngredient.bulkCreate([
+    { eventId: pastEvent.id!, ingredientId: ingredients[0].id! }, // Pepperoni
+    { eventId: pastEvent.id!, ingredientId: ingredients[8].id! }, // Pineapple
+    { eventId: pastEvent.id!, ingredientId: ingredients[11].id! }, // Ham
+  ]);
   
   // Add ingredients to first event
   await EventIngredient.bulkCreate([
@@ -96,7 +109,7 @@ export async function seedDatabase(): Promise<void> {
   console.log('User credentials: john / user123, jane / user123, bob / user123');
   console.log('---');
   console.log(`Created ${ingredients.length} ingredients`);
-  console.log(`Created 2 events with topping selections`);
+  console.log(`Created 3 events (1 past, 2 upcoming) with topping selections`);
 }
 
 // Run if called directly

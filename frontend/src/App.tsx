@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
@@ -8,12 +8,14 @@ import IngredientsPage from './pages/IngredientsPage';
 import DashboardPage from './pages/DashboardPage';
 import EventsPage from './pages/EventsPage';
 import EventIngredientsPage from './pages/EventIngredientsPage';
+import EventsLandingPage from './pages/EventsLandingPage';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+            <Route path="/" element={<EventsLandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/admin"
@@ -65,9 +67,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
-          <Route path="/" element={<Navigate to="/admin" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
-}export default App;
+}
+
+export default App;
