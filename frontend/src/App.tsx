@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import EventsPage from './pages/EventsPage';
 import EventIngredientsPage from './pages/EventIngredientsPage';
 import EventsLandingPage from './pages/EventsLandingPage';
+import PizzaOrderPage from './pages/PizzaOrderPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <BrowserRouter>
         <Routes>
             <Route path="/" element={<EventsLandingPage />} />
+            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/admin"
