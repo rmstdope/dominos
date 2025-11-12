@@ -309,12 +309,12 @@ describe('EventIngredientsPage', () => {
 
       renderWithProviders(<EventIngredientsPage />);
 
+      // Wait for ingredients to load
       await waitFor(() => {
-        expect(screen.getByText('Available Ingredients')).toBeInTheDocument();
+        expect(screen.getByText('Mozzarella')).toBeInTheDocument();
       });
 
       // All ingredients should be available
-      expect(screen.getByText('Mozzarella')).toBeInTheDocument();
       expect(screen.getByText('Pepperoni')).toBeInTheDocument();
       expect(screen.getByText('Mushrooms')).toBeInTheDocument();
       expect(screen.getByText('Olives')).toBeInTheDocument();
@@ -376,6 +376,167 @@ describe('EventIngredientsPage', () => {
         const updatedAvailableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
         expect(updatedAvailableSection).toHaveTextContent('Mozzarella');
         expect(updatedAvailableSection).not.toHaveTextContent('Mushrooms');
+      });
+    });
+  });
+
+  describe('Cycle 4: Add Ingredient to Event', () => {
+    it('should display add button on each available ingredient', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/') && urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for available ingredients to load
+      await waitFor(() => {
+        expect(screen.getByText('Pepperoni')).toBeInTheDocument();
+      });
+
+      // Should have add buttons on available ingredients
+      const availableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+      expect(availableSection).toBeInTheDocument();
+      
+      // Get all buttons within the available section
+      const buttons = availableSection?.querySelectorAll('button');
+      expect(buttons?.length).toBeGreaterThan(0);
+    });
+
+    it('should add ingredient to event when add button is clicked', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+      ];
+
+      let postCalled = false;
+
+      window.fetch = vi.fn((url: RequestInfo | URL, options?: RequestInit) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/1/ingredients')) {
+          if (options?.method === 'POST') {
+            postCalled = true;
+            return Promise.resolve({
+              ok: true,
+              json: async () => ({}),
+            } as Response);
+          }
+          // GET request
+          return Promise.resolve({
+            ok: true,
+            json: async () => postCalled ? [...eventIngredients, { id: 2, name: 'Pepperoni' }] : eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      const user = userEvent.setup();
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for page to load
+      await waitFor(() => {
+        expect(screen.getByText('Pepperoni')).toBeInTheDocument();
+      });
+
+      // Find and click the add button for Pepperoni
+      const addButtons = screen.getAllByRole('button', { name: /add/i });
+      await user.click(addButtons[0]);
+
+      // Pepperoni should now be in event ingredients
+      await waitFor(() => {
+        const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+        expect(eventSection).toHaveTextContent('Pepperoni');
+      });
+
+      // Pepperoni should no longer be in available ingredients
+      await waitFor(() => {
+        const updatedAvailableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+        expect(updatedAvailableSection).not.toHaveTextContent('Pepperoni');
+      });
+    });
+
+    it('should show error if adding ingredient fails', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL, options?: RequestInit) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/1/ingredients')) {
+          if (options?.method === 'POST') {
+            return Promise.resolve({
+              ok: false,
+              json: async () => ({}),
+            } as Response);
+          }
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      const user = userEvent.setup();
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for page to load
+      await waitFor(() => {
+        expect(screen.getByText('Pepperoni')).toBeInTheDocument();
+      });
+
+      // Click add button
+      const addButtons = screen.getAllByRole('button', { name: /add/i });
+      await user.click(addButtons[0]);
+
+      // Should show error message
+      await waitFor(() => {
+        expect(screen.getByText(/failed to add ingredient/i)).toBeInTheDocument();
       });
     });
   });

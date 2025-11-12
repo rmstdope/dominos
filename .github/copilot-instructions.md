@@ -20,7 +20,11 @@ In the development process, when appropriate, the application should be built us
 2. **Green**: Write the minimum amount of code necessary to make the test pass.
 3. **Refactor**: Clean up the code while ensuring that all tests still pass. This approach helps to ensure that the code is reliable, maintainable, and meets the specified requirements from the outset.
 
-After each of these three steps, you ALWAYS need to pause and ask the navigator to review the changes and approve them before moving on to the next step. Pause after Red, pause after Green and pause after Refactor!
+It i very important to:
+
+- ALWAYS stop after the red phase and ask the navigator to review the test and approve before moving on to the green phase.
+- ALWAYS stop after the green phase and ask the navigator to review the implementation and approve before moving on to the refactor phase.
+- ALWAYS stop after the refactor phase and ask the navigator to review the refactored code and approve before moving on.
 
 ### Collaboration
 

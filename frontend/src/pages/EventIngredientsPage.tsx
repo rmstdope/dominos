@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, Calendar, Pizza, ChefHat } from 'lucide-react';
+import { AlertCircle, Loader2, Calendar, Pizza, ChefHat, Plus } from 'lucide-react';
 
 interface Event {
   id: number;
@@ -99,6 +100,30 @@ export default function EventIngredientsPage() {
       setAllIngredients(data.ingredients);
     } catch (err) {
       console.error('Error fetching ingredients:', err);
+    }
+  }
+
+  async function addIngredientToEvent(ingredientId: number) {
+    if (!selectedEventId) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/admin/events/${selectedEventId}/ingredients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ ingredientId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add ingredient');
+      }
+
+      // Refresh the event ingredients after adding
+      await fetchEventIngredients(selectedEventId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add ingredient');
     }
   }
 
@@ -213,6 +238,13 @@ export default function EventIngredientsPage() {
                       className="flex items-center justify-between p-3 rounded-lg border"
                     >
                       <span>{ingredient.name}</span>
+                      <Button
+                        size="sm"
+                        onClick={() => addIngredientToEvent(ingredient.id)}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
                     </div>
                   ))}
                 </div>
