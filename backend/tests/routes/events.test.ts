@@ -100,6 +100,52 @@ describe('Public Events Routes', () => {
     });
   });
 
+  describe('GET /api/events/:id', () => {
+    it('should return a single event by ID', async () => {
+      const event = await EventModel.create({
+        name: 'Friday Pizza Party',
+        date: new Date('2025-11-15'),
+        location: 'Main Office',
+      });
+
+      const response = await request(app).get(`/api/events/${event.id}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(event.id);
+      expect(response.body.name).toBe('Friday Pizza Party');
+      expect(response.body.location).toBe('Main Office');
+      expect(response.body.date).toBeDefined();
+    });
+
+    it('should return 404 for non-existent event', async () => {
+      const response = await request(app).get('/api/events/999');
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
+    });
+
+    it('should return 404 for invalid event ID format', async () => {
+      const response = await request(app).get('/api/events/invalid');
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
+    });
+
+    it('should not require authentication', async () => {
+      const event = await EventModel.create({
+        name: 'Public Event',
+        date: new Date('2025-12-01'),
+        location: 'Office A',
+      });
+
+      // Request without authentication token
+      const response = await request(app).get(`/api/events/${event.id}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('Public Event');
+    });
+  });
+
   describe('GET /api/events/:id/ingredients', () => {
     it('should return ingredients for an event sorted alphabetically', async () => {
       // Create event

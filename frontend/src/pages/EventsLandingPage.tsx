@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Calendar, Loader2, AlertCircle } from 'lucide-react';
@@ -11,6 +12,7 @@ interface Event {
 }
 
 export default function EventsLandingPage() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,8 +75,14 @@ export default function EventsLandingPage() {
       ? 'cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500'
       : 'opacity-60 border-l-4 border-l-gray-400';
 
+    const handleClick = () => {
+      if (isUpcoming) {
+        navigate(`/events/${event.id}/order`);
+      }
+    };
+
     return (
-      <Card key={event.id} className={cardClassName}>
+      <Card key={event.id} className={cardClassName} onClick={handleClick}>
         <CardHeader>
           <CardTitle>{event.name}</CardTitle>
           <CardDescription>

@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
 import EventsLandingPage from '../pages/EventsLandingPage';
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+  };
+});
 
 describe('EventsLandingPage', () => {
   beforeEach(() => {
@@ -468,6 +477,88 @@ describe('EventsLandingPage', () => {
       });
 
       expect(screen.queryByText('Past Events')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to pizza order page when clicking on an upcoming event', async () => {
+      const mockNavigate = vi.fn();
+      vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 123,
+                name: 'Future Event',
+                date: '2025-12-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      const user = userEvent.setup();
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Future Event')).toBeInTheDocument();
+      });
+
+      const eventCard = screen.getByText('Future Event').closest('div[class*="cursor-pointer"]');
+      expect(eventCard).toBeInTheDocument();
+
+      await user.click(eventCard!);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/events/123/order');
+    });
+
+    it('should not navigate when clicking on a past event', async () => {
+      const mockNavigate = vi.fn();
+      vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 456,
+                name: 'Past Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      const user = userEvent.setup();
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Event')).toBeInTheDocument();
+      });
+
+      const eventCard = screen.getByText('Past Event').closest('div');
+      await user.click(eventCard!);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
