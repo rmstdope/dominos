@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Calendar, MapPin } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 interface Event {
   id: number;
@@ -11,9 +13,16 @@ interface Event {
   location: string;
 }
 
+interface Ingredient {
+  id: number;
+  name: string;
+}
+
 export default function PizzaOrderPage() {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [selectedIngredients, setSelectedIngredients] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +50,24 @@ export default function PizzaOrderPage() {
       }
     }
 
+    async function fetchIngredients() {
+      try {
+        const response = await fetch(`http://localhost:3000/api/events/${id}/ingredients`);
+
+        if (!response.ok) {
+          throw new Error('Failed to load ingredients');
+        }
+
+        const data = await response.json();
+        setIngredients(data.ingredients);
+      } catch (err) {
+        console.error('Error fetching ingredients:', err);
+        // Don't set error state here - we still want to show the page
+      }
+    }
+
     fetchEvent();
+    fetchIngredients();
   }, [id]);
 
   function formatEventDate(dateString: string): string {
@@ -50,6 +76,18 @@ export default function PizzaOrderPage() {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+    });
+  }
+
+  function handleIngredientToggle(ingredientId: number) {
+    setSelectedIngredients((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(ingredientId)) {
+        newSet.delete(ingredientId);
+      } else {
+        newSet.add(ingredientId);
+      }
+      return newSet;
     });
   }
 
@@ -102,6 +140,35 @@ export default function PizzaOrderPage() {
               <span>{event.location}</span>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Your Toppings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ingredients.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              No ingredients available for this event.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {ingredients.map((ingredient) => (
+                <div key={ingredient.id} className="flex items-center justify-between">
+                  <Label htmlFor={`ingredient-${ingredient.id}`} className="cursor-pointer">
+                    {ingredient.name}
+                  </Label>
+                  <Switch
+                    id={`ingredient-${ingredient.id}`}
+                    checked={selectedIngredients.has(ingredient.id)}
+                    onCheckedChange={() => handleIngredientToggle(ingredient.id)}
+                    aria-label={ingredient.name}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
