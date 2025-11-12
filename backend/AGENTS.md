@@ -248,6 +248,19 @@ Current API structure:
 4. **Get Review**: Let navigator review before proceeding
 5. **Run Linting**: Ensure no linting errors or warnings
 6. **Run All Tests**: Ensure no regressions
+7. **Update API Documentation**: When any API endpoint is added, modified, or removed, update the `API.md` file to reflect the changes
+
+### API Documentation
+
+The `API.md` file contains comprehensive documentation of all API endpoints. This file **MUST be kept in sync** with the actual implementation:
+
+- **When adding a new endpoint**: Document the route, method, request body, response, and all possible error codes
+- **When modifying an endpoint**: Update the corresponding documentation with new request/response formats, validation rules, or status codes
+- **When removing an endpoint**: Remove the documentation for that endpoint
+- **When changing validation**: Update the validation requirements in the documentation
+- **When changing error responses**: Update the error response examples and status codes
+
+The API documentation is a critical part of the codebase and must always reflect the current state of the API.
 
 ### Special Considerations
 

@@ -15,7 +15,7 @@ router.get('/users', authenticate, requireAdmin, async (_req: Request, res: Resp
       order: [['id', 'ASC']],
     });
 
-    res.json(users);
+    res.json({ users });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -72,7 +72,7 @@ router.get('/ingredients', authenticate, requireAdmin, async (_req: Request, res
       order: [['name', 'ASC']],
     });
 
-    res.json(ingredients);
+    res.json({ ingredients });
   } catch (error) {
     console.error('Error fetching ingredients:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -148,7 +148,7 @@ router.get('/events', authenticate, requireAdmin, async (_req: Request, res: Res
       order: [['date', 'DESC']],
     });
 
-    res.json(events);
+    res.json({ events });
   } catch (error) {
     console.error('Error fetching events:', error);
     res.status(500).json({ error: 'Internal server error' });

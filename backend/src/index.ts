@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
 import { createApp } from './server';
+
+// Load environment variables
+dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 

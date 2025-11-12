@@ -46,7 +46,7 @@ export default function UsersPage() {
       setUpdateError(null);
       
       const response = await fetch(`http://localhost:3000/api/admin/users/${userId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },

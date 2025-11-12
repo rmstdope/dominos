@@ -30,7 +30,7 @@ export function getSequelize(): Sequelize {
       config = {
         dialect: 'sqlite',
         storage: path.join(__dirname, '../../data/dominos-dev.sqlite'),
-        logging: console.log,
+        logging: false,
       };
     }
 

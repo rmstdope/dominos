@@ -40,6 +40,10 @@ When starting to work on a new issue, always create a new branch from main named
 
 When a PR is merged, the issue should be closed and the branch deleted to keep the repository clean and organized.
 
+### Fixing Bugs
+
+When a bug is discovered in the application, always consider updating existing or adding a test that triggers the error before fixing it. This ensures that the bug is properly documented and helps to prevent regressions in the future. After the test is in place, proceed to fix the bug and verify that the new test passes along with all existing tests.
+
 ### Continuous Integration and Deployment (CI/CD)
 
 Implement a CI/CD pipeline to automate the building, testing, and deployment of the application. This ensures that code changes are integrated smoothly and that the application can be deployed quickly and reliably.
