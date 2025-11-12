@@ -81,6 +81,53 @@ List all events for public access.
 
 - `500 Internal Server Error`: Server error
 
+#### GET /api/events/:id/ingredients
+
+Get all available ingredients for a specific event.
+
+**Authentication:** Not required
+
+**Parameters:**
+
+- `id` (path parameter): Event ID (integer)
+
+**Response:** `200 OK`
+
+```json
+{
+  "ingredients": [
+    {
+      "id": 1,
+      "name": "Bacon"
+    },
+    {
+      "id": 2,
+      "name": "Mushrooms"
+    },
+    {
+      "id": 3,
+      "name": "Olives"
+    },
+    {
+      "id": 4,
+      "name": "Pepperoni"
+    }
+  ]
+}
+```
+
+**Note:** Results are ordered alphabetically by ingredient name.
+
+**Error Responses:**
+
+- `404 Not Found`: Event does not exist
+  ```json
+  {
+    "error": "Event not found"
+  }
+  ```
+- `500 Internal Server Error`: Server error
+
 ---
 
 ## Authentication Endpoints
