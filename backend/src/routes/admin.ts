@@ -209,6 +209,11 @@ router.delete('/events/:id', authenticate, requireAdmin, async (req: Request, re
       return;
     }
 
+    // Delete all EventIngredient associations first
+    await EventIngredient.destroy({
+      where: { eventId },
+    });
+
     await event.destroy();
     res.status(204).send();
   } catch (error) {
