@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Calendar, MapPin } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, MapPin, Check } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
@@ -154,19 +154,39 @@ export default function PizzaOrderPage() {
             </p>
           ) : (
             <div className="space-y-4">
-              {ingredients.map((ingredient) => (
-                <div key={ingredient.id} className="flex items-center justify-between">
-                  <Label htmlFor={`ingredient-${ingredient.id}`} className="cursor-pointer">
-                    {ingredient.name}
-                  </Label>
-                  <Switch
-                    id={`ingredient-${ingredient.id}`}
-                    checked={selectedIngredients.has(ingredient.id)}
-                    onCheckedChange={() => handleIngredientToggle(ingredient.id)}
-                    aria-label={ingredient.name}
-                  />
-                </div>
-              ))}
+              {ingredients.map((ingredient) => {
+                const isSelected = selectedIngredients.has(ingredient.id);
+                return (
+                  <div 
+                    key={ingredient.id} 
+                    className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                      isSelected 
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950' 
+                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {isSelected && (
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      )}
+                      <Label 
+                        htmlFor={`ingredient-${ingredient.id}`} 
+                        className={`cursor-pointer text-base ${
+                          isSelected ? 'font-semibold text-green-900 dark:text-green-100' : ''
+                        }`}
+                      >
+                        {ingredient.name}
+                      </Label>
+                    </div>
+                    <Switch
+                      id={`ingredient-${ingredient.id}`}
+                      checked={isSelected}
+                      onCheckedChange={() => handleIngredientToggle(ingredient.id)}
+                      aria-label={ingredient.name}
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
