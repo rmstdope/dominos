@@ -287,4 +287,187 @@ describe('EventsLandingPage', () => {
       expect(eventCard).toBeInTheDocument();
     });
   });
+
+  describe('Past Events Section', () => {
+    it('should display "Past Events" section header when past events exist', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Past Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Events')).toBeInTheDocument();
+      });
+    });
+
+    it('should display past events in reverse chronological order (most recent first)', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Oldest Event',
+                date: '2025-10-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+              {
+                id: 2,
+                name: 'Middle Event',
+                date: '2025-10-15T00:00:00.000Z',
+                location: 'Office B',
+              },
+              {
+                id: 3,
+                name: 'Most Recent Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office C',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Most Recent Event')).toBeInTheDocument();
+      });
+
+      // Get all event names in the order they appear
+      const allEventNames = screen.getAllByText(/Event/).map(el => el.textContent);
+      
+      // Filter to get only the past event names (excluding "Past Events" header and "Upcoming Events" header)
+      const pastEventNames = allEventNames.filter(name => 
+        name !== 'Past Events' && 
+        name !== 'Upcoming Events' &&
+        (name === 'Oldest Event' || name === 'Middle Event' || name === 'Most Recent Event')
+      );
+
+      // Should be in reverse chronological order: Most Recent (Nov 1), Middle (Oct 15), Oldest (Oct 1)
+      expect(pastEventNames[0]).toBe('Most Recent Event');
+      expect(pastEventNames[1]).toBe('Middle Event');
+      expect(pastEventNames[2]).toBe('Oldest Event');
+    });
+
+    it('should make past events non-clickable (read-only)', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Past Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Event')).toBeInTheDocument();
+      });
+
+      const eventCard = screen.getByText('Past Event').closest('div[class*="cursor-pointer"]');
+      expect(eventCard).toBeNull();
+    });
+
+    it('should display past events with muted/read-only styling', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Past Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Event')).toBeInTheDocument();
+      });
+
+      const pastSection = screen.getByText('Past Events').parentElement;
+      const eventCard = pastSection?.querySelector('[class*="opacity"]');
+      expect(eventCard).toBeInTheDocument();
+    });
+
+    it('should not display past events section when no past events exist', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Future Event',
+                date: '2025-12-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Future Event')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Past Events')).not.toBeInTheDocument();
+    });
+  });
 });

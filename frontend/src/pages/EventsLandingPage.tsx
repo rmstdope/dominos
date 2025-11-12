@@ -55,6 +55,10 @@ export default function EventsLandingPage() {
     return events.filter(event => new Date(event.date) < today);
   }
 
+  function getPastEventsReversed(): Event[] {
+    return [...getPastEvents()].reverse();
+  }
+
   function formatEventDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -62,6 +66,26 @@ export default function EventsLandingPage() {
       month: 'long',
       day: 'numeric',
     });
+  }
+
+  function renderEventCard(event: Event, isUpcoming: boolean) {
+    const cardClassName = isUpcoming
+      ? 'cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500'
+      : 'opacity-60 border-l-4 border-l-gray-400';
+
+    return (
+      <Card key={event.id} className={cardClassName}>
+        <CardHeader>
+          <CardTitle>{event.name}</CardTitle>
+          <CardDescription>
+            {formatEventDate(event.date)}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{event.location}</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (isLoading) {
@@ -125,7 +149,7 @@ export default function EventsLandingPage() {
   }
 
   const upcomingEvents = getUpcomingEvents();
-  const pastEvents = getPastEvents();
+  const pastEvents = getPastEventsReversed();
 
   return (
     <div className="space-y-6">
@@ -150,39 +174,15 @@ export default function EventsLandingPage() {
             </CardContent>
           </Card>
         ) : (
-          upcomingEvents.map((event) => (
-            <Card key={event.id} className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500">
-              <CardHeader>
-                <CardTitle>{event.name}</CardTitle>
-                <CardDescription>
-                  {formatEventDate(event.date)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{event.location}</p>
-              </CardContent>
-            </Card>
-          ))
+          upcomingEvents.map((event) => renderEventCard(event, true))
         )}
       </div>
 
-      {/* Past Events Section - Placeholder for sub-issue #35 */}
+      {/* Past Events Section */}
       {pastEvents.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold">Past Events</h3>
-          {pastEvents.map((event) => (
-            <Card key={event.id}>
-              <CardHeader>
-                <CardTitle>{event.name}</CardTitle>
-                <CardDescription>
-                  {formatEventDate(event.date)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{event.location}</p>
-              </CardContent>
-            </Card>
-          ))}
+          {pastEvents.map((event) => renderEventCard(event, false))}
         </div>
       )}
     </div>
