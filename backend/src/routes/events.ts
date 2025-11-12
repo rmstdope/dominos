@@ -20,6 +20,33 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/events/:id - Get a single event by ID (public endpoint)
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.id, 10);
+
+    // Validate ID format
+    if (isNaN(eventId)) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    const event = await EventModel.findByPk(eventId, {
+      attributes: ['id', 'name', 'date', 'location'],
+    });
+
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+
+    res.json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // GET /api/events/:id/ingredients - Get ingredients for a specific event (public endpoint)
 router.get('/:id/ingredients', async (req: Request, res: Response): Promise<void> => {
   try {

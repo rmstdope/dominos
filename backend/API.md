@@ -81,6 +81,37 @@ List all events for public access.
 
 - `500 Internal Server Error`: Server error
 
+#### GET /api/events/:id
+
+Get a single event by ID.
+
+**Authentication:** Not required
+
+**Parameters:**
+
+- `id` (path parameter): Event ID (integer)
+
+**Response:** `200 OK`
+
+```json
+{
+  "id": 1,
+  "name": "Friday Pizza Party",
+  "date": "2025-11-15T00:00:00.000Z",
+  "location": "Main Office, Conference Room A"
+}
+```
+
+**Error Responses:**
+
+- `404 Not Found`: Event not found or invalid ID format
+  ```json
+  {
+    "error": "Event not found"
+  }
+  ```
+- `500 Internal Server Error`: Server error
+
 #### GET /api/events/:id/ingredients
 
 Get all available ingredients for a specific event.
