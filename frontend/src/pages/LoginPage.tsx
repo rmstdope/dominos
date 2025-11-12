@@ -1,8 +1,12 @@
 import { useState, type FormEvent, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, TextField, Button, Text, Callout, Flex, Box } from '@radix-ui/themes';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -87,80 +91,63 @@ export default function LoginPage() {
   }
 
   return (
-    <Box
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'var(--gray-2)',
-      }}
-    >
-      <Card size="4" style={{ width: '100%', maxWidth: '400px' }}>
-        <Flex direction="column" gap="4">
-          <Text size="6" weight="bold" align="center">
-            Sign In
-          </Text>
-          
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Sign In</CardTitle>
+        </CardHeader>
+        <CardContent>
           {error && (
-            <Callout.Root color="red">
-              <Callout.Icon>
-                <ExclamationTriangleIcon />
-              </Callout.Icon>
-              <Callout.Text>{error}</Callout.Text>
-            </Callout.Root>
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
           
-          <form onSubmit={handleSubmit}>
-            <Flex direction="column" gap="4">
-              <div>
-                <Text as="label" size="2" weight="bold" mb="1" htmlFor="username">
-                  Username
-                </Text>
-                <TextField.Root
-                  id="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    handleInputChange('username', e.target.value)
-                  }
-                  disabled={isLoading}
-                />
-                {validationErrors.username && (
-                  <Text size="1" color="red" mt="1">
-                    {validationErrors.username}
-                  </Text>
-                )}
-              </div>
-              
-              <div>
-                <Text as="label" size="2" weight="bold" mb="1" htmlFor="password">
-                  Password
-                </Text>
-                <TextField.Root
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    handleInputChange('password', e.target.value)
-                  }
-                  disabled={isLoading}
-                />
-                {validationErrors.password && (
-                  <Text size="1" color="red" mt="1">
-                    {validationErrors.password}
-                  </Text>
-                )}
-              </div>
-              
-              <Button type="submit" size="3" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </Flex>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange('username', e.target.value)
+                }
+                disabled={isLoading}
+              />
+              {validationErrors.username && (
+                <p className="text-sm text-destructive">
+                  {validationErrors.username}
+                </p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  handleInputChange('password', e.target.value)
+                }
+                disabled={isLoading}
+              />
+              {validationErrors.password && (
+                <p className="text-sm text-destructive">
+                  {validationErrors.password}
+                </p>
+              )}
+            </div>
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </Button>
           </form>
-        </Flex>
+        </CardContent>
       </Card>
-    </Box>
+    </div>
   );
 }

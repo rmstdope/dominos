@@ -38,8 +38,8 @@ describe('AdminLayout', () => {
     // Wait for auth to load
     await screen.findByText('Content');
 
-    // Check for navigation items
-    expect(screen.getByRole('navigation')).toBeInTheDocument();
+    // Check for navigation items (there are 2: sidebar nav + breadcrumb nav)
+    expect(screen.getAllByRole('navigation')).toHaveLength(2);
   });
 
   it('should display navigation links', async () => {
@@ -165,6 +165,8 @@ describe('AdminLayout', () => {
     // At least one should be from breadcrumb
     expect(adminTexts.length).toBeGreaterThan(0);
     expect(usersTexts.length).toBeGreaterThan(0);
-    expect(screen.getByText('/')).toBeInTheDocument();
+    
+    // Check for breadcrumb navigation with aria-label
+    expect(screen.getByLabelText('Breadcrumb')).toBeInTheDocument();
   });
 });

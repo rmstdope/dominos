@@ -83,8 +83,8 @@ describe('Admin Routes', () => {
         .set('Cookie', [`token=${token}`]);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(3);
-      expect(response.body).toEqual(
+      expect(response.body.users).toHaveLength(3);
+      expect(response.body.users).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(Number),
@@ -107,7 +107,7 @@ describe('Admin Routes', () => {
         ])
       );
       // Should not include password
-      expect(response.body[0]).not.toHaveProperty('password');
+      expect(response.body.users[0]).not.toHaveProperty('password');
     });
   });
 
@@ -267,7 +267,7 @@ describe('Admin Routes', () => {
         .set('Cookie', [`token=${token}`]);
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual([]);
+      expect(response.body).toEqual({ ingredients: [] });
     });
 
     it('should return all ingredients', async () => {
@@ -282,8 +282,8 @@ describe('Admin Routes', () => {
         .set('Cookie', [`token=${token}`]);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(3);
-      expect(response.body).toEqual(
+      expect(response.body.ingredients).toHaveLength(3);
+      expect(response.body.ingredients).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(Number),
@@ -470,7 +470,7 @@ describe('Admin Routes', () => {
         .set('Cookie', [`token=${token}`]);
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual([]);
+      expect(response.body).toEqual({ events: [] });
     });
 
     it('should return all events', async () => {
@@ -492,8 +492,8 @@ describe('Admin Routes', () => {
         .set('Cookie', [`token=${token}`]);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(2);
-      expect(response.body).toEqual(
+      expect(response.body.events).toHaveLength(2);
+      expect(response.body.events).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             id: expect.any(Number),

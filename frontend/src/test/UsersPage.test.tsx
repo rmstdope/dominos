@@ -157,7 +157,7 @@ describe('UsersPage', () => {
             }),
         } as Response);
       }
-      if (typeof url === 'string' && url.includes('/api/admin/users/2') && options?.method === 'PUT') {
+      if (typeof url === 'string' && url.includes('/api/admin/users/2') && options?.method === 'PATCH') {
         updateCalled = true;
         return Promise.resolve({
           ok: true,
@@ -209,7 +209,7 @@ describe('UsersPage', () => {
             }),
         } as Response);
       }
-      if (typeof url === 'string' && url.includes('/api/admin/users/2') && options?.method === 'PUT') {
+      if (typeof url === 'string' && url.includes('/api/admin/users/2') && options?.method === 'PATCH') {
         return Promise.resolve({
           ok: false,
           statusText: 'Forbidden',

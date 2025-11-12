@@ -117,7 +117,7 @@ describe('IngredientsPage', () => {
     });
 
     // Should have input for ingredient name
-    expect(screen.getByPlaceholderText(/ingredient name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/ingredient name/i)).toBeInTheDocument();
     // Should have add button
     expect(screen.getByRole('button', { name: /add ingredient/i })).toBeInTheDocument();
   });
@@ -167,7 +167,7 @@ describe('IngredientsPage', () => {
       expect(screen.getByText('Pepperoni')).toBeInTheDocument();
     });
 
-    const input = screen.getByPlaceholderText(/ingredient name/i);
+    const input = screen.getByLabelText(/ingredient name/i);
     const addButton = screen.getByRole('button', { name: /add ingredient/i });
 
     await user.type(input, 'Pineapple');
@@ -220,7 +220,7 @@ describe('IngredientsPage', () => {
       expect(screen.getByText('Pepperoni')).toBeInTheDocument();
     });
 
-    const input = screen.getByPlaceholderText(/ingredient name/i);
+    const input = screen.getByLabelText(/ingredient name/i);
     const addButton = screen.getByRole('button', { name: /add ingredient/i });
 
     await user.type(input, 'Bad Ingredient');
@@ -394,7 +394,7 @@ describe('IngredientsPage', () => {
       expect(screen.getByText('Pepperoni')).toBeInTheDocument();
     });
 
-    const input = screen.getByPlaceholderText(/ingredient name/i) as HTMLInputElement;
+    const input = screen.getByLabelText(/ingredient name/i) as HTMLInputElement;
     const addButton = screen.getByRole('button', { name: /add ingredient/i });
 
     await user.type(input, 'Pineapple');

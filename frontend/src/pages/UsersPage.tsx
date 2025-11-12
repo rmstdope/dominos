@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Table, Badge, Switch, Text, Callout } from '@radix-ui/themes';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertCircle, Mail, User, Shield, Loader2 } from 'lucide-react';
 
 interface User {
   id: number;
@@ -70,69 +74,120 @@ export default function UsersPage() {
   }
 
   if (isLoading) {
-    return <Text>Loading users...</Text>;
+    return (
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold">Users Management</h2>
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Loading users...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <Callout.Root color="red">
-        <Callout.Icon>
-          <ExclamationTriangleIcon />
-        </Callout.Icon>
-        <Callout.Text>{error}</Callout.Text>
-      </Callout.Root>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <div>
-      <Text size="6" weight="bold" mb="4">
-        Users Management
-      </Text>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Users Management</h2>
+        <p className="text-muted-foreground mt-2">
+          Manage user accounts and administrative privileges
+        </p>
+      </div>
 
       {updateError && (
-        <Callout.Root color="red" mb="4">
-          <Callout.Icon>
-            <ExclamationTriangleIcon />
-          </Callout.Icon>
-          <Callout.Text>{updateError}</Callout.Text>
-        </Callout.Root>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{updateError}</AlertDescription>
+        </Alert>
       )}
 
-      <Table.Root variant="surface">
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeaderCell>Username</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Email</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Role</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Admin Access</Table.ColumnHeaderCell>
-          </Table.Row>
-        </Table.Header>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+          <CardDescription>
+            A list of all users registered in the system
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Username
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Role
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-center">Admin Access</TableHead>
+                </TableRow>
+              </TableHeader>
 
-        <Table.Body>
-          {users.map((user) => (
-            <Table.Row key={user.id}>
-              <Table.Cell>
-                <Text weight="medium">{user.username}</Text>
-              </Table.Cell>
-              <Table.Cell>{user.email}</Table.Cell>
-              <Table.Cell>
-                {user.isAdmin && (
-                  <Badge color="blue" variant="soft">
-                    Admin
-                  </Badge>
+              <TableBody>
+                {users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <User className="h-8 w-8" />
+                        <p>No users found</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-medium">{user.username}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.isAdmin ? "default" : "secondary"}>
+                          {user.isAdmin ? "Admin" : "User"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-3">
+                          <Switch
+                            checked={user.isAdmin}
+                            onCheckedChange={() => toggleAdminStatus(user.id, user.isAdmin)}
+                            aria-label={`Toggle admin status for ${user.username}`}
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {user.isAdmin ? "Enabled" : "Disabled"}
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
-              </Table.Cell>
-              <Table.Cell>
-                <Switch
-                  checked={user.isAdmin}
-                  onCheckedChange={() => toggleAdminStatus(user.id, user.isAdmin)}
-                />
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

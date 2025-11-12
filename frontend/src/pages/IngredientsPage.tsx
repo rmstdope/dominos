@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Table, Button, TextField, Text, Callout, Flex, Card } from '@radix-ui/themes';
-import { ExclamationTriangleIcon, TrashIcon, PlusIcon } from '@radix-ui/react-icons';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertCircle, Trash2, Plus, Pizza, Loader2 } from 'lucide-react';
 
 interface Ingredient {
   id: number;
@@ -91,90 +96,130 @@ export default function IngredientsPage() {
   }
 
   if (isLoading) {
-    return <Text>Loading ingredients...</Text>;
+    return (
+      <div className="space-y-6">
+        <h2 className="text-3xl font-bold">Ingredients Management</h2>
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Loading ingredients...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <Callout.Root color="red">
-        <Callout.Icon>
-          <ExclamationTriangleIcon />
-        </Callout.Icon>
-        <Callout.Text>{error}</Callout.Text>
-      </Callout.Root>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <div>
-      <Text size="6" weight="bold" mb="4">
-        Ingredients Management
-      </Text>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Ingredients Management</h2>
+        <p className="text-muted-foreground mt-2">
+          Manage available pizza toppings and ingredients
+        </p>
+      </div>
 
       {actionError && (
-        <Callout.Root color="red" mb="4">
-          <Callout.Icon>
-            <ExclamationTriangleIcon />
-          </Callout.Icon>
-          <Callout.Text>{actionError}</Callout.Text>
-        </Callout.Root>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{actionError}</AlertDescription>
+        </Alert>
       )}
 
-      <Card mb="4">
-        <form onSubmit={addIngredient}>
-          <Flex gap="3" align="end">
-            <div style={{ flex: 1 }}>
-              <Text as="label" size="2" weight="bold" mb="1">
-                Add New Ingredient
-              </Text>
-              <TextField.Root
-                placeholder="Ingredient name"
+      <Card>
+        <CardHeader>
+          <CardTitle>Add New Ingredient</CardTitle>
+          <CardDescription>
+            Add a new pizza topping to the available ingredients list
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={addIngredient} className="flex gap-4">
+            <div className="flex-1">
+              <Label htmlFor="ingredient-name" className="sr-only">
+                Ingredient Name
+              </Label>
+              <Input
+                id="ingredient-name"
+                placeholder="e.g., Pepperoni, Mushrooms, Olives..."
                 value={newIngredientName}
-                onChange={(e) => setNewIngredientName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewIngredientName(e.target.value)}
               />
             </div>
-            <Button type="submit">
-              <PlusIcon />
+            <Button type="submit" disabled={!newIngredientName.trim()}>
+              <Plus className="mr-2 h-4 w-4" />
               Add Ingredient
             </Button>
-          </Flex>
-        </form>
+          </form>
+        </CardContent>
       </Card>
 
-      <Table.Root variant="surface">
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell width="120px">Actions</Table.ColumnHeaderCell>
-          </Table.Row>
-        </Table.Header>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Ingredients</CardTitle>
+          <CardDescription>
+            {ingredients.length} {ingredients.length === 1 ? 'ingredient' : 'ingredients'} available
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <div className="flex items-center gap-2">
+                      <Pizza className="h-4 w-4" />
+                      Ingredient Name
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-[150px] text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
 
-        <Table.Body>
-          {ingredients.map((ingredient) => (
-            <Table.Row key={ingredient.id}>
-              <Table.Cell>
-                <Text weight="medium">{ingredient.name}</Text>
-              </Table.Cell>
-              <Table.Cell>
-                <Button
-                  color="red"
-                  variant="soft"
-                  onClick={() => deleteIngredient(ingredient.id)}
-                >
-                  <TrashIcon />
-                  Delete
-                </Button>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
-
-      {ingredients.length === 0 && (
-        <Text size="2" color="gray" align="center" mt="4">
-          No ingredients yet. Add your first ingredient above.
-        </Text>
-      )}
+              <TableBody>
+                {ingredients.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center py-12">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <Pizza className="h-8 w-8" />
+                        <p className="font-medium">No ingredients yet</p>
+                        <p className="text-sm">Add your first ingredient above to get started</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  ingredients.map((ingredient) => (
+                    <TableRow key={ingredient.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-medium">{ingredient.name}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteIngredient(ingredient.id)}
+                          className="text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

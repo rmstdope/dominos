@@ -1,21 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Theme } from '@radix-ui/themes';
-import '@radix-ui/themes/styles.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import UsersPage from './pages/UsersPage';
 import IngredientsPage from './pages/IngredientsPage';
-
-function DashboardPage() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome to the Pizza Admin Dashboard</p>
-    </div>
-  );
-}
+import DashboardPage from './pages/DashboardPage';
 
 function EventsPage() {
   return (
@@ -28,10 +18,9 @@ function EventsPage() {
 
 function App() {
   return (
-    <Theme>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/admin"
@@ -73,12 +62,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/admin" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </Theme>
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
-}
-
-export default App;
+}export default App;
