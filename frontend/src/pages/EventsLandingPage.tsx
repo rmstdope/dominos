@@ -39,6 +39,31 @@ export default function EventsLandingPage() {
     }
   }
 
+  function getTodayAtMidnight(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  }
+
+  function getUpcomingEvents(): Event[] {
+    const today = getTodayAtMidnight();
+    return events.filter(event => new Date(event.date) >= today);
+  }
+
+  function getPastEvents(): Event[] {
+    const today = getTodayAtMidnight();
+    return events.filter(event => new Date(event.date) < today);
+  }
+
+  function formatEventDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -99,6 +124,9 @@ export default function EventsLandingPage() {
     );
   }
 
+  const upcomingEvents = getUpcomingEvents();
+  const pastEvents = getPastEvents();
+
   return (
     <div className="space-y-6">
       <div>
@@ -108,26 +136,55 @@ export default function EventsLandingPage() {
         </p>
       </div>
 
+      {/* Upcoming Events Section */}
       <div className="space-y-4">
-        {events.map((event) => (
-          <Card key={event.id}>
-            <CardHeader>
-              <CardTitle>{event.name}</CardTitle>
-              <CardDescription>
-                {new Date(event.date).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{event.location}</p>
+        <h3 className="text-xl font-semibold">Upcoming Events</h3>
+        {upcomingEvents.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="font-semibold mb-2">No upcoming events</h3>
+              <p className="text-sm text-muted-foreground text-center">
+                There are no upcoming pizza events at the moment. Check back soon!
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          upcomingEvents.map((event) => (
+            <Card key={event.id} className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500">
+              <CardHeader>
+                <CardTitle>{event.name}</CardTitle>
+                <CardDescription>
+                  {formatEventDate(event.date)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{event.location}</p>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
+
+      {/* Past Events Section - Placeholder for sub-issue #35 */}
+      {pastEvents.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Past Events</h3>
+          {pastEvents.map((event) => (
+            <Card key={event.id}>
+              <CardHeader>
+                <CardTitle>{event.name}</CardTitle>
+                <CardDescription>
+                  {formatEventDate(event.date)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{event.location}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

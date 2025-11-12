@@ -146,4 +146,145 @@ describe('EventsLandingPage', () => {
       expect(screen.getByText(/network error/i)).toBeInTheDocument();
     });
   });
+
+  describe('Upcoming Events Section', () => {
+    it('should display "Upcoming Events" section header', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Future Event',
+                date: '2025-12-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Upcoming Events')).toBeInTheDocument();
+      });
+    });
+
+    it('should display only upcoming events (date >= today)', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Past Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+              {
+                id: 2,
+                name: 'Future Event',
+                date: '2025-12-01T00:00:00.000Z',
+                location: 'Office B',
+              },
+              {
+                id: 3,
+                name: 'Today Event',
+                date: new Date().toISOString(),
+                location: 'Office C',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Future Event')).toBeInTheDocument();
+      });
+
+      // Should show upcoming events
+      expect(screen.getByText('Future Event')).toBeInTheDocument();
+      expect(screen.getByText('Today Event')).toBeInTheDocument();
+
+      // Should NOT show past events in upcoming section
+      const upcomingSection = screen.getByText('Upcoming Events').closest('div');
+      expect(upcomingSection).not.toHaveTextContent('Past Event');
+    });
+
+    it('should show message when no upcoming events exist', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Past Event',
+                date: '2025-11-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/no upcoming events/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should make upcoming events appear clickable', async () => {
+      const mockFetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            events: [
+              {
+                id: 1,
+                name: 'Future Event',
+                date: '2025-12-01T00:00:00.000Z',
+                location: 'Office A',
+              },
+            ],
+          }),
+        } as Response)
+      );
+      window.fetch = mockFetch;
+
+      render(
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Future Event')).toBeInTheDocument();
+      });
+
+      const eventCard = screen.getByText('Future Event').closest('div[class*="cursor-pointer"]');
+      expect(eventCard).toBeInTheDocument();
+    });
+  });
 });
