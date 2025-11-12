@@ -378,6 +378,55 @@ describe('EventIngredientsPage', () => {
         expect(updatedAvailableSection).not.toHaveTextContent('Mushrooms');
       });
     });
+
+    it('should display available ingredients in alphabetical order', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/') && urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for available ingredients to load
+      await waitFor(() => {
+        expect(screen.getByText('Bell Peppers')).toBeInTheDocument();
+      });
+
+      const availableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+      expect(availableSection).toBeInTheDocument();
+
+      // Get all ingredient names from the available section (they are in divs, not li)
+      const ingredientDivs = availableSection!.querySelectorAll('div.flex.items-center.justify-between');
+      const ingredientNames = Array.from(ingredientDivs)
+        .map(div => div.querySelector('span')?.textContent?.trim() || '')
+        .filter(name => name);
+
+      // Expected order: Bell Peppers, Mushrooms, Olives, Pepperoni
+      // (Mozzarella is excluded because it's in the event)
+      expect(ingredientNames).toEqual(['Bell Peppers', 'Mushrooms', 'Olives', 'Pepperoni']);
+    });
   });
 
   describe('Cycle 4: Add Ingredient to Event', () => {

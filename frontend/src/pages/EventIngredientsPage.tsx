@@ -25,9 +25,9 @@ export default function EventIngredientsPage() {
   const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
 
   // Compute available ingredients (ingredients not in the event)
-  const availableIngredients = allIngredients.filter(
-    (ingredient) => !eventIngredients.some((ei) => ei.id === ingredient.id)
-  );
+  const availableIngredients = allIngredients
+    .filter((ingredient) => !eventIngredients.some((ei) => ei.id === ingredient.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   useEffect(() => {
     fetchEvents();
