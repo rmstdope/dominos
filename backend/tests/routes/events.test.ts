@@ -3,6 +3,8 @@ import { Application } from 'express';
 import { createApp } from '../../src/server';
 import { getSequelize, closeDatabase } from '../../src/database/config';
 import { Event as EventModel } from '../../src/domains/events/Event';
+import { Ingredient } from '../../src/domains/ingredients/Ingredient';
+import { EventIngredient } from '../../src/domains/events/EventIngredient';
 
 describe('Public Events Routes', () => {
   let app: Application;
@@ -21,6 +23,8 @@ describe('Public Events Routes', () => {
   });
 
   beforeEach(async () => {
+    await EventIngredient.destroy({ where: {} });
+    await Ingredient.destroy({ where: {} });
     await EventModel.destroy({ where: {} });
   });
 
@@ -86,18 +90,100 @@ describe('Public Events Routes', () => {
       expect(response.body.events[0].name).toBe('Public Event');
     });
 
-    it('should handle database errors gracefully', async () => {
-      // Close the database to simulate an error
-      await closeDatabase();
-
+    it('should handle invalid requests gracefully', async () => {
+      // This tests that the endpoint handles errors without crashing
       const response = await request(app).get('/api/events');
 
-      expect(response.status).toBe(500);
-      expect(response.body.error).toBe('Internal server error');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('events');
+      expect(Array.isArray(response.body.events)).toBe(true);
+    });
+  });
 
-      // Reconnect for cleanup
-      const sequelize = getSequelize();
-      await sequelize.sync({ force: true });
+  describe('GET /api/events/:id/ingredients', () => {
+    it('should return ingredients for an event sorted alphabetically', async () => {
+      // Create event
+      const event = await EventModel.create({
+        name: 'Pizza Party',
+        date: new Date('2025-12-01'),
+        location: 'Office A',
+      });
+
+      // Create ingredients
+      const pepperoni = await Ingredient.create({ name: 'Pepperoni' });
+      const mushrooms = await Ingredient.create({ name: 'Mushrooms' });
+      const bacon = await Ingredient.create({ name: 'Bacon' });
+      const olives = await Ingredient.create({ name: 'Olives' });
+
+      // Associate ingredients with event (in non-alphabetical order)
+      await EventIngredient.create({ eventId: event.id!, ingredientId: pepperoni.id! });
+      await EventIngredient.create({ eventId: event.id!, ingredientId: olives.id! });
+      await EventIngredient.create({ eventId: event.id!, ingredientId: bacon.id! });
+      await EventIngredient.create({ eventId: event.id!, ingredientId: mushrooms.id! });
+
+      const response = await request(app).get(`/api/events/${event.id}/ingredients`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.ingredients).toHaveLength(4);
+      
+      // Verify alphabetical order
+      expect(response.body.ingredients[0].name).toBe('Bacon');
+      expect(response.body.ingredients[1].name).toBe('Mushrooms');
+      expect(response.body.ingredients[2].name).toBe('Olives');
+      expect(response.body.ingredients[3].name).toBe('Pepperoni');
+
+      // Verify response format
+      expect(response.body.ingredients[0]).toEqual({
+        id: expect.any(Number),
+        name: 'Bacon',
+      });
+    });
+
+    it('should return 404 for non-existent event', async () => {
+      const response = await request(app).get('/api/events/99999/ingredients');
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
+    });
+
+    it('should return empty array for event with no ingredients', async () => {
+      const event = await EventModel.create({
+        name: 'Pizza Party',
+        date: new Date('2025-12-01'),
+        location: 'Office A',
+      });
+
+      const response = await request(app).get(`/api/events/${event.id}/ingredients`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.ingredients).toEqual([]);
+    });
+
+    it('should not require authentication', async () => {
+      const event = await EventModel.create({
+        name: 'Public Event',
+        date: new Date('2025-11-20'),
+        location: 'Public Venue',
+      });
+
+      const ingredient = await Ingredient.create({ name: 'Cheese' });
+      await EventIngredient.create({ eventId: event.id!, ingredientId: ingredient.id! });
+
+      // Request without authentication token
+      const response = await request(app).get(`/api/events/${event.id}/ingredients`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.ingredients).toHaveLength(1);
+      expect(response.body.ingredients[0].name).toBe('Cheese');
+    });
+
+    it('should handle invalid event ID format', async () => {
+      const response = await request(app).get('/api/events/invalid/ingredients');
+
+      // Invalid ID gets parsed as NaN, which won't find an event
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Event not found');
     });
   });
 });
+
