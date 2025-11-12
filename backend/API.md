@@ -46,6 +46,41 @@ Returns API information.
 }
 ```
 
+### Events
+
+#### GET /api/events
+
+List all events for public access.
+
+**Authentication:** Not required
+
+**Response:** `200 OK`
+
+```json
+{
+  "events": [
+    {
+      "id": 1,
+      "name": "Friday Pizza Party",
+      "date": "2025-11-15T00:00:00.000Z",
+      "location": "Main Office, Conference Room A"
+    },
+    {
+      "id": 2,
+      "name": "Sprint Planning Pizza",
+      "date": "2025-11-20T00:00:00.000Z",
+      "location": "Remote (Zoom)"
+    }
+  ]
+}
+```
+
+**Note:** Results are ordered by date ascending (earliest first).
+
+**Error Responses:**
+
+- `500 Internal Server Error`: Server error
+
 ---
 
 ## Authentication Endpoints

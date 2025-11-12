@@ -41,9 +41,13 @@ All code changes must be reviewed by at least one other person (the navigator) b
 
 ### Issues and branches
 
-All feature size issues should be broken down into smaller sub-issues where appropriate. This makes it easier to manage and track progress on complex tasks. Each sub-issue should represent a discrete piece of work that can be completed independently.
+When starting to work on any feature, assign that feature to the user that is working on it. Each feature should have a corresponding issue in the issue tracker that describes the work to be done.
 
-When starting to work on a new sub-issue, always create a new branch from main named after the issue number and a short description of the work to be done, e.g., `42-add-user-authentication`. Once the work is completed and reviewed, merge the branch back into main using a pull request. This approach helps to keep the main codebase stable and allows for isolated development of features or fixes.
+All feature size issues should be broken down into smaller sub-issues where appropriate. This makes it easier to manage and track progress on complex tasks. Each sub-issue should represent a discrete piece of work that can be completed independently. Prefix the sub-issues with ""Sub-issue (<<issue-number>>):"" to clearly indicate their relationship to the main feature issue. <<issue-number>> should be replaced with the main issue number.
+
+When working on a sub-issue, this is important:
+ - ALWAYS assign the main issue and the sub-issue to the developer working on it.
+ - ALWAYS create a new branch from main named after the sub-issue number and a short description of the work to be done, e.g., `42-add-user-authentication`. Once the work is completed and reviewed, merge the branch back into main using a pull request. This approach helps to keep the main codebase stable and allows for isolated development of features or fixes.
 
 When a PR is merged, the issue should be closed and the branch deleted to keep the repository clean and organized.
 
