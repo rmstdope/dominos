@@ -1,65 +1,104 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import PizzaOrderPage from '../pages/PizzaOrderPage';
+import { AuthProvider } from '../contexts/AuthContext';
 
 describe('PizzaOrderPage', () => {
+  beforeEach(() => {
+    // Reset mocks before each test
+    vi.clearAllMocks();
+  });
   it('should render the PizzaOrderPage when navigating to /events/:id/order', async () => {
-    window.fetch = vi.fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          id: 123,
-          name: 'Friday Pizza Party',
-          date: '2025-11-15T00:00:00.000Z',
-          location: 'Main Office',
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          ingredients: [],
-        }),
-      } as Response);
+    window.fetch = vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/api/auth/me')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+            }),
+        } as Response);
+      }
+      if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ingredients: [] }),
+        } as Response);
+      }
+      if (typeof url === 'string' && url.includes('/api/events/123')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              id: 123,
+              name: 'Friday Pizza Party',
+              date: '2025-11-15T00:00:00.000Z',
+              location: 'Main Office',
+            }),
+        } as Response);
+      }
+      return Promise.resolve({ ok: false } as Response);
+    }) as typeof window.fetch;
 
     render(
-      <MemoryRouter initialEntries={["/events/123/order"]}>
-        <Routes>
-          <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/events/123/order"]}>
+          <Routes>
+            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
     
     // The page should show a heading unique to PizzaOrderPage
-    expect(await screen.findByRole('heading', { name: /order your pizza/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /order your pizza/i })).toBeInTheDocument();
+    });
   });
 
   it('should fetch and display event details', async () => {
-    const mockFetch = vi.fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          id: 123,
-          name: 'Friday Pizza Party',
-          date: '2025-11-15T00:00:00.000Z',
-          location: 'Main Office, Conference Room A',
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          ingredients: [],
-        }),
-      } as Response);
+    const mockFetch = vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/api/auth/me')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+            }),
+        } as Response);
+      }
+      if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ingredients: [] }),
+        } as Response);
+      }
+      if (typeof url === 'string' && url.includes('/api/events/123')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              id: 123,
+              name: 'Friday Pizza Party',
+              date: '2025-11-15T00:00:00.000Z',
+              location: 'Main Office, Conference Room A',
+            }),
+        } as Response);
+      }
+      return Promise.resolve({ ok: false } as Response);
+    }) as typeof window.fetch;
     window.fetch = mockFetch;
 
     render(
-      <MemoryRouter initialEntries={["/events/123/order"]}>
-        <Routes>
-          <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/events/123/order"]}>
+          <Routes>
+            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -72,39 +111,68 @@ describe('PizzaOrderPage', () => {
   });
 
   it('should show loading state while fetching event', () => {
-    window.fetch = vi.fn(() => new Promise(() => {})) as typeof window.fetch; // Never resolves
+    window.fetch = vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/api/auth/me')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+            }),
+        } as Response);
+      }
+      // Make other requests never resolve
+      return new Promise(() => {});
+    }) as typeof window.fetch;
 
     render(
-      <MemoryRouter initialEntries={["/events/123/order"]}>
-        <Routes>
-          <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/events/123/order"]}>
+          <Routes>
+            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
 
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it('should show error state when event fetch fails', async () => {
-    const mockFetch = vi.fn()
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          ingredients: [],
-        }),
-      } as Response);
+    const mockFetch = vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/api/auth/me')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+            }),
+        } as Response);
+      }
+      if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ingredients: [] }),
+        } as Response);
+      }
+      if (typeof url === 'string' && url.includes('/api/events/123')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+        } as Response);
+      }
+      return Promise.resolve({ ok: false } as Response);
+    }) as typeof window.fetch;
     window.fetch = mockFetch;
 
     render(
-      <MemoryRouter initialEntries={["/events/123/order"]}>
-        <Routes>
-          <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/events/123/order"]}>
+          <Routes>
+            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -114,34 +182,53 @@ describe('PizzaOrderPage', () => {
 
   describe('Ingredient Selection', () => {
     it('should fetch and display available ingredients', async () => {
-      const mockFetch = vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
-            id: 123,
-            name: 'Friday Pizza Party',
-            date: '2025-11-15T00:00:00.000Z',
-            location: 'Main Office',
-          }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
-            ingredients: [
-              { id: 1, name: 'Pepperoni' },
-              { id: 2, name: 'Mushrooms' },
-              { id: 3, name: 'Olives' },
-            ],
-          }),
-        } as Response);
+      const mockFetch = vi.fn((url) => {
+        if (typeof url === 'string' && url.includes('/api/auth/me')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                ingredients: [
+                  { id: 1, name: 'Pepperoni' },
+                  { id: 2, name: 'Mushrooms' },
+                  { id: 3, name: 'Olives' },
+                ],
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 123,
+                name: 'Friday Pizza Party',
+                date: '2025-11-15T00:00:00.000Z',
+                location: 'Main Office',
+              }),
+          } as Response);
+        }
+        return Promise.resolve({ ok: false } as Response);
+      }) as typeof window.fetch;
       window.fetch = mockFetch;
 
       render(
-        <MemoryRouter initialEntries={["/events/123/order"]}>
-          <Routes>
-            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-          </Routes>
-        </MemoryRouter>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/events/123/order"]}>
+            <Routes>
+              <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
       );
 
       await waitFor(() => {
@@ -154,35 +241,54 @@ describe('PizzaOrderPage', () => {
     });
 
     it('should allow selecting and deselecting ingredients', async () => {
-      const mockFetch = vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
-            id: 123,
-            name: 'Friday Pizza Party',
-            date: '2025-11-15T00:00:00.000Z',
-            location: 'Main Office',
-          }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
-            ingredients: [
-              { id: 1, name: 'Pepperoni' },
-              { id: 2, name: 'Mushrooms' },
-            ],
-          }),
-        } as Response);
+      const mockFetch = vi.fn((url) => {
+        if (typeof url === 'string' && url.includes('/api/auth/me')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                ingredients: [
+                  { id: 1, name: 'Pepperoni' },
+                  { id: 2, name: 'Mushrooms' },
+                ],
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 123,
+                name: 'Friday Pizza Party',
+                date: '2025-11-15T00:00:00.000Z',
+                location: 'Main Office',
+              }),
+          } as Response);
+        }
+        return Promise.resolve({ ok: false } as Response);
+      }) as typeof window.fetch;
       window.fetch = mockFetch;
 
       const user = userEvent.setup();
 
       render(
-        <MemoryRouter initialEntries={["/events/123/order"]}>
-          <Routes>
-            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-          </Routes>
-        </MemoryRouter>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/events/123/order"]}>
+            <Routes>
+              <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
       );
 
       const pepperoniCheckbox = await screen.findByRole('switch', { name: /pepperoni/i });
@@ -200,30 +306,46 @@ describe('PizzaOrderPage', () => {
     });
 
     it('should show message when no ingredients are available', async () => {
-      const mockFetch = vi.fn()
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
-            id: 123,
-            name: 'Friday Pizza Party',
-            date: '2025-11-15T00:00:00.000Z',
-            location: 'Main Office',
-          }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve({
-            ingredients: [],
-          }),
-        } as Response);
+      const mockFetch = vi.fn((url) => {
+        if (typeof url === 'string' && url.includes('/api/auth/me')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+              }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ ingredients: [] }),
+          } as Response);
+        }
+        if (typeof url === 'string' && url.includes('/api/events/123')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                id: 123,
+                name: 'Friday Pizza Party',
+                date: '2025-11-15T00:00:00.000Z',
+                location: 'Main Office',
+              }),
+          } as Response);
+        }
+        return Promise.resolve({ ok: false } as Response);
+      }) as typeof window.fetch;
       window.fetch = mockFetch;
 
       render(
-        <MemoryRouter initialEntries={["/events/123/order"]}>
-          <Routes>
-            <Route path="/events/:id/order" element={<PizzaOrderPage />} />
-          </Routes>
-        </MemoryRouter>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/events/123/order"]}>
+            <Routes>
+              <Route path="/events/:id/order" element={<PizzaOrderPage />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
       );
 
       await waitFor(() => {

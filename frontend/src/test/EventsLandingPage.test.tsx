@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import EventsLandingPage from '../pages/EventsLandingPage';
+import { AuthProvider } from '../contexts/AuthContext';
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -18,8 +19,17 @@ describe('EventsLandingPage', () => {
   });
 
   it('should fetch events from API on mount', async () => {
-    const mockFetch = vi.fn(() =>
-      Promise.resolve({
+    const mockFetch = vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/api/auth/me')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              user: { id: 1, username: 'testuser', email: 'test@test.com', isAdmin: false },
+            }),
+        } as Response);
+      }
+      return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ 
           events: [
@@ -31,14 +41,18 @@ describe('EventsLandingPage', () => {
             },
           ],
         }),
-      } as Response)
-    );
-    window.fetch = mockFetch;
+      } as Response);
+    });
+    window.fetch = mockFetch as typeof window.fetch;
 
     render(
-      <MemoryRouter>
-        <EventsLandingPage />
-      </MemoryRouter>
+      <AuthProvider>
+        <AuthProvider>
+        <MemoryRouter>
+          <EventsLandingPage />
+        </MemoryRouter>
+      </AuthProvider>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -50,9 +64,11 @@ describe('EventsLandingPage', () => {
     window.fetch = vi.fn(() => new Promise(() => {})) as typeof window.fetch; // Never resolves
 
     render(
-      <MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </AuthProvider>
     );
 
     expect(screen.getByText('Loading events...')).toBeInTheDocument();
@@ -69,9 +85,11 @@ describe('EventsLandingPage', () => {
     window.fetch = mockFetch;
 
     render(
-      <MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -89,9 +107,11 @@ describe('EventsLandingPage', () => {
     window.fetch = mockFetch;
 
     render(
-      <MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -124,9 +144,11 @@ describe('EventsLandingPage', () => {
     window.fetch = mockFetch;
 
     render(
-      <MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -146,9 +168,11 @@ describe('EventsLandingPage', () => {
     window.fetch = mockFetch;
 
     render(
-      <MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -176,9 +200,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -217,9 +243,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -254,9 +282,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -283,9 +313,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -317,9 +349,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -358,9 +392,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -402,9 +438,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -434,9 +472,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -467,9 +507,11 @@ describe('EventsLandingPage', () => {
       window.fetch = mockFetch;
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -505,9 +547,11 @@ describe('EventsLandingPage', () => {
       const user = userEvent.setup();
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -546,9 +590,11 @@ describe('EventsLandingPage', () => {
       const user = userEvent.setup();
 
       render(
+        <AuthProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </AuthProvider>
       );
 
       await waitFor(() => {
