@@ -540,4 +540,167 @@ describe('EventIngredientsPage', () => {
       });
     });
   });
+
+  describe('Cycle 5: Remove Ingredient from Event', () => {
+    it('should display remove button on each event ingredient', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+        { id: 2, name: 'Pepperoni' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/') && urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for event ingredients to load
+      await waitFor(() => {
+        expect(screen.getByText('Mozzarella')).toBeInTheDocument();
+      });
+
+      // Should have remove buttons on event ingredients
+      const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+      expect(eventSection).toBeInTheDocument();
+      
+      const removeButtons = screen.getAllByRole('button', { name: /remove/i });
+      expect(removeButtons.length).toBeGreaterThan(0);
+    });
+
+    it('should remove ingredient from event when remove button is clicked', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+        { id: 2, name: 'Pepperoni' },
+      ];
+
+      let deleteCalled = false;
+
+      window.fetch = vi.fn((url: RequestInfo | URL, options?: RequestInit) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/1/ingredients')) {
+          if (options?.method === 'DELETE') {
+            deleteCalled = true;
+            return Promise.resolve({
+              ok: true,
+              json: async () => ({}),
+            } as Response);
+          }
+          // GET request
+          return Promise.resolve({
+            ok: true,
+            json: async () => deleteCalled ? [{ id: 1, name: 'Mozzarella' }] : eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      const user = userEvent.setup();
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for page to load
+      await waitFor(() => {
+        expect(screen.getByText('Pepperoni')).toBeInTheDocument();
+      });
+
+      // Find and click the remove button for Pepperoni
+      const removeButtons = screen.getAllByRole('button', { name: /remove/i });
+      await user.click(removeButtons[1]); // Second ingredient (Pepperoni)
+
+      // Pepperoni should no longer be in event ingredients
+      await waitFor(() => {
+        const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+        expect(eventSection).not.toHaveTextContent('Pepperoni');
+      });
+
+      // Pepperoni should now be in available ingredients
+      await waitFor(() => {
+        const availableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+        expect(availableSection).toHaveTextContent('Pepperoni');
+      });
+    });
+
+    it('should show error if removing ingredient fails', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+        { id: 2, name: 'Pepperoni' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL, options?: RequestInit) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/1/ingredients')) {
+          if (options?.method === 'DELETE') {
+            return Promise.resolve({
+              ok: false,
+              json: async () => ({}),
+            } as Response);
+          }
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      const user = userEvent.setup();
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for page to load
+      await waitFor(() => {
+        expect(screen.getByText('Pepperoni')).toBeInTheDocument();
+      });
+
+      // Click remove button
+      const removeButtons = screen.getAllByRole('button', { name: /remove/i });
+      await user.click(removeButtons[0]);
+
+      // Should show error message
+      await waitFor(() => {
+        expect(screen.getByText(/failed to remove ingredient/i)).toBeInTheDocument();
+      });
+    });
+  });
 });

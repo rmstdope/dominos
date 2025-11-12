@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, Calendar, Pizza, ChefHat, Plus } from 'lucide-react';
+import { AlertCircle, Loader2, Calendar, Pizza, ChefHat, Plus, Trash2 } from 'lucide-react';
 
 interface Event {
   id: number;
@@ -127,6 +127,26 @@ export default function EventIngredientsPage() {
     }
   }
 
+  async function removeIngredientFromEvent(ingredientId: number) {
+    if (!selectedEventId) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/admin/events/${selectedEventId}/ingredients/${ingredientId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove ingredient');
+      }
+
+      // Refresh the event ingredients after removing
+      await fetchEventIngredients(selectedEventId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove ingredient');
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -197,22 +217,28 @@ export default function EventIngredientsPage() {
                   Ingredients currently available at this event
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+                            <CardContent>
                 {eventIngredients.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No ingredients added to this event yet
-                  </p>
+                  <p className="text-muted-foreground">No ingredients added to this event yet.</p>
                 ) : (
-                  <div className="grid gap-2">
+                  <ul className="space-y-2">
                     {eventIngredients.map((ingredient) => (
-                      <div
-                        key={ingredient.id}
-                        className="flex items-center justify-between p-3 rounded-lg border"
-                      >
-                        <span>{ingredient.name}</span>
-                      </div>
+                      <li key={ingredient.id} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Pizza className="h-4 w-4" />
+                          <span>{ingredient.name}</span>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeIngredientFromEvent(ingredient.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
               </CardContent>
             </Card>
