@@ -161,6 +161,155 @@ Get all available ingredients for a specific event.
 
 ---
 
+## User Order Endpoints
+
+Base path: `/api/events/:eventId/orders`
+
+**Authentication:** All order endpoints require authentication.
+
+### Create Pizza Order
+
+#### POST /api/events/:eventId/orders
+
+Submit a pizza order for an event.
+
+**Authentication:** Required
+
+**URL Parameters:**
+
+- `eventId`: Event ID (integer)
+
+**Request Body:**
+
+```json
+{
+  "size": "Standard" | "Small",
+  "ingredientIds": [1, 3, 5]
+}
+```
+
+**Response:** `201 Created`
+
+```json
+{
+  "message": "Order created successfully",
+  "order": {
+    "id": 1,
+    "userId": 2,
+    "eventId": 1,
+    "size": "Standard",
+    "createdAt": "2025-11-12T00:00:00.000Z",
+    "updatedAt": "2025-11-12T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: size is required
+  ```json
+  {
+    "error": "size is required"
+  }
+  ```
+- `400 Bad Request`: Invalid size value
+  ```json
+  {
+    "error": "size must be either \"Standard\" or \"Small\""
+  }
+  ```
+- `400 Bad Request`: ingredientIds must be an array
+  ```json
+  {
+    "error": "ingredientIds must be an array"
+  }
+  ```
+- `400 Bad Request`: Invalid ingredient IDs
+  ```json
+  {
+    "error": "All ingredient IDs must be valid numbers"
+  }
+  ```
+- `401 Unauthorized`: Not authenticated
+  ```json
+  {
+    "error": "Authentication required"
+  }
+  ```
+- `404 Not Found`: Event does not exist
+  ```json
+  {
+    "error": "Event not found"
+  }
+  ```
+- `409 Conflict`: User already has an order for this event
+  ```json
+  {
+    "error": "You already have an order for this event"
+  }
+  ```
+- `500 Internal Server Error`: Server error
+
+**Notes:**
+
+- ingredientIds can be an empty array (no toppings)
+- Each user can only have one order per event
+- Order ingredients are stored in the `order_ingredients` junction table
+
+---
+
+### Get My Order
+
+#### GET /api/events/:eventId/orders/my-order
+
+Retrieve the current user's order for a specific event.
+
+**Authentication:** Required
+
+**URL Parameters:**
+
+- `eventId`: Event ID (integer)
+
+**Response:** `200 OK`
+
+```json
+{
+  "order": {
+    "id": 1,
+    "userId": 2,
+    "eventId": 1,
+    "size": "Standard",
+    "ingredientIds": [1, 3, 5],
+    "createdAt": "2025-11-12T00:00:00.000Z",
+    "updatedAt": "2025-11-12T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized`: Not authenticated
+  ```json
+  {
+    "error": "Authentication required"
+  }
+  ```
+- `404 Not Found`: Event does not exist
+  ```json
+  {
+    "error": "Event not found"
+  }
+  ```
+- `404 Not Found`: No order found for this event
+  ```json
+  {
+    "error": "No order found for this event"
+  }
+  ```
+- `500 Internal Server Error`: Server error
+
+---
+
 ## Authentication Endpoints
 
 Base path: `/api/auth`
@@ -713,6 +862,34 @@ Remove an ingredient from an event.
   updatedAt: Date;
 }
 ```
+
+### Order
+
+```typescript
+{
+  id: number;
+  userId: number; // foreign key to User
+  eventId: number; // foreign key to Event
+  size: 'Standard' | 'Small';
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+**Note:** Unique constraint on (userId, eventId) - one order per user per event.
+
+### OrderIngredient
+
+```typescript
+{
+  orderId: number; // foreign key to Order
+  ingredientId: number; // foreign key to Ingredient
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+**Note:** Composite primary key on (orderId, ingredientId).
 
 ---
 
