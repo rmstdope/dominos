@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, Calendar, Pizza } from 'lucide-react';
+import { AlertCircle, Loader2, Calendar, Pizza, ChefHat } from 'lucide-react';
 
 interface Event {
   id: number;
@@ -21,6 +21,12 @@ export default function EventIngredientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [eventIngredients, setEventIngredients] = useState<Ingredient[]>([]);
+  const [allIngredients, setAllIngredients] = useState<Ingredient[]>([]);
+
+  // Compute available ingredients (ingredients not in the event)
+  const availableIngredients = allIngredients.filter(
+    (ingredient) => !eventIngredients.some((ei) => ei.id === ingredient.id)
+  );
 
   useEffect(() => {
     fetchEvents();
@@ -80,7 +86,20 @@ export default function EventIngredientsPage() {
   }
 
   async function fetchAllIngredients() {
-    // Will be implemented in next cycle
+    try {
+      const response = await fetch('http://localhost:3000/api/admin/ingredients', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load ingredients');
+      }
+
+      const data = await response.json();
+      setAllIngredients(data.ingredients);
+    } catch (err) {
+      console.error('Error fetching ingredients:', err);
+    }
   }
 
   return (
@@ -170,6 +189,33 @@ export default function EventIngredientsPage() {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Available Ingredients Section */}
+          {selectedEventId && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ChefHat className="h-5 w-5" />
+                  <CardTitle>Available Ingredients</CardTitle>
+                </div>
+                <CardDescription>
+                  Ingredients that can be added to this event
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2">
+                  {availableIngredients.map((ingredient) => (
+                    <div
+                      key={ingredient.id}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                    >
+                      <span>{ingredient.name}</span>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}

@@ -218,12 +218,165 @@ describe('EventIngredientsPage', () => {
       const pizzaMonday = screen.getByText('Pizza Monday');
       await user.click(pizzaMonday);
 
-      // Should show second event's ingredients
+      // Should show second event's ingredients in the event section
+      await waitFor(() => {
+        const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+        expect(eventSection).toHaveTextContent('Mushrooms');
+      });
+
+      // Mozzarella should not be in event ingredients (but will be in available)
+      const eventSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+      expect(eventSection).not.toHaveTextContent('Mozzarella');
+    });
+  });
+
+  describe('Cycle 3: Display Available Ingredients', () => {
+    it('should display ingredients that are not in the event', async () => {
+      const eventIngredients = [
+        { id: 1, name: 'Mozzarella' },
+        { id: 2, name: 'Pepperoni' },
+      ];
+
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/') && urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => eventIngredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for data to load - wait for an ingredient that should be available
       await waitFor(() => {
         expect(screen.getByText('Mushrooms')).toBeInTheDocument();
       });
 
-      expect(screen.queryByText('Mozzarella')).not.toBeInTheDocument();
+      // Should show ingredients NOT in the event
+      expect(screen.getByText('Olives')).toBeInTheDocument();
+      expect(screen.getByText('Bell Peppers')).toBeInTheDocument();
+
+      // Should NOT show ingredients already in the event
+      const eventIngredientsSection = screen.getByText('Event Ingredients').closest('div[class*="rounded-lg"]');
+      expect(eventIngredientsSection).toBeInTheDocument();
+      
+      const availableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+      expect(availableSection).toBeInTheDocument();
+      
+      // Mozzarella and Pepperoni should only be in event ingredients, not in available
+      expect(eventIngredientsSection).toHaveTextContent('Mozzarella');
+      expect(availableSection).not.toHaveTextContent('Mozzarella');
+    });
+
+    it('should show all ingredients as available when event has no ingredients', async () => {
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/') && urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => [],
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      renderWithProviders(<EventIngredientsPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Available Ingredients')).toBeInTheDocument();
+      });
+
+      // All ingredients should be available
+      expect(screen.getByText('Mozzarella')).toBeInTheDocument();
+      expect(screen.getByText('Pepperoni')).toBeInTheDocument();
+      expect(screen.getByText('Mushrooms')).toBeInTheDocument();
+      expect(screen.getByText('Olives')).toBeInTheDocument();
+      expect(screen.getByText('Bell Peppers')).toBeInTheDocument();
+    });
+
+    it('should update available ingredients when event selection changes', async () => {
+      const event1Ingredients = [{ id: 1, name: 'Mozzarella' }];
+      const event2Ingredients = [{ id: 3, name: 'Mushrooms' }];
+
+      window.fetch = vi.fn((url: RequestInfo | URL) => {
+        const urlString = url.toString();
+        if (urlString.includes('/api/admin/events') && !urlString.includes('/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ events: mockEvents }),
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/1/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => event1Ingredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/events/2/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => event2Ingredients,
+          } as Response);
+        }
+        if (urlString.includes('/api/admin/ingredients')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ ingredients: mockIngredients }),
+          } as Response);
+        }
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      const user = userEvent.setup();
+      renderWithProviders(<EventIngredientsPage />);
+
+      // Wait for first event's available ingredients
+      await waitFor(() => {
+        const availableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+        expect(availableSection).toHaveTextContent('Pepperoni');
+      });
+
+      // First event: Mozzarella is in event, others are available
+      const availableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+      expect(availableSection).not.toHaveTextContent('Mozzarella');
+
+      // Click second event
+      const pizzaMonday = screen.getByText('Pizza Monday');
+      await user.click(pizzaMonday);
+
+      // Second event: Mushrooms is in event, Mozzarella should now be available
+      await waitFor(() => {
+        const updatedAvailableSection = screen.getByText('Available Ingredients').closest('div[class*="rounded-lg"]');
+        expect(updatedAvailableSection).toHaveTextContent('Mozzarella');
+        expect(updatedAvailableSection).not.toHaveTextContent('Mushrooms');
+      });
     });
   });
 });
