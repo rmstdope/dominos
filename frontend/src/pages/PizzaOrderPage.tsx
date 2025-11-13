@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, Calendar, MapPin, Check, User } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -19,6 +20,16 @@ interface Ingredient {
   name: string;
 }
 
+interface Order {
+  id: number;
+  userId: number;
+  eventId: number;
+  size: 'Standard' | 'Small';
+  ingredientIds: number[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 type PizzaSize = 'Standard' | 'Small';
 
 export default function PizzaOrderPage() {
@@ -28,8 +39,12 @@ export default function PizzaOrderPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<Set<number>>(new Set());
   const [selectedSize, setSelectedSize] = useState<PizzaSize>('Standard');
+  const [existingOrder, setExistingOrder] = useState<Order | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchEvent() {
@@ -71,8 +86,34 @@ export default function PizzaOrderPage() {
       }
     }
 
+    async function fetchExistingOrder() {
+      try {
+        const response = await fetch(`http://localhost:3000/api/events/${id}/orders/my-order`, {
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setExistingOrder(data.order);
+          setHasSubmitted(true);
+          setSelectedSize(data.order.size);
+          setSelectedIngredients(new Set(data.order.ingredientIds));
+        } else if (response.status === 404) {
+          // No existing order - this is expected for users who haven't ordered yet
+          // Silently continue without logging
+        } else {
+          // Other errors (500, etc.) - log but don't block the UI
+          console.warn(`Unexpected response when fetching order: ${response.status}`);
+        }
+      } catch (err) {
+        console.error('Error fetching existing order:', err);
+        // Don't set error state - no existing order is not an error
+      }
+    }
+
     fetchEvent();
     fetchIngredients();
+    fetchExistingOrder();
   }, [id]);
 
   function formatEventDate(dateString: string): string {
@@ -94,6 +135,56 @@ export default function PizzaOrderPage() {
       }
       return newSet;
     });
+  }
+
+  function getToppingCountText(count: number): string {
+    return `${count} ${count === 1 ? 'topping' : 'toppings'}`;
+  }
+
+  function isOrderValid(): boolean {
+    return selectedIngredients.size > 0;
+  }
+
+  async function handleSubmitOrder() {
+    if (!isOrderValid() || hasSubmitted || isSubmitting) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmissionError(null);
+
+      const response = await fetch(`http://localhost:3000/api/events/${id}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          size: selectedSize,
+          ingredientIds: Array.from(selectedIngredients),
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to submit order';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If JSON parsing fails, use default error message
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      setExistingOrder(data.order);
+      setHasSubmitted(true);
+    } catch (err) {
+      setSubmissionError(err instanceof Error ? err.message : 'Failed to submit order');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (isLoading) {
@@ -139,6 +230,22 @@ export default function PizzaOrderPage() {
           </p>
         )}
       </div>
+
+      {hasSubmitted && (
+        <Alert className="mb-4 border-green-500 bg-green-50 dark:bg-green-950">
+          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className="text-green-900 dark:text-green-100">
+            Order Submitted! Your pizza order has been received.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {submissionError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{submissionError}</AlertDescription>
+        </Alert>
+      )}
       
       <Card className="mb-4">
         <CardContent className="pt-6 pb-4">
@@ -152,6 +259,44 @@ export default function PizzaOrderPage() {
               <MapPin className="h-4 w-4" />
               <span>{event.location}</span>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Your Order</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Size:</span>
+              <span className="font-medium">{selectedSize}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Toppings:</span>
+              <span className="font-medium">
+                {getToppingCountText(selectedIngredients.size)}
+              </span>
+            </div>
+            {selectedIngredients.size > 0 && (
+              <div className="pt-2 border-t">
+                <div className="text-muted-foreground mb-1">Selected toppings:</div>
+                <div className="flex flex-wrap gap-1">
+                  {ingredients
+                    .filter((ing) => selectedIngredients.has(ing.id))
+                    .map((ing) => (
+                      <span
+                        key={ing.id}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 rounded text-xs"
+                      >
+                        <Check className="h-3 w-3" />
+                        {ing.name}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -244,6 +389,17 @@ export default function PizzaOrderPage() {
           )}
         </CardContent>
       </Card>
+
+      <div className="mt-6">
+        <Button
+          type="button"
+          className="w-full"
+          disabled={!isOrderValid() || hasSubmitted || isSubmitting}
+          onClick={handleSubmitOrder}
+        >
+          {isSubmitting ? 'Submitting...' : hasSubmitted ? 'Order Already Submitted' : 'Submit Order'}
+        </Button>
+      </div>
     </div>
   );
 }

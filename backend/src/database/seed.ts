@@ -3,10 +3,17 @@ import { User } from '../domains/users/User';
 import { Ingredient } from '../domains/ingredients/Ingredient';
 import { Event } from '../domains/events/Event';
 import { EventIngredient } from '../domains/events/EventIngredient';
+import { Order } from '../domains/orders/Order';
+import { OrderIngredient } from '../domains/orders/OrderIngredient';
 import { getSequelize } from './config';
 
 export async function seedDatabase(): Promise<void> {
   const sequelize = getSequelize();
+  
+  // Import models to ensure they're registered with Sequelize
+  // These imports are necessary even if not directly used
+  void Order;
+  void OrderIngredient;
   
   // Sync database (creates tables if they don't exist)
   await sequelize.sync({ force: true }); // WARNING: This drops all tables!
