@@ -4,8 +4,22 @@ import { User } from '../domains/users/User';
 import { Ingredient } from '../domains/ingredients/Ingredient';
 import { Event as EventModel } from '../domains/events/Event';
 import { EventIngredient } from '../domains/events/EventIngredient';
+import { Order } from '../domains/orders/Order';
+import { OrderIngredient } from '../domains/orders/OrderIngredient';
 
 const router = Router();
+
+interface TransformedOrder {
+  id: number;
+  userId: number;
+  userName: string;
+  eventId: number;
+  eventName: string;
+  size: string;
+  ingredients: string[];
+  createdAt: Date;
+}
+
 
 // GET /api/admin/users - List all users with their admin status
 router.get('/users', authenticate, requireAdmin, async (_req: Request, res: Response) => {
@@ -343,6 +357,57 @@ router.delete('/events/:eventId/ingredients/:ingredientId', authenticate, requir
     res.status(204).send();
   } catch (error) {
     console.error('Error removing ingredient from event:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/orders - List all orders with user, event, and ingredient details
+router.get('/orders', authenticate, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const orders = await Order.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'username'],
+        },
+        {
+          model: EventModel,
+          as: 'Event',
+          attributes: ['id', 'name'],
+        },
+        {
+          model: OrderIngredient,
+          as: 'OrderIngredients',
+          include: [
+            {
+              model: Ingredient,
+              attributes: ['name'],
+            },
+          ],
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    // Transform the data to match the expected format
+    const transformedOrders: TransformedOrder[] = orders.map((order) => {
+      const orderData = order.toJSON() as any;
+      
+      return {
+        id: orderData.id,
+        userId: orderData.userId,
+        userName: orderData.User?.username || '',
+        eventId: orderData.eventId,
+        eventName: orderData.Event?.name || '',
+        size: orderData.size,
+        ingredients: orderData.OrderIngredients?.map((oi: any) => oi.Ingredient?.name).filter(Boolean) || [],
+        createdAt: orderData.createdAt,
+      };
+    });
+
+    res.json({ orders: transformedOrders });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

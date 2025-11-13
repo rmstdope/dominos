@@ -4,6 +4,10 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
 import eventsRoutes from './routes/events';
+import { setupAssociations } from './database/associations';
+
+// Set up model associations
+setupAssociations();
 
 export const createApp = (): Express => {
   const app = express();

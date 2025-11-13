@@ -812,6 +812,79 @@ Remove an ingredient from an event.
 
 ---
 
+### Orders Management
+
+#### GET /api/admin/orders
+
+List all pizza orders from all users with complete details.
+
+**Response:** `200 OK`
+
+```json
+{
+  "orders": [
+    {
+      "id": 3,
+      "userId": 2,
+      "userName": "john",
+      "eventId": 1,
+      "eventName": "Team Pizza Night",
+      "size": "Standard",
+      "ingredients": ["Pepperoni", "Mushrooms", "Olives"],
+      "createdAt": "2025-11-13T10:30:00.000Z"
+    },
+    {
+      "id": 2,
+      "userId": 3,
+      "userName": "jane",
+      "eventId": 1,
+      "eventName": "Team Pizza Night",
+      "size": "Small",
+      "ingredients": ["Extra Cheese"],
+      "createdAt": "2025-11-13T10:15:00.000Z"
+    },
+    {
+      "id": 1,
+      "userId": 2,
+      "userName": "john",
+      "eventId": 2,
+      "eventName": "Friday Lunch",
+      "size": "Standard",
+      "ingredients": [],
+      "createdAt": "2025-11-13T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Note:** 
+- Results are ordered by creation date descending (newest first)
+- The `ingredients` array contains ingredient names (strings), not IDs
+- Orders with no toppings have an empty `ingredients` array
+
+**Error Responses:**
+
+- `401 Unauthorized`: Not authenticated
+  ```json
+  {
+    "error": "Authentication required"
+  }
+  ```
+- `403 Forbidden`: Not an admin
+  ```json
+  {
+    "error": "Admin access required"
+  }
+  ```
+- `500 Internal Server Error`: Server error
+  ```json
+  {
+    "error": "Internal server error"
+  }
+  ```
+
+---
+
 ## Data Models
 
 ### User
