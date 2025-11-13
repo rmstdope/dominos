@@ -33,6 +33,7 @@ export function setupAssociations(): void {
   Order.hasMany(OrderIngredient, {
     foreignKey: 'orderId',
     as: 'OrderIngredients',
+    onDelete: 'CASCADE',
   });
   OrderIngredient.belongsTo(Order, {
     foreignKey: 'orderId',

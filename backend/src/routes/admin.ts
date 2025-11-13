@@ -412,4 +412,24 @@ router.get('/orders', authenticate, requireAdmin, async (_req: Request, res: Res
   }
 });
 
+// DELETE /api/admin/orders/:id - Delete a specific order
+router.delete('/orders/:id', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const orderId = parseInt(req.params.id, 10);
+
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    await order.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

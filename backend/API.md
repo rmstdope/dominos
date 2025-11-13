@@ -885,6 +885,49 @@ List all pizza orders from all users with complete details.
 
 ---
 
+#### DELETE /api/admin/orders/:id
+
+Delete a specific pizza order by ID.
+
+**URL Parameters:**
+
+- `id`: Order ID (integer)
+
+**Response:** `204 No Content`
+
+**Error Responses:**
+
+- `401 Unauthorized`: Not authenticated
+  ```json
+  {
+    "error": "Authentication required"
+  }
+  ```
+- `403 Forbidden`: Not an admin
+  ```json
+  {
+    "error": "Admin access required"
+  }
+  ```
+- `404 Not Found`: Order not found
+  ```json
+  {
+    "error": "Order not found"
+  }
+  ```
+- `500 Internal Server Error`: Server error
+  ```json
+  {
+    "error": "Internal server error"
+  }
+  ```
+
+**Note:**
+- Deleting an order will automatically delete all associated order ingredients (cascade delete)
+- This operation cannot be undone
+
+---
+
 ## Data Models
 
 ### User
