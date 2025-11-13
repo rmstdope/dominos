@@ -259,4 +259,127 @@ describe('Admin Orders Routes', () => {
       expect(timestamps[1]).toBeGreaterThanOrEqual(timestamps[2]);
     });
   });
+
+  describe('DELETE /api/admin/orders/:id', () => {
+    it('should require authentication', async () => {
+      const response = await request(app).delete('/api/admin/orders/1');
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+
+      const response = await request(app)
+        .delete('/api/admin/orders/1')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should return 404 if order not found', async () => {
+      const { token } = await createUserWithToken(true, 'admin');
+
+      const response = await request(app)
+        .delete('/api/admin/orders/999')
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('Order not found');
+    });
+
+    it('should delete an order successfully', async () => {
+      const { token } = await createUserWithToken(true, 'admin');
+
+      const user = await User.create({
+        username: 'john',
+        email: 'john@example.com',
+        password: 'hashedpassword',
+        isAdmin: false,
+      });
+
+      const event = await EventModel.create({
+        name: 'Team Pizza Night',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const order = await Order.create({
+        userId: user.id,
+        eventId: event.id,
+        size: 'Standard',
+      });
+
+      const response = await request(app)
+        .delete(`/api/admin/orders/${order.id}`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(204);
+      expect(response.body).toEqual({});
+
+      // Verify order is deleted from database
+      const deletedOrder = await Order.findByPk(order.id);
+      expect(deletedOrder).toBeNull();
+    });
+
+    it('should cascade delete order ingredients', async () => {
+      const { token } = await createUserWithToken(true, 'admin');
+
+      const user = await User.create({
+        username: 'john',
+        email: 'john@example.com',
+        password: 'hashedpassword',
+        isAdmin: false,
+      });
+
+      const event = await EventModel.create({
+        name: 'Team Pizza Night',
+        date: new Date('2025-11-15'),
+        location: 'Office',
+      });
+
+      const ingredient1 = await Ingredient.create({ name: 'Pepperoni' });
+      const ingredient2 = await Ingredient.create({ name: 'Mushrooms' });
+
+      const order = await Order.create({
+        userId: user.id,
+        eventId: event.id,
+        size: 'Standard',
+      });
+
+      await OrderIngredient.create({
+        orderId: order.id,
+        ingredientId: ingredient1.id,
+      });
+
+      await OrderIngredient.create({
+        orderId: order.id,
+        ingredientId: ingredient2.id,
+      });
+
+      // Verify order ingredients exist before deletion
+      const orderIngredientsBefore = await OrderIngredient.findAll({
+        where: { orderId: order.id },
+      });
+      expect(orderIngredientsBefore).toHaveLength(2);
+
+      const response = await request(app)
+        .delete(`/api/admin/orders/${order.id}`)
+        .set('Cookie', [`token=${token}`]);
+
+      expect(response.status).toBe(204);
+
+      // Verify order is deleted
+      const deletedOrder = await Order.findByPk(order.id);
+      expect(deletedOrder).toBeNull();
+
+      // Verify order ingredients are also deleted
+      const orderIngredientsAfter = await OrderIngredient.findAll({
+        where: { orderId: order.id },
+      });
+      expect(orderIngredientsAfter).toHaveLength(0);
+    });
+  });
 });
