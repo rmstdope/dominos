@@ -10,6 +10,7 @@ import EventsPage from './pages/EventsPage';
 import EventIngredientsPage from './pages/EventIngredientsPage';
 import EventsLandingPage from './pages/EventsLandingPage';
 import PizzaOrderPage from './pages/PizzaOrderPage';
+import OrdersPage from './pages/OrdersPage';
 
 function App() {
   return (
@@ -65,6 +66,16 @@ function App() {
                 <ProtectedRoute requireAdmin>
                   <AdminLayout>
                     <EventIngredientsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout>
+                    <OrdersPage />
                   </AdminLayout>
                 </ProtectedRoute>
               }
