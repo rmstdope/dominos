@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Pizza, Calendar, LogOut, ChevronRight, UtensilsCrossed } from 'lucide-react';
+import { Home, Users, Pizza, Calendar, LogOut, ChevronRight, UtensilsCrossed, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import type { ReactNode } from 'react';
@@ -18,6 +18,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { path: '/admin/ingredients', label: 'Ingredients', icon: Pizza },
     { path: '/admin/events', label: 'Events', icon: Calendar },
     { path: '/admin/event-ingredients', label: 'Event Ingredients', icon: UtensilsCrossed },
+    { path: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   ];
 
   const getIconForPath = (path: string) => {

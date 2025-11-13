@@ -109,6 +109,78 @@ export async function seedDatabase(): Promise<void> {
     { eventId: event2.id!, ingredientId: ingredients[4].id! }, // Bacon
     { eventId: event2.id!, ingredientId: ingredients[5].id! }, // Extra Cheese
   ]);
+
+  // Create orders for Friday Pizza Party (event1)
+  const johnOrder1 = await Order.create({
+    userId: 2, // john
+    eventId: event1.id!,
+    size: 'Standard',
+  });
+  await OrderIngredient.bulkCreate([
+    { orderId: johnOrder1.id!, ingredientId: ingredients[0].id! }, // Pepperoni
+    { orderId: johnOrder1.id!, ingredientId: ingredients[1].id! }, // Mushrooms
+    { orderId: johnOrder1.id!, ingredientId: ingredients[5].id! }, // Extra Cheese
+  ]);
+
+  const janeOrder1 = await Order.create({
+    userId: 3, // jane
+    eventId: event1.id!,
+    size: 'Small',
+  });
+  await OrderIngredient.bulkCreate([
+    { orderId: janeOrder1.id!, ingredientId: ingredients[7].id! }, // Green Peppers
+    { orderId: janeOrder1.id!, ingredientId: ingredients[1].id! }, // Mushrooms
+  ]);
+
+  const bobOrder1 = await Order.create({
+    userId: 4, // bob
+    eventId: event1.id!,
+    size: 'Standard',
+  });
+  await OrderIngredient.bulkCreate([
+    { orderId: bobOrder1.id!, ingredientId: ingredients[0].id! }, // Pepperoni
+    { orderId: bobOrder1.id!, ingredientId: ingredients[5].id! }, // Extra Cheese
+  ]);
+
+  // Create orders for Sprint Planning Pizza (event2)
+  const johnOrder2 = await Order.create({
+    userId: 2, // john
+    eventId: event2.id!,
+    size: 'Standard',
+  });
+  await OrderIngredient.bulkCreate([
+    { orderId: johnOrder2.id!, ingredientId: ingredients[0].id! }, // Pepperoni
+    { orderId: johnOrder2.id!, ingredientId: ingredients[3].id! }, // Sausage
+    { orderId: johnOrder2.id!, ingredientId: ingredients[4].id! }, // Bacon
+    { orderId: johnOrder2.id!, ingredientId: ingredients[5].id! }, // Extra Cheese
+  ]);
+
+  const janeOrder2 = await Order.create({
+    userId: 3, // jane
+    eventId: event2.id!,
+    size: 'Small',
+  });
+  await OrderIngredient.bulkCreate([
+    { orderId: janeOrder2.id!, ingredientId: ingredients[0].id! }, // Pepperoni
+  ]);
+
+  await Order.create({
+    userId: 4, // bob
+    eventId: event2.id!,
+    size: 'Small',
+  });
+  // No toppings for Bob's second order
+
+  // Create order for past event
+  const johnOrderPast = await Order.create({
+    userId: 2, // john
+    eventId: pastEvent.id!,
+    size: 'Standard',
+  });
+  await OrderIngredient.bulkCreate([
+    { orderId: johnOrderPast.id!, ingredientId: ingredients[8].id! }, // Pineapple
+    { orderId: johnOrderPast.id!, ingredientId: ingredients[11].id! }, // Ham
+  ]);
   
   console.log('Database seeded successfully!');
   console.log('---');
@@ -117,6 +189,7 @@ export async function seedDatabase(): Promise<void> {
   console.log('---');
   console.log(`Created ${ingredients.length} ingredients`);
   console.log(`Created 3 events (1 past, 2 upcoming) with topping selections`);
+  console.log('Created 7 pizza orders across all events');
 }
 
 // Run if called directly
