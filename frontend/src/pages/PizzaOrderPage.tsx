@@ -98,8 +98,13 @@ export default function PizzaOrderPage() {
           setHasSubmitted(true);
           setSelectedSize(data.order.size);
           setSelectedIngredients(new Set(data.order.ingredientIds));
+        } else if (response.status === 404) {
+          // No existing order - this is expected for users who haven't ordered yet
+          // Silently continue without logging
+        } else {
+          // Other errors (500, etc.) - log but don't block the UI
+          console.warn(`Unexpected response when fetching order: ${response.status}`);
         }
-        // If 404, no existing order - this is fine, user hasn't ordered yet
       } catch (err) {
         console.error('Error fetching existing order:', err);
         // Don't set error state - no existing order is not an error
