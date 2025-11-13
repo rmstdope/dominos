@@ -424,6 +424,9 @@ router.delete('/orders/:id', authenticate, requireAdmin, async (req: Request, re
       return;
     }
 
+    // Delete associated OrderIngredients first
+    await OrderIngredient.destroy({ where: { orderId } });
+
     await order.destroy();
     res.status(204).send();
   } catch (error) {

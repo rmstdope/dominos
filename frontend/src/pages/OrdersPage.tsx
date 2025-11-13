@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, Pizza } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { AlertCircle, Loader2, Pizza, Trash2 } from 'lucide-react';
 
 interface Order {
   id: number;
@@ -25,6 +36,9 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteOrderId, setDeleteOrderId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -84,6 +98,46 @@ export default function OrdersPage() {
       minute: '2-digit',
       hour12: true,
     });
+  }
+
+  async function handleDeleteOrder() {
+    if (!deleteOrderId) return;
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+
+      const response = await fetch(`http://localhost:3000/api/admin/orders/${deleteOrderId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete order');
+      }
+
+      // Close dialog
+      setDeleteOrderId(null);
+
+      // Refresh orders list
+      await fetchOrders();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete order');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  function openDeleteDialog(orderId: number) {
+    setDeleteOrderId(orderId);
+    setDeleteError(null);
+  }
+
+  function closeDeleteDialog() {
+    if (!isDeleting) {
+      setDeleteOrderId(null);
+      setDeleteError(null);
+    }
   }
 
   const groupedOrders = groupOrdersByEvent(orders);
@@ -155,6 +209,17 @@ export default function OrdersPage() {
 
                             <div className="text-xs text-muted-foreground">{formatDate(order.createdAt)}</div>
                           </div>
+
+                          <div className="flex items-start">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => openDeleteDialog(order.id)}
+                              aria-label="Delete order"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -165,6 +230,41 @@ export default function OrdersPage() {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteOrderId !== null} onOpenChange={(open) => !open && closeDeleteDialog()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this pizza order.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {deleteError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{deleteError}</AlertDescription>
+            </Alert>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDeleteDialog} disabled={isDeleting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteOrder} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
