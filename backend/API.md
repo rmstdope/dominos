@@ -870,7 +870,7 @@ Remove an ingredient from an event.
   id: number;
   userId: number; // foreign key to User
   eventId: number; // foreign key to Event
-  size: 'Standard' | 'Small';
+  size: "Standard" | "Small";
   createdAt: Date;
   updatedAt: Date;
 }
