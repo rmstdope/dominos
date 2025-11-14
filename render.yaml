@@ -3,7 +3,6 @@ services:
   - type: pserv
     name: dominos-db
     plan: free
-    ipAllowList: []
 
   # Backend API Service
   - type: web
