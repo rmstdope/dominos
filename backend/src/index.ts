@@ -1,11 +1,40 @@
 import dotenv from 'dotenv';
 import { createApp } from './server';
 import { getSequelize } from './database/config';
+import { User } from './domains/users/User';
+import { hashPassword } from './utils/password';
 
 // Load environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
+
+async function ensureAdminUser() {
+  try {
+    // Check if any admin user exists
+    const adminCount = await User.count({ where: { isAdmin: true } });
+    
+    if (adminCount === 0) {
+      console.log('No admin user found. Creating default admin user...');
+      
+      const hashedPassword = await hashPassword('admin123');
+      await User.create({
+        username: 'admin',
+        email: 'admin@dominos.local',
+        password: hashedPassword,
+        isAdmin: true,
+      });
+      
+      console.log('Default admin user created successfully.');
+      console.log('Username: admin');
+      console.log('Password: admin123');
+      console.log('⚠️  IMPORTANT: Please change this password immediately!');
+    }
+  } catch (error) {
+    console.error('Error ensuring admin user exists:', error);
+    // Don't throw - we want the server to start even if this fails
+  }
+}
 
 async function startServer() {
   try {
@@ -18,6 +47,9 @@ async function startServer() {
     // Sync database schema (creates tables if they don't exist)
     await sequelize.sync({ alter: false });
     console.log('Database schema synced.');
+
+    // Ensure at least one admin user exists
+    await ensureAdminUser();
 
     const app = createApp();
 
