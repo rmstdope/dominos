@@ -6,35 +6,42 @@ let sequelize: Sequelize | null = null;
 export function getSequelize(): Sequelize {
   if (!sequelize) {
     const env = process.env.NODE_ENV || 'development';
+    const databaseUrl = process.env.DATABASE_URL;
 
-    let config: {
-      dialect: 'sqlite';
-      storage: string;
-      logging?: boolean | ((sql: string, timing?: number) => void);
-    };
-
-    if (env === 'test') {
-      config = {
+    // Use PostgreSQL if DATABASE_URL is provided (Render production)
+    if (databaseUrl) {
+      sequelize = new Sequelize(databaseUrl, {
+        dialect: 'postgres',
+        logging: false,
+        dialectOptions: {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false, // Required for Render PostgreSQL
+          },
+        },
+      });
+    } else if (env === 'test') {
+      // SQLite in-memory for tests
+      sequelize = new Sequelize({
         dialect: 'sqlite',
         storage: ':memory:',
         logging: false,
-      };
+      });
     } else if (env === 'production') {
-      config = {
+      // SQLite for production without DATABASE_URL
+      sequelize = new Sequelize({
         dialect: 'sqlite',
         storage: path.join(__dirname, '../../data/dominos.sqlite'),
         logging: false,
-      };
+      });
     } else {
-      // development
-      config = {
+      // SQLite for development
+      sequelize = new Sequelize({
         dialect: 'sqlite',
         storage: path.join(__dirname, '../../data/dominos-dev.sqlite'),
         logging: false,
-      };
+      });
     }
-
-    sequelize = new Sequelize(config);
   }
 
   return sequelize;
