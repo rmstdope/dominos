@@ -10,6 +10,7 @@ This guide walks you through deploying the Dominos Pizza Ordering application to
 ## Important: Free Tier Configuration
 
 The application uses **PostgreSQL** (not SQLite) on Render's free tier because:
+
 - ✅ Free PostgreSQL database available (90 days, then expires)
 - ❌ Persistent disks NOT available on free tier
 - ✅ Backend auto-detects PostgreSQL via `DATABASE_URL` environment variable
@@ -22,26 +23,31 @@ The application uses **PostgreSQL** (not SQLite) on Render's free tier because:
 Using the `render.yaml` blueprint file in the repository root:
 
 1. **Go to Render Dashboard**
+
    - Visit https://dashboard.render.com
    - Click "New" → "Blueprint"
 
 2. **Connect Repository**
+
    - Connect your GitHub account if not already connected
    - Select the `dominos` repository
    - Render will automatically detect the `render.yaml` file
 
 3. **Configure Services**
+
    - Render will show 3 services:
      - `dominos-db` (PostgreSQL Database - Free for 90 days)
      - `dominos-backend` (Web Service with Docker - Free)
      - `dominos-frontend` (Static Site - Free)
 
 4. **Review Configuration**
+
    - The backend's `JWT_SECRET` will be auto-generated
    - The `DATABASE_URL` will automatically link to PostgreSQL
    - The frontend's `VITE_API_URL` will automatically reference the backend
 
 5. **Deploy**
+
    - Click "Apply" to create all services
    - Wait for deployment to complete (5-10 minutes)
    - PostgreSQL will be created first, then backend, then frontend
@@ -57,6 +63,7 @@ If you prefer more control or the blueprint doesn't work:
 #### Step 1: Create PostgreSQL Database
 
 1. **Create PostgreSQL Service**
+
    - Dashboard → "New" → "PostgreSQL"
    - Configure:
      ```
@@ -74,6 +81,7 @@ If you prefer more control or the blueprint doesn't work:
 #### Step 2: Deploy Backend
 
 1. **Create Web Service**
+
    - Dashboard → "New" → "Web Service"
    - Connect your GitHub repository
    - Configure:
@@ -87,6 +95,7 @@ If you prefer more control or the blueprint doesn't work:
      ```
 
 2. **Environment Variables**
+
    ```
    NODE_ENV=production
    PORT=3000
@@ -95,6 +104,7 @@ If you prefer more control or the blueprint doesn't work:
    ```
 
 3. **Deploy**
+
    - Click "Create Web Service"
    - Wait for deployment (5-10 minutes)
    - Note the service URL (e.g., `https://dominos-backend.onrender.com`)
@@ -185,6 +195,7 @@ Or update the seed script to include your admin user.
 - **Monthly Reset**: Free tier resets monthly, may experience downtime at month end
 
 **Important**: After 90 days, you'll need to either:
+
 1. Upgrade to paid PostgreSQL plan ($7/month)
 2. Create a new free database (loses all data)
 3. Export data and migrate to another hosting solution
@@ -196,12 +207,14 @@ Or update the seed script to include your admin user.
 To backup manually:
 
 1. **Using Render Shell**:
+
    ```bash
    # In backend service shell
    pg_dump $DATABASE_URL > backup.sql
    ```
 
 2. **Download backup**:
+
    - Use Render's shell to view the file
    - Or use external tools like `pg_dump` with the connection string
 
@@ -315,3 +328,4 @@ After successful deployment:
 3. Set up monitoring/alerting
 4. Plan for database migrations
 5. Consider Postgres upgrade for production use
+```

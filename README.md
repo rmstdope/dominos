@@ -118,6 +118,7 @@ The application is configured for easy deployment to Render.com using Infrastruc
 ```
 
 The `render.yaml` file defines:
+
 - **PostgreSQL Database**: Free tier (90 days), 1GB storage
 - **Backend Web Service**: Node.js with Docker, auto-connects to PostgreSQL
 - **Frontend Static Site**: React app with automatic API URL configuration
@@ -130,6 +131,7 @@ The `render.yaml` file defines:
 ### Database Support
 
 The backend automatically detects and supports both:
+
 - **PostgreSQL**: For production deployment (Render, Heroku, etc.)
 - **SQLite**: For local development and testing
 
@@ -143,11 +145,12 @@ The application can also be deployed manually to any platform supporting:
 - Static hosting (frontend)
 
 Environment variables needed:
-- **Backend**: 
+
+- **Backend**:
   - `JWT_SECRET` - Secure random string for JWT tokens
   - `NODE_ENV` - Set to `production`
   - `DATABASE_URL` - PostgreSQL connection string (or omit for SQLite)
-- **Frontend**: 
+- **Frontend**:
   - `VITE_API_URL` - Backend URL (e.g., `https://your-backend.onrender.com`)
 
 ### Development with Docker
