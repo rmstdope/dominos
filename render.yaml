@@ -4,6 +4,7 @@ databases:
     plan: free
     databaseName: dominos
     user: dominos
+    region: oregon
 services:
   - type: web
     name: dominos-backend
@@ -11,6 +12,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
+    region: oregon
     envVars:
       - key: NODE_ENV
         value: production
