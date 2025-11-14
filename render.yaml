@@ -11,6 +11,7 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
+    region: frankfurt
     plan: free
     envVars:
       - key: NODE_ENV
