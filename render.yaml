@@ -4,14 +4,12 @@ databases:
     plan: free
     databaseName: dominos
     user: dominos
-    region: frankfurt
 services:
   - type: web
     name: dominos-backend
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    region: frankfurt
     plan: free
     envVars:
       - key: NODE_ENV
