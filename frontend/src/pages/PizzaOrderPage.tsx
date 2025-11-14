@@ -40,7 +40,7 @@ export default function PizzaOrderPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<Set<number>>(new Set());
   const [selectedSize, setSelectedSize] = useState<PizzaSize>('Standard');
-  const [existingOrder, setExistingOrder] = useState<Order | null>(null);
+  const [, setExistingOrder] = useState<Order | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

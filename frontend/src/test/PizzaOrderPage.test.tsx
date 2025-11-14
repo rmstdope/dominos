@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { vi, beforeEach, type MockedFunction } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import PizzaOrderPage from '../pages/PizzaOrderPage';
 import { AuthProvider } from '../contexts/AuthContext';
