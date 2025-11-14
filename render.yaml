@@ -33,10 +33,7 @@ services:
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: dominos-backend
-          property: host
+        value: https://dominos-backend-7i4y.onrender.com
     routes:
       - type: rewrite
         source: /*
