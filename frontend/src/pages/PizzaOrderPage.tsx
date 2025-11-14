@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { apiUrl } from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export default function PizzaOrderPage() {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(`http://localhost:3000/api/events/${id}`);
+        const response = await fetch(apiUrl(`/api/events/${id}`));
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -72,7 +73,7 @@ export default function PizzaOrderPage() {
 
     async function fetchIngredients() {
       try {
-        const response = await fetch(`http://localhost:3000/api/events/${id}/ingredients`);
+        const response = await fetch(apiUrl(`/api/events/${id}/ingredients`));
 
         if (!response.ok) {
           throw new Error('Failed to load ingredients');
@@ -88,7 +89,7 @@ export default function PizzaOrderPage() {
 
     async function fetchExistingOrder() {
       try {
-        const response = await fetch(`http://localhost:3000/api/events/${id}/orders/my-order`, {
+        const response = await fetch(apiUrl(`/api/events/${id}/orders/my-order`), {
           credentials: 'include',
         });
 
@@ -154,7 +155,7 @@ export default function PizzaOrderPage() {
       setIsSubmitting(true);
       setSubmissionError(null);
 
-      const response = await fetch(`http://localhost:3000/api/events/${id}/orders`, {
+      const response = await fetch(apiUrl(`/api/events/${id}/orders`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

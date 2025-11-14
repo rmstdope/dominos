@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { apiUrl } from '@/config/api';
 
 // AuthContext exports both component (AuthProvider) and hook (useAuth) - intentional pattern
 /* eslint-disable react-refresh/only-export-components */
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function checkAuth() {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/me', {
+      const response = await fetch(apiUrl('/api/auth/me'), {
         credentials: 'include',
       });
 
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function login(username: string, password: string) {
-    const response = await fetch('http://localhost:3000/api/auth/login', {
+    const response = await fetch(apiUrl('/api/auth/login'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   function logout() {
-    fetch('http://localhost:3000/api/auth/logout', {
+    fetch(apiUrl('/api/auth/logout'), {
       method: 'POST',
       credentials: 'include',
     }).finally(() => {

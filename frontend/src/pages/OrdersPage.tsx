@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl } from '@/config/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ export default function OrdersPage() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3000/api/admin/orders', {
+      const response = await fetch(apiUrl('/api/admin/orders'), {
         credentials: 'include',
       });
 
@@ -107,7 +108,7 @@ export default function OrdersPage() {
       setIsDeleting(true);
       setDeleteError(null);
 
-      const response = await fetch(`http://localhost:3000/api/admin/orders/${deleteOrderId}`, {
+      const response = await fetch(apiUrl(`/api/admin/orders/${deleteOrderId}`), {
         method: 'DELETE',
         credentials: 'include',
       });

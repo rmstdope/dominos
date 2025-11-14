@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiUrl } from '@/config/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Calendar, Loader2, AlertCircle, User } from 'lucide-react';
@@ -28,7 +29,7 @@ export default function EventsLandingPage() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3000/api/events');
+      const response = await fetch(apiUrl('/api/events'));
 
       if (!response.ok) {
         throw new Error('Failed to load events');

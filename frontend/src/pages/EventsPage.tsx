@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl } from '@/config/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +33,7 @@ export default function EventsPage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:3000/api/admin/events', {
+      const response = await fetch(apiUrl('/api/admin/events'), {
         credentials: 'include',
       });
 
@@ -96,7 +97,7 @@ export default function EventsPage() {
     try {
       setActionError(null);
 
-      const response = await fetch(`http://localhost:3000/api/admin/events/${id}`, {
+      const response = await fetch(apiUrl(`/api/admin/events/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

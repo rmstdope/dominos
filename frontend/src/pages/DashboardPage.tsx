@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { apiUrl } from '@/config/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -36,12 +37,12 @@ export default function DashboardPage() {
       setError(null);
 
       // Fetch users
-      const usersResponse = await fetch('http://localhost:3000/api/admin/users', {
+      const usersResponse = await fetch(apiUrl('/api/admin/users'), {
         credentials: 'include',
       });
 
       // Fetch ingredients
-      const ingredientsResponse = await fetch('http://localhost:3000/api/admin/ingredients', {
+      const ingredientsResponse = await fetch(apiUrl('/api/admin/ingredients'), {
         credentials: 'include',
       });
 

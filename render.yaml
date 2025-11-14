@@ -1,0 +1,38 @@
+services:
+  # Backend API Service
+  - type: web
+    name: dominos-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_PATH
+        value: /app/data/database.sqlite
+      - key: JWT_SECRET
+        generateValue: true
+    disk:
+      name: dominos-db
+      mountPath: /app/data
+      sizeGB: 1
+    healthCheckPath: /health
+
+  # Frontend Static Site
+  - type: web
+    name: dominos-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: dominos-backend
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl } from '@/config/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,7 +29,7 @@ export default function IngredientsPage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:3000/api/admin/ingredients', {
+      const response = await fetch(apiUrl('/api/admin/ingredients'), {
         credentials: 'include',
       });
 
@@ -55,7 +56,7 @@ export default function IngredientsPage() {
     try {
       setActionError(null);
       
-      const response = await fetch('http://localhost:3000/api/admin/ingredients', {
+      const response = await fetch(apiUrl('/api/admin/ingredients'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ export default function IngredientsPage() {
     try {
       setActionError(null);
       
-      const response = await fetch(`http://localhost:3000/api/admin/ingredients/${id}`, {
+      const response = await fetch(apiUrl(`/api/admin/ingredients/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

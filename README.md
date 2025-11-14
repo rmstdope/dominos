@@ -106,6 +106,34 @@ PORT=3000
 NODE_ENV=production
 ```
 
+## Deployment
+
+### Render.com (Recommended)
+
+The application is configured for easy deployment to Render.com using Infrastructure as Code:
+
+```bash
+# One-click deployment using Blueprint
+# Just connect your GitHub repo and Render will use render.yaml
+```
+
+The `render.yaml` file defines:
+- **Backend Web Service**: Node.js with Docker, persistent SQLite database
+- **Frontend Static Site**: React app with automatic API URL configuration
+- **Environment Variables**: Auto-configured with secure defaults
+
+**See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.**
+
+### Manual Deployment
+
+The application can also be deployed manually to any platform supporting:
+- Docker (backend)
+- Static hosting (frontend)
+
+Environment variables needed:
+- **Backend**: `JWT_SECRET`, `NODE_ENV`, `DATABASE_PATH`
+- **Frontend**: `VITE_API_URL` (points to backend URL)
+
 ### Development with Docker
 
 For development with hot reload:

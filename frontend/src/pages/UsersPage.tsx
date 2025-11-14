@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl } from '@/config/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,7 +29,7 @@ export default function UsersPage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:3000/api/admin/users', {
+      const response = await fetch(apiUrl('/api/admin/users'), {
         credentials: 'include',
       });
 
@@ -49,7 +50,7 @@ export default function UsersPage() {
     try {
       setUpdateError(null);
       
-      const response = await fetch(`http://localhost:3000/api/admin/users/${userId}`, {
+      const response = await fetch(apiUrl(`/api/admin/users/${userId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
