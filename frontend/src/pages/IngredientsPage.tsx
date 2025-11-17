@@ -38,7 +38,7 @@ export default function IngredientsPage() {
       }
 
       const data = await response.json();
-      setIngredients(data.ingredients);
+      setIngredients(data.ingredients || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load ingredients');
     } finally {
@@ -199,7 +199,7 @@ export default function IngredientsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  ingredients.map((ingredient) => (
+                  ingredients.filter(ing => ing && ing.name).map((ingredient) => (
                     <TableRow key={ingredient.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell className="font-medium">{ingredient.name}</TableCell>
                       <TableCell className="text-right">
