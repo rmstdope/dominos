@@ -70,7 +70,10 @@ export default function IngredientsPage() {
       }
 
       const data = await response.json();
-      setIngredients([...ingredients, data.ingredient]);
+      const updatedIngredients = [...ingredients, data.ingredient].sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+      setIngredients(updatedIngredients);
       setNewIngredientName('');
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to add ingredient');
