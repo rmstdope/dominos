@@ -334,12 +334,14 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({
-        id: expect.any(Number),
-        name: 'Pepperoni',
+        ingredient: {
+          id: expect.any(Number),
+          name: 'Pepperoni',
+        }
       });
 
       // Verify in database
-      const ingredient = await Ingredient.findByPk(response.body.id);
+      const ingredient = await Ingredient.findByPk(response.body.ingredient.id);
       expect(ingredient).toBeDefined();
       expect(ingredient?.name).toBe('Pepperoni');
     });

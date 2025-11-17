@@ -127,7 +127,7 @@ router.post('/ingredients', authenticate, requireAdmin, async (req: Request, res
     // Create new ingredient
     const ingredient = await Ingredient.create({ name: trimmedName });
 
-    res.status(201).json(ingredient);
+    res.status(201).json({ ingredient });
   } catch (error) {
     console.error('Error creating ingredient:', error);
     res.status(500).json({ error: 'Internal server error' });
