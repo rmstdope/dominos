@@ -6,6 +6,7 @@ import { Event as EventModel } from '../domains/events/Event';
 import { EventIngredient } from '../domains/events/EventIngredient';
 import { Order } from '../domains/orders/Order';
 import { OrderIngredient } from '../domains/orders/OrderIngredient';
+import { hashPassword } from '../utils/password';
 
 const router = Router();
 
@@ -74,6 +75,49 @@ router.patch('/users/:id', authenticate, requireAdmin, async (req: Request, res:
     });
   } catch (error) {
     console.error('Error updating user admin status:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/users - Create a new user
+router.post('/users', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { username, email, password } = req.body;
+
+    // Validate required fields
+    if (!username || !email || !password) {
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
+    }
+
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
+
+    // Create the user
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      isAdmin: false,
+    });
+
+    // Return user without password
+    const userResponse = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
+    res.status(201).json({ user: userResponse });
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'SequelizeUniqueConstraintError') {
+      res.status(400).json({ error: 'Username or email already exists' });
+      return;
+    }
+    console.error('Error creating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

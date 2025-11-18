@@ -240,6 +240,161 @@ describe('Admin Routes', () => {
     });
   });
 
+  describe('POST /api/admin/users', () => {
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .post('/api/admin/users')
+        .send({
+          username: 'newuser',
+          email: 'newuser@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Authentication required');
+    });
+
+    it('should require admin privileges', async () => {
+      const { token } = await createUserWithToken(false);
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          username: 'newuser',
+          email: 'newuser@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Admin access required');
+    });
+
+    it('should create a new user', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          username: 'newuser',
+          email: 'newuser@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toMatchObject({
+        user: {
+          id: expect.any(Number),
+          username: 'newuser',
+          email: 'newuser@example.com',
+          isAdmin: false,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        },
+      });
+      expect(response.body.user).not.toHaveProperty('password');
+
+      // Verify in database
+      const user = await User.findByPk(response.body.user.id);
+      expect(user).toBeDefined();
+      expect(user?.username).toBe('newuser');
+      expect(user?.email).toBe('newuser@example.com');
+      expect(user?.isAdmin).toBe(false);
+      expect(user?.password).not.toBe('password123'); // Should be hashed
+    });
+
+    it('should require username field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          email: 'newuser@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing required fields');
+    });
+
+    it('should require email field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          username: 'newuser',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing required fields');
+    });
+
+    it('should require password field', async () => {
+      const { token } = await createUserWithToken(true);
+
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          username: 'newuser',
+          email: 'newuser@example.com',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing required fields');
+    });
+
+    it('should reject duplicate username', async () => {
+      const { token } = await createUserWithToken(true);
+
+      await User.create({
+        username: 'existinguser',
+        email: 'existing@example.com',
+        password: 'hashedpassword',
+        isAdmin: false,
+      });
+
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          username: 'existinguser',
+          email: 'newemail@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Username or email already exists');
+    });
+
+    it('should reject duplicate email', async () => {
+      const { token } = await createUserWithToken(true);
+
+      await User.create({
+        username: 'existinguser',
+        email: 'existing@example.com',
+        password: 'hashedpassword',
+        isAdmin: false,
+      });
+
+      const response = await request(app)
+        .post('/api/admin/users')
+        .set('Cookie', [`token=${token}`])
+        .send({
+          username: 'newusername',
+          email: 'existing@example.com',
+          password: 'password123',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Username or email already exists');
+    });
+  });
+
   describe('GET /api/admin/ingredients', () => {
     it('should require authentication', async () => {
       const response = await request(app).get('/api/admin/ingredients');
