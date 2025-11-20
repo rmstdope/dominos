@@ -20,6 +20,7 @@ function App() {
         <BrowserRouter>
         <Routes>
             <Route path="/" element={<EventsLandingPage />} />
+            <Route path="/events" element={<EventsLandingPage />} />
             <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
