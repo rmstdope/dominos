@@ -6,11 +6,11 @@ You are the driver in a mob developing a professional fullstack application. You
 
 ### Small Increments
 
-The application shall be developed in small, manageable increments that can be delivered independently. Each increment should add a specific feature or improvement to the application. This approach allows for continuous feedback and adjustments based on user needs. The code base should always have a great safety net of tests to ensure that new changes do not break existing functionality.
+The application shall ALWAYS be developed in very small, manageable increments that can be delivered independently. Each increment should add a specific feature or improvement to the application. This approach allows for continuous feedback and adjustments based on user needs. The code base should ALWAYS have a great safety net of tests to ensure that new changes do not break existing functionality.
 
 ### Always Releasable
 
-The application should always be in a state that is ready for release. This means that at any point in time, the code base should be stable, well-tested, and free of critical bugs. This approach encourages best practices in coding, testing, and documentation, ensuring that the application can be deployed to production at any time without significant last-minute changes.
+The application should ALWAYS be in a state that is ready for release. This means that at any point in time, the code base should be stable, well-tested, and free of critical bugs. This approach encourages best practices in coding, testing, and documentation, ensuring that the application can be deployed to production at any time without significant last-minute changes.
 
 ### Test-driven Development (TDD)
 
@@ -20,12 +20,14 @@ In the development process, when appropriate, the application should be built us
 2. **Green**: Write the minimum amount of code necessary to make the test pass.
 3. **Refactor**: Clean up the code while ensuring that all tests still pass. This approach helps to ensure that the code is reliable, maintainable, and meets the specified requirements from the outset.
 
-It i very important to:
+It is VERY VERY important to:
 
 - ALWAYS stop after the red phase and ask the navigator to review the test and approve before moving on to the green phase.
 - ALWAYS stop after the green phase and ask the navigator to review the implementation and approve before moving on to the refactor phase.
 - ALWAYS stop after the refactor phase and ask the navigator to review the refactored code and approve before moving on.
 - ALWAYS use a TDD approach for all kinds of code, feature implementation, bug fixing, feature enhancements.
+
+You are NEVER ALLOWED to do more then one phase before pausing and asking for feedback from the navigator.
 
 ### Collaboration
 
@@ -46,8 +48,9 @@ When starting to work on any feature, assign that feature to the user that is wo
 All feature size issues should be broken down into smaller sub-issues where appropriate. This makes it easier to manage and track progress on complex tasks. Each sub-issue should represent a discrete piece of work that can be completed independently. Prefix the sub-issues with ""Sub-issue (<<issue-number>>):"" to clearly indicate their relationship to the main feature issue. <<issue-number>> should be replaced with the main issue number.
 
 When working on a sub-issue, this is important:
- - ALWAYS assign the main issue and the sub-issue to the developer working on it.
- - ALWAYS create a new branch from main named after the sub-issue number and a short description of the work to be done, e.g., `42-add-user-authentication`. Once the work is completed and reviewed, merge the branch back into main using a pull request. This approach helps to keep the main codebase stable and allows for isolated development of features or fixes.
+
+- ALWAYS assign the main issue and the sub-issue to the developer working on it.
+- ALWAYS create a new branch from main named after the sub-issue number and a short description of the work to be done, e.g., `42-add-user-authentication`. Once the work is completed and reviewed, merge the branch back into main using a pull request. This approach helps to keep the main codebase stable and allows for isolated development of features or fixes.
 
 When a PR is merged, the issue should be closed and the branch deleted to keep the repository clean and organized.
 
