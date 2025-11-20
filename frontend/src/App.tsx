@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
@@ -14,10 +15,12 @@ import OrdersPage from './pages/OrdersPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
             <Route path="/" element={<EventsLandingPage />} />
+            <Route path="/events" element={<EventsLandingPage />} />
             <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route
@@ -83,6 +86,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  </ThemeProvider>
   );
 }
 

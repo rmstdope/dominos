@@ -4,6 +4,7 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import EventsLandingPage from '../pages/EventsLandingPage';
 import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -46,13 +47,15 @@ describe('EventsLandingPage', () => {
     window.fetch = mockFetch as typeof window.fetch;
 
     render(
-      <AuthProvider>
-        <AuthProvider>
+      <ThemeProvider>
         <MemoryRouter>
-          <EventsLandingPage />
-        </MemoryRouter>
-      </AuthProvider>
-      </AuthProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <EventsLandingPage />
+          </ThemeProvider>
+        </AuthProvider>
+      </MemoryRouter>
+      </ThemeProvider>
     );
 
     await waitFor(() => {
@@ -65,9 +68,11 @@ describe('EventsLandingPage', () => {
 
     render(
       <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -86,9 +91,11 @@ describe('EventsLandingPage', () => {
 
     render(
       <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -108,9 +115,11 @@ describe('EventsLandingPage', () => {
 
     render(
       <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -145,9 +154,11 @@ describe('EventsLandingPage', () => {
 
     render(
       <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -169,9 +180,11 @@ describe('EventsLandingPage', () => {
 
     render(
       <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
         <EventsLandingPage />
       </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -201,9 +214,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -244,9 +259,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -283,9 +300,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -314,9 +333,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -350,9 +371,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -393,9 +416,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -439,9 +464,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -473,9 +500,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -508,9 +537,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -548,9 +579,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 
@@ -591,9 +624,11 @@ describe('EventsLandingPage', () => {
 
       render(
         <AuthProvider>
+        <ThemeProvider>
         <MemoryRouter>
           <EventsLandingPage />
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
       );
 

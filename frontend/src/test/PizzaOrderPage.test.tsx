@@ -4,6 +4,7 @@ import { vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import PizzaOrderPage from '../pages/PizzaOrderPage';
 import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 describe('PizzaOrderPage', () => {
   beforeEach(() => {
@@ -44,11 +45,13 @@ describe('PizzaOrderPage', () => {
 
     render(
       <AuthProvider>
+          <ThemeProvider>
         <MemoryRouter initialEntries={["/events/123/order"]}>
           <Routes>
             <Route path="/events/:id/order" element={<PizzaOrderPage />} />
           </Routes>
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
     
@@ -93,11 +96,13 @@ describe('PizzaOrderPage', () => {
 
     render(
       <AuthProvider>
+          <ThemeProvider>
         <MemoryRouter initialEntries={["/events/123/order"]}>
           <Routes>
             <Route path="/events/:id/order" element={<PizzaOrderPage />} />
           </Routes>
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -127,11 +132,13 @@ describe('PizzaOrderPage', () => {
 
     render(
       <AuthProvider>
+          <ThemeProvider>
         <MemoryRouter initialEntries={["/events/123/order"]}>
           <Routes>
             <Route path="/events/:id/order" element={<PizzaOrderPage />} />
           </Routes>
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -167,11 +174,13 @@ describe('PizzaOrderPage', () => {
 
     render(
       <AuthProvider>
+          <ThemeProvider>
         <MemoryRouter initialEntries={["/events/123/order"]}>
           <Routes>
             <Route path="/events/:id/order" element={<PizzaOrderPage />} />
           </Routes>
         </MemoryRouter>
+      </ThemeProvider>
       </AuthProvider>
     );
 
@@ -223,12 +232,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -283,12 +294,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       const pepperoniCheckbox = await screen.findByRole('switch', { name: /pepperoni/i });
@@ -340,12 +353,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -390,12 +405,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -439,12 +456,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       const standardRadio = await screen.findByRole('radio', { name: /standard/i });
@@ -488,12 +507,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       const smallRadio = await screen.findByRole('radio', { name: /small/i });
@@ -572,12 +593,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -649,12 +672,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       // Wait for page to load
@@ -729,12 +754,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -784,12 +811,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -843,12 +872,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -915,12 +946,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -995,12 +1028,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={["/events/123/order"]}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1074,12 +1109,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1133,12 +1170,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1202,12 +1241,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1294,12 +1335,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1370,12 +1413,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1451,12 +1496,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
@@ -1529,12 +1576,14 @@ describe('PizzaOrderPage', () => {
 
       render(
         <AuthProvider>
+          <ThemeProvider>
           <MemoryRouter initialEntries={['/events/1/order']}>
             <Routes>
               <Route path="/events/:id/order" element={<PizzaOrderPage />} />
             </Routes>
           </MemoryRouter>
-        </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
       );
 
       await waitFor(() => {
