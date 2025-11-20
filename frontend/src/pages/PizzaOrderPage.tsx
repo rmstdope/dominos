@@ -4,10 +4,10 @@ import { apiUrl } from '@/config/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, Calendar, MapPin, Check, User } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, MapPin, Check } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useAuth } from '@/contexts/AuthContext';
+import { UserNavBar } from '@/components/UserNavBar';
 
 interface Event {
   id: number;
@@ -35,7 +35,6 @@ type PizzaSize = 'Standard' | 'Small';
 
 export default function PizzaOrderPage() {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<Set<number>>(new Set());
@@ -190,7 +189,9 @@ export default function PizzaOrderPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-8">
+      <>
+        <UserNavBar />
+        <div className="container max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6 text-center">Order Your Pizza</h1>
         <Card>
           <CardContent className="flex items-center justify-center py-12">
@@ -200,19 +201,23 @@ export default function PizzaOrderPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-8">
+      <>
+        <UserNavBar />
+        <div className="container max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6 text-center">Order Your Pizza</h1>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      </div>
+        </div>
+      </>
     );
   }
 
@@ -221,16 +226,12 @@ export default function PizzaOrderPage() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 text-center">Order Your Pizza</h1>
-        {user && (
-          <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-            <User className="h-4 w-4" />
-            <span>Ordering as <span className="font-medium">{user.username}</span></span>
-          </p>
-        )}
-      </div>
+    <>
+      <UserNavBar />
+      <div className="container max-w-2xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2 text-center">Order Your Pizza</h1>
+        </div>
 
       {hasSubmitted && (
         <Alert className="mb-4 border-green-500 bg-green-50 dark:bg-green-950">
@@ -401,6 +402,7 @@ export default function PizzaOrderPage() {
           {isSubmitting ? 'Submitting...' : hasSubmitted ? 'Order Already Submitted' : 'Submit Order'}
         </Button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

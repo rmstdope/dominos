@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiUrl } from '@/config/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Loader2, AlertCircle, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Calendar, Loader2, AlertCircle } from 'lucide-react';
+import { UserNavBar } from '@/components/UserNavBar';
 
 interface Event {
   id: number;
@@ -15,7 +15,6 @@ interface Event {
 
 export default function EventsLandingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,19 +100,15 @@ export default function EventsLandingPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
-          {user && (
-            <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 mt-2">
-              <User className="h-4 w-4" />
-              <span>Logged in as {user.username}</span>
+      <>
+        <UserNavBar />
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
+            <p className="text-muted-foreground text-sm mt-2 text-center">
+              Finding your next pizza dinner...
             </p>
-          )}
-          <p className="text-muted-foreground text-sm mt-2 text-center">
-            Finding your next pizza dinner...
-          </p>
-        </div>
+          </div>
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -122,48 +117,42 @@ export default function EventsLandingPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
-          {user && (
-            <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 mt-2">
-              <User className="h-4 w-4" />
-              <span>Logged in as {user.username}</span>
+      <>
+        <UserNavBar />
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
+            <p className="text-muted-foreground text-sm mt-2 text-center">
+              Find upcoming pizza dinners
             </p>
-          )}
-          <p className="text-muted-foreground text-sm mt-2 text-center">
-            Find upcoming pizza dinners
-          </p>
-        </div>
+          </div>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      </div>
+        </div>
+      </>
     );
   }
 
   if (events.length === 0) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
-          {user && (
-            <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 mt-2">
-              <User className="h-4 w-4" />
-              <span>Logged in as {user.username}</span>
+      <>
+        <UserNavBar />
+        <div className="container max-w-2xl mx-auto px-4 py-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
+            <p className="text-muted-foreground text-sm mt-2 text-center">
+              Find upcoming pizza dinners
             </p>
-          )}
-          <p className="text-muted-foreground text-sm mt-2 text-center">
-            Find upcoming pizza dinners
-          </p>
-        </div>
+          </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-10 w-10 text-muted-foreground mb-3" />
@@ -173,7 +162,8 @@ export default function EventsLandingPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </>
     );
   }
 
@@ -181,19 +171,15 @@ export default function EventsLandingPage() {
   const pastEvents = getPastEventsReversed();
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 py-6">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
-        {user && (
-          <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 mt-2">
-            <User className="h-4 w-4" />
-            <span>Logged in as {user.username}</span>
+    <>
+      <UserNavBar />
+      <div className="container max-w-2xl mx-auto px-4 py-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold tracking-tight text-center">Pizza Events</h2>
+          <p className="text-muted-foreground text-sm mt-2 text-center">
+            Find upcoming pizza dinners and register your preferences
           </p>
-        )}
-        <p className="text-muted-foreground text-sm mt-2 text-center">
-          Find upcoming pizza dinners and register your preferences
-        </p>
-      </div>
+        </div>
 
       {/* Upcoming Events Section */}
       <div className="space-y-2">
@@ -220,6 +206,7 @@ export default function EventsLandingPage() {
           {pastEvents.map((event) => renderEventCard(event, false))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
