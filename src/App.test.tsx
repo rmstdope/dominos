@@ -25,6 +25,30 @@ describe("App", () => {
     expect(text).not.toContain("Ham");
   });
 
+  it("switches language mid-flow and keeps the selection", async () => {
+    const user = userEvent.setup();
+    render(<App menu={testMenu} />);
+    expect(screen.getByRole("radio", { name: "English" })).toBeChecked();
+    await user.type(screen.getByLabelText(/your name/i), "Henrik");
+    await user.click(screen.getByRole("button", { name: /pick toppings/i }));
+    await user.click(screen.getByRole("checkbox", { name: "Ham" }));
+
+    await user.click(screen.getByRole("radio", { name: "Svenska" }));
+    expect(screen.getByRole("radio", { name: "Svenska" })).toBeChecked();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Bygg din pizza, Henrik");
+    expect(screen.getByRole("checkbox", { name: "Skinka" })).toBeChecked();
+    expect(window.localStorage.getItem("dominos.language")).toBe("sv");
+
+    await user.click(screen.getByRole("button", { name: /granska/i }));
+    const link = screen.getByRole("link", { name: /skicka till baker bob/i });
+    const text = new URL(link.getAttribute("href")!).searchParams.get("text")!;
+    expect(text).toContain("Pizzabeställning från Henrik");
+    expect(text).toContain("🍖 Skinka");
+
+    await user.click(screen.getByRole("radio", { name: "English" }));
+    expect(screen.getByRole("link", { name: /send to baker bob/i })).toBeInTheDocument();
+  });
+
   it("uses the committed menu by default", async () => {
     const user = userEvent.setup();
     render(<App />);

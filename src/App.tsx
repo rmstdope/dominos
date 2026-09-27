@@ -1,10 +1,19 @@
 import { menu as defaultMenu, type Menu } from "./config/menu";
+import { LanguageProvider } from "./i18n/LanguageContext";
 import { useOrder } from "./lib/useOrder";
 import { NameStep } from "./components/NameStep";
 import { ReviewStep } from "./components/ReviewStep";
 import { ToppingsStep } from "./components/ToppingsStep";
 
 export default function App({ menu = defaultMenu }: { menu?: Menu }) {
+  return (
+    <LanguageProvider>
+      <Order menu={menu} />
+    </LanguageProvider>
+  );
+}
+
+function Order({ menu }: { menu: Menu }) {
   const order = useOrder(menu);
 
   switch (order.step) {

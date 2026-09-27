@@ -7,9 +7,24 @@ const menu: Menu = {
   recipient: { name: "Baker", whatsappNumber: "46701234567" },
   maxToppings: 2,
   toppings: [
-    { id: "cheese", name: "Cheese", emoji: "🧀", group: "Cheese" },
-    { id: "ham", name: "Ham", emoji: "🍖", group: "Meat" },
-    { id: "olives", name: "Olives", emoji: "🫒", group: "Veg" },
+    {
+      id: "cheese",
+      name: { en: "Cheese", sv: "Ost" },
+      emoji: "🧀",
+      group: { en: "Cheese", sv: "Ost" },
+    },
+    {
+      id: "ham",
+      name: { en: "Ham", sv: "Skinka" },
+      emoji: "🍖",
+      group: { en: "Meat", sv: "Kött" },
+    },
+    {
+      id: "olives",
+      name: { en: "Olives", sv: "Oliver" },
+      emoji: "🫒",
+      group: { en: "Veg", sv: "Grönt" },
+    },
   ],
 };
 
@@ -45,7 +60,7 @@ describe("useOrder", () => {
     const { result } = renderHook(() => useOrder(menu));
     act(() => result.current.toggleTopping("ham"));
     act(() => result.current.toggleTopping("cheese"));
-    expect(result.current.selectedToppings.map((t) => t.name)).toEqual(["Ham", "Cheese"]);
+    expect(result.current.selectedToppings.map((t) => t.name.en)).toEqual(["Ham", "Cheese"]);
     expect(result.current.isSelected("ham")).toBe(true);
     act(() => result.current.toggleTopping("ham"));
     expect(result.current.selectedIds).toEqual(["cheese"]);

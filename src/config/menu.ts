@@ -1,10 +1,11 @@
 import rawMenu from "../../config/menu.json";
+import { LANGUAGES, type Localized } from "../i18n/translations";
 
 export type Topping = {
   id: string;
-  name: string;
+  name: Localized;
   emoji: string;
-  group: string;
+  group: Localized;
 };
 
 export type Recipient = {
@@ -34,6 +35,19 @@ const nonEmptyString = (value: unknown, where: string): string => {
     throw new MenuConfigError(`${where} must be a non-empty string`);
   }
   return value.trim();
+};
+
+/** An object with a non-empty string for every supported language, e.g. { "en": "Ham", "sv": "Skinka" }. */
+const localized = (value: unknown, where: string): Localized => {
+  if (!isRecord(value)) {
+    throw new MenuConfigError(
+      `${where} must be an object with one entry per language: { ${LANGUAGES.map((l) => `"${l}": "..."`).join(", ")} }`,
+    );
+  }
+  const out = {} as Localized;
+  for (const language of LANGUAGES)
+    out[language] = nonEmptyString(value[language], `${where}.${language}`);
+  return out;
 };
 
 /**
@@ -68,9 +82,9 @@ export function parseMenu(raw: unknown): Menu {
     seen.add(id);
     return {
       id,
-      name: nonEmptyString(entry.name, `${where}.name`),
+      name: localized(entry.name, `${where}.name`),
       emoji: nonEmptyString(entry.emoji, `${where}.emoji`),
-      group: nonEmptyString(entry.group, `${where}.group`),
+      group: localized(entry.group, `${where}.group`),
     };
   });
 
@@ -85,11 +99,11 @@ export function parseMenu(raw: unknown): Menu {
   return { recipient: { name: recipientName, whatsappNumber }, toppings, maxToppings };
 }
 
-/** Toppings grouped in the order their groups first appear in the config. */
-export function groupToppings(toppings: Topping[]): { group: string; toppings: Topping[] }[] {
-  const groups: { group: string; toppings: Topping[] }[] = [];
+/** Toppings grouped (by their English group name as key) in the order groups first appear in the config. */
+export function groupToppings(toppings: Topping[]): { group: Localized; toppings: Topping[] }[] {
+  const groups: { group: Localized; toppings: Topping[] }[] = [];
   for (const topping of toppings) {
-    let bucket = groups.find((g) => g.group === topping.group);
+    let bucket = groups.find((g) => g.group.en === topping.group.en);
     if (!bucket) {
       bucket = { group: topping.group, toppings: [] };
       groups.push(bucket);

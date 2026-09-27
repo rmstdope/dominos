@@ -1,20 +1,23 @@
 import type { Topping } from "../config/menu";
+import { translations, type Language } from "../i18n/translations";
 
 export type Order = {
   customerName: string;
   toppings: Topping[];
+  language: Language;
 };
 
-/** The plain-text message the baker receives. */
-export function buildOrderMessage({ customerName, toppings }: Order): string {
-  const lines = [`🍕 Pizza order from ${customerName.trim()}`, ""];
+/** The plain-text message the baker receives, in the language the customer is using. */
+export function buildOrderMessage({ customerName, toppings, language }: Order): string {
+  const t = translations[language];
+  const lines = [t.msgHeader(customerName.trim()), ""];
   if (toppings.length === 0) {
-    lines.push("Plain pizza, no toppings.");
+    lines.push(t.msgNoToppings);
   } else {
-    lines.push(`Toppings (${toppings.length}):`);
-    for (const topping of toppings) lines.push(`${topping.emoji} ${topping.name}`);
+    lines.push(t.msgToppings(toppings.length));
+    for (const topping of toppings) lines.push(`${topping.emoji} ${topping.name[language]}`);
   }
-  lines.push("", "Thanks!");
+  lines.push("", t.msgThanks);
   return lines.join("\n");
 }
 

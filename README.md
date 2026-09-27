@@ -9,11 +9,19 @@ Everything a baker changes lives in **`config/menu.json`**:
 
 - `recipient.name` and `recipient.whatsappNumber` – who receives the order. The number is in
   international format with digits only (no `+`, spaces or leading zeros), e.g. `46701234567`.
-- `toppings` – the list on offer. Each has an `id` (lowercase, dashes), `name`, `emoji` and `group`.
-  Groups appear in the order they are first used.
+- `toppings` – the list on offer. Each has an `id` (lowercase, dashes), an `emoji`, and a `name`
+  and `group` given in both languages: `{ "en": "Ham", "sv": "Skinka" }`. Groups appear in the
+  order they are first used.
 - `maxToppings` – optional cap per pizza. Remove it for no limit.
 
 The test suite validates the file, so a typo fails CI with a message naming the field.
+
+## Languages
+
+The app is in English and Swedish. A toggle in the header switches between them, the choice is
+remembered in the browser, and the first visit follows the browser language. All UI strings live in
+`src/i18n/translations.ts`; topping and group names come from `config/menu.json`. The message to
+the baker is written in whichever language the customer is using.
 
 ## How sending works
 

@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import { renderWithLanguage as render } from "../test/render";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { testMenu } from "../test/fixtures";
@@ -42,7 +43,7 @@ describe("ToppingsStep", () => {
     render(<ToppingsStep {...baseProps} isSelected={(id) => id === "ham"} selectedCount={1} />);
     expect(screen.getByRole("checkbox", { name: /ham/i })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: /olives/i })).not.toBeChecked();
-    expect(screen.getByText("1").parentElement).toHaveTextContent("1 of 3 selected");
+    expect(screen.getByText("1 of 3 selected")).toBeInTheDocument();
   });
 
   it("disables review with nothing selected and continues otherwise", async () => {
@@ -92,9 +93,19 @@ describe("ToppingsStep", () => {
     expect(onBack).toHaveBeenCalled();
   });
 
+  it("renders topping and group names in Swedish", () => {
+    render(<ToppingsStep {...baseProps} />, { language: "sv" });
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Bygg din pizza, Henrik");
+    expect(screen.getByRole("region", { name: "Kött" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Skinka" })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Ham" })).not.toBeInTheDocument();
+    expect(screen.getByText(/välj upp till 3 toppings/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /granska/i })).toBeInTheDocument();
+  });
+
   it("describes an unlimited menu", () => {
     render(<ToppingsStep {...baseProps} menu={{ ...testMenu, maxToppings: undefined }} />);
     expect(screen.getByText(/as many toppings as you like/i)).toBeInTheDocument();
-    expect(screen.getByText("0").parentElement).toHaveTextContent(/^0 selected$/);
+    expect(screen.getByText("0 selected")).toBeInTheDocument();
   });
 });

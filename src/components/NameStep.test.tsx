@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithLanguage as render } from "../test/render";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NameStep } from "./NameStep";
@@ -38,6 +39,13 @@ describe("NameStep", () => {
     render(<NameStep initialName="Anna" onSubmit={vi.fn()} />);
     expect(screen.getByLabelText(/your name/i)).toHaveValue("Anna");
     expect(screen.getByRole("button", { name: /pick toppings/i })).toBeEnabled();
+  });
+
+  it("renders in Swedish", () => {
+    render(<NameStep initialName="" onSubmit={vi.fn()} />, { language: "sv" });
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Vem är hungrig?");
+    expect(screen.getByLabelText("Ditt namn")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /välj toppings/i })).toBeDisabled();
   });
 
   it("marks the first step as current", () => {

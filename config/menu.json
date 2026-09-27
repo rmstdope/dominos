@@ -1,31 +1,262 @@
 {
-  "$comment": "Everything a baker may want to tweak lives here: who receives orders and which toppings are on offer. Edit, commit, deploy.",
+  "$comment": "Everything a baker may want to tweak lives here: who receives orders and which toppings are on offer. Every topping and group name is given in both languages (en, sv). Edit, commit, deploy.",
   "recipient": {
     "name": "The Baker",
     "whatsappNumber": "46706685800"
   },
   "maxToppings": 6,
   "toppings": [
-    { "id": "mozzarella", "name": "Mozzarella", "emoji": "🧀", "group": "Cheese" },
-    { "id": "parmesan", "name": "Parmesan", "emoji": "🧀", "group": "Cheese" },
-    { "id": "gorgonzola", "name": "Gorgonzola", "emoji": "🧀", "group": "Cheese" },
-    { "id": "pepperoni", "name": "Pepperoni", "emoji": "🍕", "group": "Meat" },
-    { "id": "ham", "name": "Ham", "emoji": "🍖", "group": "Meat" },
-    { "id": "salami", "name": "Salami", "emoji": "🥩", "group": "Meat" },
-    { "id": "chicken", "name": "Chicken", "emoji": "🍗", "group": "Meat" },
-    { "id": "bacon", "name": "Bacon", "emoji": "🥓", "group": "Meat" },
-    { "id": "shrimp", "name": "Shrimp", "emoji": "🍤", "group": "Seafood" },
-    { "id": "tuna", "name": "Tuna", "emoji": "🐟", "group": "Seafood" },
-    { "id": "mushroom", "name": "Mushrooms", "emoji": "🍄", "group": "Veg" },
-    { "id": "onion", "name": "Red onion", "emoji": "🧅", "group": "Veg" },
-    { "id": "bell-pepper", "name": "Bell pepper", "emoji": "🫑", "group": "Veg" },
-    { "id": "olives", "name": "Olives", "emoji": "🫒", "group": "Veg" },
-    { "id": "tomato", "name": "Fresh tomato", "emoji": "🍅", "group": "Veg" },
-    { "id": "jalapeno", "name": "Jalapeño", "emoji": "🌶️", "group": "Veg" },
-    { "id": "pineapple", "name": "Pineapple", "emoji": "🍍", "group": "Veg" },
-    { "id": "artichoke", "name": "Artichoke", "emoji": "🌿", "group": "Veg" },
-    { "id": "basil", "name": "Fresh basil", "emoji": "🌱", "group": "Extras" },
-    { "id": "garlic", "name": "Garlic", "emoji": "🧄", "group": "Extras" },
-    { "id": "egg", "name": "Egg", "emoji": "🥚", "group": "Extras" }
+    {
+      "id": "mozzarella",
+      "name": {
+        "en": "Mozzarella",
+        "sv": "Mozzarella"
+      },
+      "emoji": "🧀",
+      "group": {
+        "en": "Cheese",
+        "sv": "Ost"
+      }
+    },
+    {
+      "id": "parmesan",
+      "name": {
+        "en": "Parmesan",
+        "sv": "Parmesan"
+      },
+      "emoji": "🧀",
+      "group": {
+        "en": "Cheese",
+        "sv": "Ost"
+      }
+    },
+    {
+      "id": "gorgonzola",
+      "name": {
+        "en": "Gorgonzola",
+        "sv": "Gorgonzola"
+      },
+      "emoji": "🧀",
+      "group": {
+        "en": "Cheese",
+        "sv": "Ost"
+      }
+    },
+    {
+      "id": "pepperoni",
+      "name": {
+        "en": "Pepperoni",
+        "sv": "Pepperoni"
+      },
+      "emoji": "🍕",
+      "group": {
+        "en": "Meat",
+        "sv": "Kött"
+      }
+    },
+    {
+      "id": "ham",
+      "name": {
+        "en": "Ham",
+        "sv": "Skinka"
+      },
+      "emoji": "🍖",
+      "group": {
+        "en": "Meat",
+        "sv": "Kött"
+      }
+    },
+    {
+      "id": "salami",
+      "name": {
+        "en": "Salami",
+        "sv": "Salami"
+      },
+      "emoji": "🥩",
+      "group": {
+        "en": "Meat",
+        "sv": "Kött"
+      }
+    },
+    {
+      "id": "chicken",
+      "name": {
+        "en": "Chicken",
+        "sv": "Kyckling"
+      },
+      "emoji": "🍗",
+      "group": {
+        "en": "Meat",
+        "sv": "Kött"
+      }
+    },
+    {
+      "id": "bacon",
+      "name": {
+        "en": "Bacon",
+        "sv": "Bacon"
+      },
+      "emoji": "🥓",
+      "group": {
+        "en": "Meat",
+        "sv": "Kött"
+      }
+    },
+    {
+      "id": "shrimp",
+      "name": {
+        "en": "Shrimp",
+        "sv": "Räkor"
+      },
+      "emoji": "🍤",
+      "group": {
+        "en": "Seafood",
+        "sv": "Skaldjur"
+      }
+    },
+    {
+      "id": "tuna",
+      "name": {
+        "en": "Tuna",
+        "sv": "Tonfisk"
+      },
+      "emoji": "🐟",
+      "group": {
+        "en": "Seafood",
+        "sv": "Skaldjur"
+      }
+    },
+    {
+      "id": "mushroom",
+      "name": {
+        "en": "Mushrooms",
+        "sv": "Champinjoner"
+      },
+      "emoji": "🍄",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "onion",
+      "name": {
+        "en": "Red onion",
+        "sv": "Rödlök"
+      },
+      "emoji": "🧅",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "bell-pepper",
+      "name": {
+        "en": "Bell pepper",
+        "sv": "Paprika"
+      },
+      "emoji": "🫑",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "olives",
+      "name": {
+        "en": "Olives",
+        "sv": "Oliver"
+      },
+      "emoji": "🫒",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "tomato",
+      "name": {
+        "en": "Fresh tomato",
+        "sv": "Färsk tomat"
+      },
+      "emoji": "🍅",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "jalapeno",
+      "name": {
+        "en": "Jalapeño",
+        "sv": "Jalapeño"
+      },
+      "emoji": "🌶️",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "pineapple",
+      "name": {
+        "en": "Pineapple",
+        "sv": "Ananas"
+      },
+      "emoji": "🍍",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "artichoke",
+      "name": {
+        "en": "Artichoke",
+        "sv": "Kronärtskocka"
+      },
+      "emoji": "🌿",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
+      "id": "basil",
+      "name": {
+        "en": "Fresh basil",
+        "sv": "Färsk basilika"
+      },
+      "emoji": "🌱",
+      "group": {
+        "en": "Extras",
+        "sv": "Extra"
+      }
+    },
+    {
+      "id": "garlic",
+      "name": {
+        "en": "Garlic",
+        "sv": "Vitlök"
+      },
+      "emoji": "🧄",
+      "group": {
+        "en": "Extras",
+        "sv": "Extra"
+      }
+    },
+    {
+      "id": "egg",
+      "name": {
+        "en": "Egg",
+        "sv": "Ägg"
+      },
+      "emoji": "🥚",
+      "group": {
+        "en": "Extras",
+        "sv": "Extra"
+      }
+    }
   ]
 }

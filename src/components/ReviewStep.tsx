@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Menu, Topping } from "../config/menu";
+import { useLanguage } from "../i18n/useLanguage";
 import { buildOrderMessage, buildWhatsAppUrl } from "../lib/whatsapp";
 import { Button, LinkButton } from "./Button";
 import { Shell } from "./Shell";
@@ -13,7 +14,8 @@ type Props = {
 };
 
 export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }: Props) {
-  const message = buildOrderMessage({ customerName, toppings });
+  const { t, l, language } = useLanguage();
+  const message = buildOrderMessage({ customerName, toppings, language });
   const url = buildWhatsAppUrl(menu.recipient.whatsappNumber, message);
   const [copied, setCopied] = useState(false);
 
@@ -30,8 +32,8 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
   return (
     <Shell
       step={3}
-      title="Looks delicious"
-      subtitle={`Send it to ${menu.recipient.name} on WhatsApp and it's in the oven.`}
+      title={t.reviewTitle}
+      subtitle={t.reviewSubtitle(menu.recipient.name)}
       footer={
         <div className="space-y-2">
           <LinkButton
@@ -42,10 +44,10 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
             rel="noopener noreferrer"
           >
             <WhatsAppIcon />
-            Send to {menu.recipient.name}
+            {t.sendTo(menu.recipient.name)}
           </LinkButton>
           <Button variant="ghost" className="w-full" onClick={onBack}>
-            ← Change toppings
+            ← {t.changeToppings}
           </Button>
         </div>
       }
@@ -58,7 +60,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
           id="summary-heading"
           className="text-xs font-semibold tracking-widest text-cream-300/60 uppercase"
         >
-          Pizza for {customerName}
+          {t.pizzaFor(customerName)}
         </h2>
         <ul className="mt-3 flex flex-wrap gap-2">
           {toppings.map((topping) => (
@@ -67,7 +69,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
               className="inline-flex items-center gap-1.5 rounded-full bg-cheese-400/15 px-3 py-1.5 text-sm font-medium text-cheese-300 ring-1 ring-cheese-400/30"
             >
               <span aria-hidden="true">{topping.emoji}</span>
-              {topping.name}
+              {l(topping.name)}
             </li>
           ))}
         </ul>
@@ -78,7 +80,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
           <span className="inline-block transition group-open:rotate-90" aria-hidden="true">
             ▸
           </span>{" "}
-          Preview message
+          {t.previewMessage}
         </summary>
         <pre className="px-4 pb-4 font-sans text-sm whitespace-pre-wrap text-cream-100/90">
           {message}
@@ -89,7 +91,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
             onClick={copy}
             className="text-xs font-medium text-cheese-300 underline-offset-2 hover:underline"
           >
-            {copied ? "Copied!" : "Copy message"}
+            {copied ? t.copied : t.copyMessage}
           </button>
         </div>
       </details>
@@ -99,7 +101,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
         onClick={onStartOver}
         className="mt-6 text-sm text-cream-300/60 underline-offset-2 hover:underline"
       >
-        Start over
+        {t.startOver}
       </button>
     </Shell>
   );

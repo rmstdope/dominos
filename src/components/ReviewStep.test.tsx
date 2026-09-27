@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithLanguage as render } from "../test/render";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { buildOrderMessage } from "../lib/whatsapp";
@@ -32,7 +33,7 @@ describe("ReviewStep", () => {
     const href = new URL(link.getAttribute("href")!);
     expect(href.origin + href.pathname).toBe("https://wa.me/46701234567");
     expect(href.searchParams.get("text")).toBe(
-      buildOrderMessage({ customerName: "Henrik", toppings }),
+      buildOrderMessage({ customerName: "Henrik", toppings, language: "en" }),
     );
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
@@ -45,7 +46,9 @@ describe("ReviewStep", () => {
     render(<ReviewStep {...baseProps} />);
     expect(screen.getByText(/pizza order from henrik/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /copy message/i }));
-    expect(writeText).toHaveBeenCalledWith(buildOrderMessage({ customerName: "Henrik", toppings }));
+    expect(writeText).toHaveBeenCalledWith(
+      buildOrderMessage({ customerName: "Henrik", toppings, language: "en" }),
+    );
     expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
   });
 
@@ -58,6 +61,17 @@ describe("ReviewStep", () => {
     render(<ReviewStep {...baseProps} />);
     await user.click(screen.getByRole("button", { name: /copy message/i }));
     expect(screen.getByRole("button", { name: /copy message/i })).toBeInTheDocument();
+  });
+
+  it("renders in Swedish and builds a Swedish message", () => {
+    render(<ReviewStep {...baseProps} />, { language: "sv" });
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Ser gott ut");
+    expect(screen.getByRole("heading", { name: /pizza till henrik/i })).toBeInTheDocument();
+    expect(screen.getByText("Oliver")).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /skicka till baker bob/i });
+    const text = new URL(link.getAttribute("href")!).searchParams.get("text")!;
+    expect(text).toContain("Pizzabeställning från Henrik");
+    expect(text).toContain("🫒 Oliver");
   });
 
   it("navigates back and starts over", async () => {

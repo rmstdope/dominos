@@ -5,8 +5,18 @@ import { MenuConfigError, groupToppings, menu, parseMenu } from "./menu";
 const valid = {
   recipient: { name: "Baker", whatsappNumber: "46701234567" },
   toppings: [
-    { id: "cheese", name: "Cheese", emoji: "🧀", group: "Cheese" },
-    { id: "ham", name: "Ham", emoji: "🍖", group: "Meat" },
+    {
+      id: "cheese",
+      name: { en: "Cheese", sv: "Ost" },
+      emoji: "🧀",
+      group: { en: "Cheese", sv: "Ost" },
+    },
+    {
+      id: "ham",
+      name: { en: "Ham", sv: "Skinka" },
+      emoji: "🍖",
+      group: { en: "Meat", sv: "Kött" },
+    },
   ],
 };
 
@@ -15,6 +25,15 @@ describe("the committed config/menu.json", () => {
     expect(() => parseMenu(rawMenu)).not.toThrow();
     expect(menu.toppings.length).toBeGreaterThan(0);
     expect(menu.recipient.whatsappNumber).toMatch(/^\d+$/);
+  });
+
+  it("names every topping and group in both languages", () => {
+    for (const topping of menu.toppings) {
+      expect(topping.name.en, topping.id).not.toBe("");
+      expect(topping.name.sv, topping.id).not.toBe("");
+      expect(topping.group.en, topping.id).not.toBe("");
+      expect(topping.group.sv, topping.id).not.toBe("");
+    }
   });
 });
 
@@ -65,12 +84,40 @@ describe("parseMenu", () => {
     ],
     [
       "topping missing name",
-      { ...valid, toppings: [{ id: "x", emoji: "x", group: "g" }] },
-      /toppings\[0\]\.name/,
+      { ...valid, toppings: [{ id: "x", emoji: "x", group: { en: "g", sv: "g" } }] },
+      /toppings\[0\]\.name must be an object with one entry per language/,
+    ],
+    [
+      "topping name in one language only",
+      {
+        ...valid,
+        toppings: [{ id: "x", name: { en: "X" }, emoji: "x", group: { en: "g", sv: "g" } }],
+      },
+      /toppings\[0\]\.name\.sv must be a non-empty string/,
+    ],
+    [
+      "topping name as a plain string",
+      { ...valid, toppings: [{ id: "x", name: "X", emoji: "x", group: { en: "g", sv: "g" } }] },
+      /toppings\[0\]\.name must be an object/,
+    ],
+    [
+      "group missing swedish",
+      {
+        ...valid,
+        toppings: [
+          { id: "x", name: { en: "X", sv: "X" }, emoji: "x", group: { en: "g", sv: " " } },
+        ],
+      },
+      /toppings\[0\]\.group\.sv/,
     ],
     [
       "topping id with uppercase",
-      { ...valid, toppings: [{ id: "Cheese", name: "C", emoji: "x", group: "g" }] },
+      {
+        ...valid,
+        toppings: [
+          { id: "Cheese", name: { en: "C", sv: "C" }, emoji: "x", group: { en: "g", sv: "g" } },
+        ],
+      },
       /toppings\[0\]\.id/,
     ],
     [
@@ -88,12 +135,14 @@ describe("parseMenu", () => {
 
 describe("groupToppings", () => {
   it("groups toppings preserving first-seen group order", () => {
+    const veg = { en: "Veg", sv: "Grönt" };
+    const meat = { en: "Meat", sv: "Kött" };
     const grouped = groupToppings([
-      { id: "a", name: "A", emoji: "", group: "Veg" },
-      { id: "b", name: "B", emoji: "", group: "Meat" },
-      { id: "c", name: "C", emoji: "", group: "Veg" },
+      { id: "a", name: { en: "A", sv: "A" }, emoji: "", group: veg },
+      { id: "b", name: { en: "B", sv: "B" }, emoji: "", group: meat },
+      { id: "c", name: { en: "C", sv: "C" }, emoji: "", group: veg },
     ]);
-    expect(grouped.map((g) => g.group)).toEqual(["Veg", "Meat"]);
+    expect(grouped.map((g) => g.group)).toEqual([veg, meat]);
     expect(grouped[0]?.toppings.map((t) => t.id)).toEqual(["a", "c"]);
     expect(grouped[1]?.toppings.map((t) => t.id)).toEqual(["b"]);
   });

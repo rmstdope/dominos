@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { useLanguage } from "../i18n/useLanguage";
+import { LanguageToggle } from "./LanguageToggle";
 
 type Props = {
   step: 1 | 2 | 3;
@@ -8,21 +10,24 @@ type Props = {
   footer?: ReactNode;
 };
 
-const STEPS = ["Name", "Toppings", "Send"] as const;
-
 /** Page frame: header with progress, scrollable body, optional sticky footer. */
 export function Shell({ step, title, subtitle, children, footer }: Props) {
+  const { t } = useLanguage();
+  const steps = [t.stepName, t.stepToppings, t.stepSend] as const;
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 pt-[max(1rem,env(safe-area-inset-top))]">
       <header className="animate-rise">
-        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-cream-300/70 uppercase">
-          <span className="text-base" aria-hidden="true">
-            🍕
-          </span>
-          Dominos
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-cream-300/70 uppercase">
+            <span className="text-base" aria-hidden="true">
+              🍕
+            </span>
+            {t.appName}
+          </div>
+          <LanguageToggle />
         </div>
-        <ol className="mt-4 flex gap-2" aria-label="Progress">
-          {STEPS.map((label, index) => {
+        <ol className="mt-4 flex gap-2" aria-label={t.progress}>
+          {steps.map((label, index) => {
             const number = (index + 1) as 1 | 2 | 3;
             const state = number < step ? "done" : number === step ? "current" : "todo";
             return (

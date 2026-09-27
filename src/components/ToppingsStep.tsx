@@ -1,4 +1,5 @@
-import { groupToppings, type Menu, type Topping } from "../config/menu";
+import { groupToppings, type Menu } from "../config/menu";
+import { useLanguage } from "../i18n/useLanguage";
 import { Button } from "./Button";
 import { Shell } from "./Shell";
 
@@ -25,22 +26,21 @@ export function ToppingsStep({
   onBack,
   onContinue,
 }: Props) {
-  const limitText = menu.maxToppings !== undefined ? ` of ${menu.maxToppings}` : "";
+  const { t, l } = useLanguage();
   return (
     <Shell
       step={2}
-      title={`Build your pizza, ${customerName}`}
+      title={t.toppingsTitle(customerName)}
       subtitle={
         menu.maxToppings !== undefined
-          ? `Pick up to ${menu.maxToppings} toppings.`
-          : "Pick as many toppings as you like."
+          ? t.toppingsSubtitleLimited(menu.maxToppings)
+          : t.toppingsSubtitleUnlimited
       }
       footer={
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-sm whitespace-nowrap text-cream-300/70" aria-live="polite">
-              <span className="font-semibold text-cream-100">{selectedCount}</span>
-              {limitText} selected
+              {t.selectedCount(selectedCount, menu.maxToppings)}
             </p>
             {selectedCount > 0 && (
               <button
@@ -48,12 +48,12 @@ export function ToppingsStep({
                 onClick={onClear}
                 className="text-xs font-medium text-cheese-300 underline-offset-2 hover:underline"
               >
-                Clear all
+                {t.clearAll}
               </button>
             )}
           </div>
           <Button className="shrink-0" onClick={onContinue} disabled={selectedCount === 0}>
-            Review
+            {t.review}
             <span aria-hidden="true">→</span>
           </Button>
         </div>
@@ -64,30 +64,31 @@ export function ToppingsStep({
         onClick={onBack}
         className="mb-4 text-sm text-cream-300/60 underline-offset-2 hover:underline"
       >
-        ← Not {customerName}?
+        ← {t.notYou(customerName)}
       </button>
       {atLimit && (
         <p
           role="status"
           className="mb-4 rounded-xl bg-cheese-400/10 px-3 py-2 text-sm text-cheese-300 ring-1 ring-cheese-400/30"
         >
-          That's the maximum. Deselect one to swap it out.
+          {t.atLimit}
         </p>
       )}
       <div className="space-y-6">
         {groupToppings(menu.toppings).map(({ group, toppings }) => (
-          <section key={group} aria-labelledby={`group-${group}`}>
+          <section key={group.en} aria-labelledby={`group-${group.en}`}>
             <h2
-              id={`group-${group}`}
+              id={`group-${group.en}`}
               className="mb-2 text-xs font-semibold tracking-widest text-cream-300/60 uppercase"
             >
-              {group}
+              {l(group)}
             </h2>
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {toppings.map((topping) => (
                 <li key={topping.id}>
                   <ToppingChip
-                    topping={topping}
+                    name={l(topping.name)}
+                    emoji={topping.emoji}
                     selected={isSelected(topping.id)}
                     disabled={atLimit && !isSelected(topping.id)}
                     onToggle={() => onToggle(topping.id)}
@@ -103,12 +104,14 @@ export function ToppingsStep({
 }
 
 function ToppingChip({
-  topping,
+  name,
+  emoji,
   selected,
   disabled,
   onToggle,
 }: {
-  topping: Topping;
+  name: string;
+  emoji: string;
   selected: boolean;
   disabled: boolean;
   onToggle: () => void;
@@ -129,9 +132,9 @@ function ToppingChip({
       } ${disabled ? "opacity-35" : ""}`}
     >
       <span className="text-2xl" aria-hidden="true">
-        {topping.emoji}
+        {emoji}
       </span>
-      <span className="text-sm leading-tight font-semibold">{topping.name}</span>
+      <span className="text-sm leading-tight font-semibold">{name}</span>
       {selected && (
         <span className="ml-auto text-base" aria-hidden="true">
           ✓
