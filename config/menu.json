@@ -19,30 +19,6 @@
       }
     },
     {
-      "id": "parmesan",
-      "name": {
-        "en": "Parmesan",
-        "sv": "Parmesan"
-      },
-      "emoji": "🧀",
-      "group": {
-        "en": "Cheese",
-        "sv": "Ost"
-      }
-    },
-    {
-      "id": "gorgonzola",
-      "name": {
-        "en": "Gorgonzola",
-        "sv": "Gorgonzola"
-      },
-      "emoji": "🧀",
-      "group": {
-        "en": "Cheese",
-        "sv": "Ost"
-      }
-    },
-    {
       "id": "pepperoni",
       "name": {
         "en": "Pepperoni",
@@ -67,30 +43,6 @@
       }
     },
     {
-      "id": "salami",
-      "name": {
-        "en": "Salami",
-        "sv": "Salami"
-      },
-      "emoji": "🥩",
-      "group": {
-        "en": "Meat",
-        "sv": "Kött"
-      }
-    },
-    {
-      "id": "chicken",
-      "name": {
-        "en": "Chicken",
-        "sv": "Kyckling"
-      },
-      "emoji": "🍗",
-      "group": {
-        "en": "Meat",
-        "sv": "Kött"
-      }
-    },
-    {
       "id": "bacon",
       "name": {
         "en": "Bacon",
@@ -103,27 +55,15 @@
       }
     },
     {
-      "id": "shrimp",
+      "id": "chorizo",
       "name": {
-        "en": "Shrimp",
-        "sv": "Räkor"
+        "en": "Chorizo",
+        "sv": "Chorizo"
       },
-      "emoji": "🍤",
+      "emoji": "🌭",
       "group": {
-        "en": "Seafood",
-        "sv": "Skaldjur"
-      }
-    },
-    {
-      "id": "tuna",
-      "name": {
-        "en": "Tuna",
-        "sv": "Tonfisk"
-      },
-      "emoji": "🐟",
-      "group": {
-        "en": "Seafood",
-        "sv": "Skaldjur"
+        "en": "Meat",
+        "sv": "Kött"
       }
     },
     {
@@ -151,6 +91,18 @@
       }
     },
     {
+      "id": "yellow-onion",
+      "name": {
+        "en": "Yellow onion",
+        "sv": "Gul lök"
+      },
+      "emoji": "🧅",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
       "id": "bell-pepper",
       "name": {
         "en": "Bell pepper",
@@ -163,10 +115,10 @@
       }
     },
     {
-      "id": "olives",
+      "id": "black-olives",
       "name": {
-        "en": "Olives",
-        "sv": "Oliver"
+        "en": "Black olives",
+        "sv": "Svarta oliver"
       },
       "emoji": "🫒",
       "group": {
@@ -175,12 +127,12 @@
       }
     },
     {
-      "id": "tomato",
+      "id": "green-olives",
       "name": {
-        "en": "Fresh tomato",
-        "sv": "Färsk tomat"
+        "en": "Green olives",
+        "sv": "Gröna oliver"
       },
-      "emoji": "🍅",
+      "emoji": "🫒",
       "group": {
         "en": "Veg",
         "sv": "Grönt"
@@ -211,18 +163,6 @@
       }
     },
     {
-      "id": "artichoke",
-      "name": {
-        "en": "Artichoke",
-        "sv": "Kronärtskocka"
-      },
-      "emoji": "🌿",
-      "group": {
-        "en": "Veg",
-        "sv": "Grönt"
-      }
-    },
-    {
       "id": "basil",
       "name": {
         "en": "Fresh basil",
@@ -235,24 +175,12 @@
       }
     },
     {
-      "id": "garlic",
+      "id": "capers",
       "name": {
-        "en": "Garlic",
-        "sv": "Vitlök"
+        "en": "Capers",
+        "sv": "Kapris"
       },
-      "emoji": "🧄",
-      "group": {
-        "en": "Extras",
-        "sv": "Extra"
-      }
-    },
-    {
-      "id": "egg",
-      "name": {
-        "en": "Egg",
-        "sv": "Ägg"
-      },
-      "emoji": "🥚",
+      "emoji": "🫛",
       "group": {
         "en": "Extras",
         "sv": "Extra"
