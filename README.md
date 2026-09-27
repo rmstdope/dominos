@@ -7,8 +7,11 @@ WhatsApp. Live at [dominos.kurelid.se](https://dominos.kurelid.se).
 
 Everything a baker changes lives in **`config/menu.json`**:
 
-- `recipient.name` and `recipient.whatsappNumber` – who receives the order. The number is in
-  international format with digits only (no `+`, spaces or leading zeros), e.g. `46701234567`.
+- `recipient.name` (in both languages) and `recipient.whatsappNumber` – who receives the order.
+  The number is in international format with digits only (no `+`, spaces or leading zeros), e.g.
+  `46701234567`.
+- `note` – optional text shown above the toppings, in both languages, e.g. that every pizza comes
+  with tomato sauce and cheese. Remove it to show nothing.
 - `toppings` – the list on offer. Each has an `id` (lowercase, dashes), an `emoji`, and a `name`
   and `group` given in both languages: `{ "en": "Ham", "sv": "Skinka" }`. Groups appear in the
   order they are first used.

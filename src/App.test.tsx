@@ -40,7 +40,7 @@ describe("App", () => {
     expect(window.localStorage.getItem("dominos.language")).toBe("sv");
 
     await user.click(screen.getByRole("button", { name: /granska/i }));
-    const link = screen.getByRole("link", { name: /skicka till baker bob/i });
+    const link = screen.getByRole("link", { name: /skicka till bagare bob/i });
     const text = new URL(link.getAttribute("href")!).searchParams.get("text")!;
     expect(text).toContain("Pizzabeställning från Henrik");
     expect(text).toContain("🍖 Skinka");

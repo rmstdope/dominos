@@ -33,7 +33,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
     <Shell
       step={3}
       title={t.reviewTitle}
-      subtitle={t.reviewSubtitle(menu.recipient.name)}
+      subtitle={t.reviewSubtitle(l(menu.recipient.name))}
       footer={
         <div className="space-y-2">
           <LinkButton
@@ -44,7 +44,7 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
             rel="noopener noreferrer"
           >
             <WhatsAppIcon />
-            {t.sendTo(menu.recipient.name)}
+            {t.sendTo(l(menu.recipient.name))}
           </LinkButton>
           <Button variant="ghost" className="w-full" onClick={onBack}>
             ← {t.changeToppings}

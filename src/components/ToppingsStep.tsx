@@ -66,6 +66,12 @@ export function ToppingsStep({
       >
         ← {t.notYou(customerName)}
       </button>
+      {menu.note && (
+        <p className="mb-4 flex items-start gap-2 rounded-xl bg-white/5 px-3 py-2 text-sm text-cream-300/80 ring-1 ring-white/10">
+          <span aria-hidden="true">🍅</span>
+          <span>{l(menu.note)}</span>
+        </p>
+      )}
       {atLimit && (
         <p
           role="status"

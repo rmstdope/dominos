@@ -1,7 +1,11 @@
 import type { Menu } from "../config/menu";
 
 export const testMenu: Menu = {
-  recipient: { name: "Baker Bob", whatsappNumber: "46701234567" },
+  recipient: { name: { en: "Baker Bob", sv: "Bagare Bob" }, whatsappNumber: "46701234567" },
+  note: {
+    en: "Every pizza comes with tomato sauce and cheese.",
+    sv: "Alla pizzor har tomatsås och ost.",
+  },
   maxToppings: 3,
   toppings: [
     {

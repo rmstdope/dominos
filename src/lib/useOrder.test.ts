@@ -4,7 +4,7 @@ import type { Menu } from "../config/menu";
 import { useOrder } from "./useOrder";
 
 const menu: Menu = {
-  recipient: { name: "Baker", whatsappNumber: "46701234567" },
+  recipient: { name: { en: "Baker", sv: "Bagaren" }, whatsappNumber: "46701234567" },
   maxToppings: 2,
   toppings: [
     {

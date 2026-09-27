@@ -22,7 +22,7 @@ test.describe("ordering a pizza", () => {
     await page.getByRole("button", { name: /review/i }).click();
 
     const link = page.getByRole("link", {
-      name: new RegExp(`send to ${menu.recipient.name}`, "i"),
+      name: new RegExp(`send to ${menu.recipient.name.en}`, "i"),
     });
     await expect(link).toBeVisible();
     const href = new URL((await link.getAttribute("href"))!);
@@ -55,10 +55,11 @@ test.describe("ordering a pizza", () => {
 
     await page.getByLabel("Ditt namn").fill("Anna");
     await page.getByRole("button", { name: "Välj toppings" }).click();
+    await expect(page.getByText(menu.note.sv)).toBeVisible();
     const first = menu.toppings[0]!;
     await page.getByRole("checkbox", { name: first.name.sv }).click();
     await page.getByRole("button", { name: "Granska" }).click();
-    const link = page.getByRole("link", { name: `Skicka till ${menu.recipient.name}` });
+    const link = page.getByRole("link", { name: `Skicka till ${menu.recipient.name.sv}` });
     const text = new URL((await link.getAttribute("href"))!).searchParams.get("text")!;
     expect(text).toContain("Pizzabeställning från Anna");
     expect(text).toContain(`${first.emoji} ${first.name.sv}`);

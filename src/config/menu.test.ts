@@ -3,7 +3,7 @@ import rawMenu from "../../config/menu.json";
 import { MenuConfigError, groupToppings, menu, parseMenu } from "./menu";
 
 const valid = {
-  recipient: { name: "Baker", whatsappNumber: "46701234567" },
+  recipient: { name: { en: "Baker", sv: "Bagaren" }, whatsappNumber: "46701234567" },
   toppings: [
     {
       id: "cheese",
@@ -27,6 +27,13 @@ describe("the committed config/menu.json", () => {
     expect(menu.recipient.whatsappNumber).toMatch(/^\d+$/);
   });
 
+  it("names the recipient and the note in both languages", () => {
+    expect(menu.recipient.name.en).not.toBe("");
+    expect(menu.recipient.name.sv).not.toBe("");
+    expect(menu.note?.en).not.toBe("");
+    expect(menu.note?.sv).not.toBe("");
+  });
+
   it("names every topping and group in both languages", () => {
     for (const topping of menu.toppings) {
       expect(topping.name.en, topping.id).not.toBe("");
@@ -41,39 +48,52 @@ describe("parseMenu", () => {
   it("returns a typed menu and trims whitespace", () => {
     const parsed = parseMenu({
       ...valid,
-      recipient: { name: "  Baker ", whatsappNumber: "46701234567" },
+      recipient: { name: { en: "  Baker ", sv: "Bagaren" }, whatsappNumber: "46701234567" },
       maxToppings: 4,
+      note: { en: "Sauce included.", sv: "Sås ingår." },
     });
-    expect(parsed.recipient).toEqual({ name: "Baker", whatsappNumber: "46701234567" });
+    expect(parsed.recipient).toEqual({
+      name: { en: "Baker", sv: "Bagaren" },
+      whatsappNumber: "46701234567",
+    });
     expect(parsed.toppings).toHaveLength(2);
     expect(parsed.maxToppings).toBe(4);
+    expect(parsed.note).toEqual({ en: "Sauce included.", sv: "Sås ingår." });
   });
 
-  it("leaves maxToppings undefined when not configured", () => {
+  it("leaves maxToppings and note undefined when not configured", () => {
     expect(parseMenu(valid).maxToppings).toBeUndefined();
+    expect(parseMenu(valid).note).toBeUndefined();
   });
 
   it.each([
     ["not an object", null, /must be an object/],
     ["missing recipient", { toppings: valid.toppings }, /recipient must be an object/],
     [
-      "empty recipient name",
-      { ...valid, recipient: { name: " ", whatsappNumber: "46701234567" } },
-      /recipient\.name/,
+      "recipient name as plain string",
+      { ...valid, recipient: { name: "Baker", whatsappNumber: "46701234567" } },
+      /recipient\.name must be an object/,
     ],
     [
+      "empty swedish recipient name",
+      { ...valid, recipient: { name: { en: "Baker", sv: " " }, whatsappNumber: "46701234567" } },
+      /recipient\.name\.sv/,
+    ],
+    ["note as plain string", { ...valid, note: "Sauce included." }, /note must be an object/],
+    ["note missing swedish", { ...valid, note: { en: "Sauce included." } }, /note\.sv/],
+    [
       "number with plus sign",
-      { ...valid, recipient: { name: "B", whatsappNumber: "+46701234567" } },
+      { ...valid, recipient: { name: { en: "B", sv: "B" }, whatsappNumber: "+46701234567" } },
       /whatsappNumber/,
     ],
     [
       "number with spaces",
-      { ...valid, recipient: { name: "B", whatsappNumber: "46 70 123" } },
+      { ...valid, recipient: { name: { en: "B", sv: "B" }, whatsappNumber: "46 70 123" } },
       /whatsappNumber/,
     ],
     [
       "number too short",
-      { ...valid, recipient: { name: "B", whatsappNumber: "12345" } },
+      { ...valid, recipient: { name: { en: "B", sv: "B" }, whatsappNumber: "12345" } },
       /whatsappNumber/,
     ],
     ["no toppings", { ...valid, toppings: [] }, /toppings must be a non-empty array/],

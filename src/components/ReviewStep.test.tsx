@@ -68,7 +68,7 @@ describe("ReviewStep", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Ser gott ut");
     expect(screen.getByRole("heading", { name: /pizza till henrik/i })).toBeInTheDocument();
     expect(screen.getByText("Oliver")).toBeInTheDocument();
-    const link = screen.getByRole("link", { name: /skicka till baker bob/i });
+    const link = screen.getByRole("link", { name: /skicka till bagare bob/i });
     const text = new URL(link.getAttribute("href")!).searchParams.get("text")!;
     expect(text).toContain("Pizzabeställning från Henrik");
     expect(text).toContain("🫒 Oliver");

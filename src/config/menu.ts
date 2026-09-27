@@ -9,7 +9,7 @@ export type Topping = {
 };
 
 export type Recipient = {
-  name: string;
+  name: Localized;
   whatsappNumber: string;
 };
 
@@ -18,6 +18,8 @@ export type Menu = {
   toppings: Topping[];
   /** Upper bound on toppings per pizza; undefined means no limit. */
   maxToppings?: number;
+  /** Optional note shown above the toppings, e.g. what every pizza already includes. */
+  note?: Localized;
 };
 
 export class MenuConfigError extends Error {
@@ -59,7 +61,7 @@ export function parseMenu(raw: unknown): Menu {
   if (!isRecord(raw)) throw new MenuConfigError("must be an object");
 
   if (!isRecord(raw.recipient)) throw new MenuConfigError("recipient must be an object");
-  const recipientName = nonEmptyString(raw.recipient.name, "recipient.name");
+  const recipientName = localized(raw.recipient.name, "recipient.name");
   const whatsappNumber = nonEmptyString(raw.recipient.whatsappNumber, "recipient.whatsappNumber");
   if (!/^[1-9]\d{6,14}$/.test(whatsappNumber)) {
     throw new MenuConfigError(
@@ -96,7 +98,9 @@ export function parseMenu(raw: unknown): Menu {
     maxToppings = raw.maxToppings as number;
   }
 
-  return { recipient: { name: recipientName, whatsappNumber }, toppings, maxToppings };
+  const note = raw.note === undefined ? undefined : localized(raw.note, "note");
+
+  return { recipient: { name: recipientName, whatsappNumber }, toppings, maxToppings, note };
 }
 
 /** Toppings grouped (by their English group name as key) in the order groups first appear in the config. */

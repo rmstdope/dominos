@@ -1,8 +1,15 @@
 {
-  "$comment": "Everything a baker may want to tweak lives here: who receives orders and which toppings are on offer. Every topping and group name is given in both languages (en, sv). Edit, commit, deploy.",
+  "$comment": "Everything a baker may want to tweak lives here: who receives orders, a note shown above the toppings, and which toppings are on offer. Every name and text is given in both languages (en, sv). Edit, commit, deploy.",
   "recipient": {
-    "name": "The Baker",
+    "name": {
+      "en": "The Baker",
+      "sv": "Bagaren"
+    },
     "whatsappNumber": "46706685800"
+  },
+  "note": {
+    "en": "Every pizza comes with tomato sauce and cheese.",
+    "sv": "Alla pizzor har tomatsås och ost."
   },
   "maxToppings": 6,
   "toppings": [

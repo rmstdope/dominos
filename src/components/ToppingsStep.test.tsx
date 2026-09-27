@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { renderWithLanguage as render } from "../test/render";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -29,6 +29,17 @@ describe("ToppingsStep", () => {
     ).toEqual([expect.stringContaining("Ham"), expect.stringContaining("Salami")]);
     expect(screen.getAllByRole("checkbox")).toHaveLength(testMenu.toppings.length);
     expect(screen.getByText(/pick up to 3 toppings/i)).toBeInTheDocument();
+  });
+
+  it("shows the menu note in the current language, and nothing without one", () => {
+    const { unmount } = render(<ToppingsStep {...baseProps} />);
+    expect(screen.getByText("Every pizza comes with tomato sauce and cheese.")).toBeInTheDocument();
+    unmount();
+    render(<ToppingsStep {...baseProps} />, { language: "sv" });
+    expect(screen.getByText("Alla pizzor har tomatsås och ost.")).toBeInTheDocument();
+    cleanup();
+    render(<ToppingsStep {...baseProps} menu={{ ...testMenu, note: undefined }} />);
+    expect(screen.queryByText(/tomato sauce/i)).not.toBeInTheDocument();
   });
 
   it("toggles a topping when tapped", async () => {
