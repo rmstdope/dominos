@@ -4,7 +4,7 @@
   "private": true,
   "description": "Pick your pizza toppings and send the order to the baker on WhatsApp.",
   "type": "module",
-  "packageManager": "pnpm@9.12.0",
+  "packageManager": "pnpm@11.24.0",
   "engines": {
     "node": ">=22"
   },
