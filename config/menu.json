@@ -2,7 +2,7 @@
   "$comment": "Everything a baker may want to tweak lives here: who receives orders and which toppings are on offer. Edit, commit, deploy.",
   "recipient": {
     "name": "The Baker",
-    "whatsappNumber": "46700000000"
+    "whatsappNumber": "46706685800"
   },
   "maxToppings": 6,
   "toppings": [
