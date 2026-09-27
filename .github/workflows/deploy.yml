@@ -1,0 +1,135 @@
+# Publishing the site to dominos.kurelid.se, the same way atlantis-hud publishes: build, verify the
+# exact bytes about to be uploaded, mirror them over SFTP to one.com with lftp, then check the live
+# site is serving the new build.
+#
+# Runs on every push to main once CI is green, and can also be started by hand.
+#
+# Required repository configuration:
+#   secrets:   ONECOM_FTP_SERVER, ONECOM_FTP_USERNAME, ONECOM_FTP_PASSWORD
+#   variables: ONECOM_FTP_SERVER_DIR (the directory the domain serves), ONECOM_SFTP_PORT (optional)
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Serialised rather than cancelled: an interrupted upload leaves the site half-replaced.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          # On workflow_run, check out exactly the commit CI validated.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # A failing step rather than a job-level `if`: a skipped job reports as success, and a deploy
+      # that quietly did not happen is the failure this guard exists to prevent.
+      - name: Refuse to publish anything but main
+        env:
+          REF: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+        run: |
+          if [ "$REF" != "main" ]; then
+            echo "::error::Refusing to deploy '$REF'. This workflow publishes the live site and runs only from main."
+            exit 1
+          fi
+          echo "Publishing from main."
+
+      - name: Check the publishing credentials are configured
+        env:
+          SERVER: ${{ secrets.ONECOM_FTP_SERVER }}
+          USERNAME: ${{ secrets.ONECOM_FTP_USERNAME }}
+          PASSWORD: ${{ secrets.ONECOM_FTP_PASSWORD }}
+          SERVER_DIR: ${{ vars.ONECOM_FTP_SERVER_DIR }}
+        run: |
+          missing=""
+          [ -n "$SERVER" ] || missing="$missing ONECOM_FTP_SERVER(secret)"
+          [ -n "$USERNAME" ] || missing="$missing ONECOM_FTP_USERNAME(secret)"
+          [ -n "$PASSWORD" ] || missing="$missing ONECOM_FTP_PASSWORD(secret)"
+          [ -n "$SERVER_DIR" ] || missing="$missing ONECOM_FTP_SERVER_DIR(variable)"
+          if [ -n "$missing" ]; then
+            echo "::error::Not configured to publish. Missing:$missing"
+            exit 1
+          fi
+          echo "Publishing to $SERVER_DIR"
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 9.12.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the site
+        run: pnpm run build
+
+      # Against the very bytes that are about to be uploaded, not a rebuild of them.
+      - name: Verify the build that is about to be published
+        run: |
+          pnpm exec playwright install --with-deps chromium webkit
+          pnpm run test:e2e
+
+      - name: Install lftp
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lftp
+
+      - name: Publish over SFTP
+        env:
+          SERVER: ${{ secrets.ONECOM_FTP_SERVER }}
+          USERNAME: ${{ secrets.ONECOM_FTP_USERNAME }}
+          LFTP_PASSWORD: ${{ secrets.ONECOM_FTP_PASSWORD }}
+          SERVER_DIR: ${{ vars.ONECOM_FTP_SERVER_DIR }}
+          PORT: ${{ vars.ONECOM_SFTP_PORT || '22' }}
+        run: |
+          lftp -u "$USERNAME" --env-password "sftp://$SERVER:$PORT" <<LFTP
+          set cmd:fail-exit yes
+          set sftp:auto-confirm yes
+          set net:timeout 30
+          set net:max-retries 3
+          set mirror:parallel-transfer-count 4
+          mirror --reverse --verbose --continue "dist/" "$SERVER_DIR"
+          bye
+          LFTP
+          # No --delete: Vite names assets by content hash, so stale files are unreferenced, not
+          # overwritten, and a browser still holding the previous index keeps working.
+
+      - name: Check the site is serving what was uploaded
+        run: |
+          site="https://dominos.kurelid.se"
+          expected="$(grep -o 'assets/index-[^"]*\.js' dist/index.html | head -1)"
+          for attempt in 1 2 3; do
+            status="$(curl -sS -o page.html -w '%{http_code}' --max-time 30 "$site/" || echo 000)"
+            [ "$status" = "200" ] && grep -q "$expected" page.html && break
+            echo "Attempt $attempt: $site/ returned $status (looking for $expected)"
+            sleep 10
+          done
+          if [ "$status" != "200" ]; then
+            echo "::error::$site/ returned $status. Is ONECOM_FTP_SERVER_DIR the directory this domain serves?"
+            exit 1
+          fi
+          if ! grep -q "$expected" page.html; then
+            echo "::error::$site/ answered, but is not serving this build ($expected not referenced)."
+            exit 1
+          fi
+          echo "::notice::Published to $site"

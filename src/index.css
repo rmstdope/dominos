@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --color-crust-950: #140808;
+  --color-crust-900: #1f0d0d;
+  --color-crust-800: #2c1414;
+  --color-crust-700: #3f1c1c;
+  --color-sauce-500: #e0402f;
+  --color-sauce-400: #f0604c;
+  --color-cheese-400: #f4b942;
+  --color-cheese-300: #ffd27a;
+  --color-cream-100: #fff4d6;
+  --color-cream-300: #e9d9b4;
+  --color-basil-500: #2f5d3a;
+  --color-whatsapp: #25d366;
+  --font-display: "Avenir Next", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --animate-rise: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pop: pop 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.94);
+    }
+    60% {
+      transform: scale(1.04);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+html {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-display);
+  color: var(--color-cream-100);
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, rgb(224 64 47 / 0.35), transparent 60%),
+    radial-gradient(50rem 30rem at 110% 20%, rgb(244 185 66 / 0.18), transparent 60%),
+    var(--color-crust-950);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

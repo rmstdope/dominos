@@ -1,176 +1,51 @@
-# Domino's Pizza Topping Selection
+# Dominos 🍕
 
-A full-stack TypeScript web application for managing pizza topping preferences at team pizza dinners.
+A tiny static web app: type your name, pick your toppings, send the order to the baker on
+WhatsApp. Live at [dominos.kurelid.se](https://dominos.kurelid.se).
 
-## CI/CD Pipeline
+## Configure the menu
 
-### Continuous Integration
+Everything a baker changes lives in **`config/menu.json`**:
 
-The project uses GitHub Actions for automated continuous integration. On every push to `main` and every pull request, the CI pipeline runs:
+- `recipient.name` and `recipient.whatsappNumber` – who receives the order. The number is in
+  international format with digits only (no `+`, spaces or leading zeros), e.g. `46701234567`.
+- `toppings` – the list on offer. Each has an `id` (lowercase, dashes), `name`, `emoji` and `group`.
+  Groups appear in the order they are first used.
+- `maxToppings` – optional cap per pizza. Remove it for no limit.
 
-- **Backend Lint**: ESLint checks for code quality (< 5 min)
-- **Backend Test**: Full test suite with coverage reporting (< 5 min)
-  - **Coverage Threshold**: Minimum 80% coverage required (branches, functions, lines, statements)
-- **Backend Build**: TypeScript compilation verification (< 5 min)
-- **Backend Docker**: Docker image build and health check (< 5 min)
-- **Backend Security**: npm audit for vulnerability scanning (< 5 min)
+The test suite validates the file, so a typo fails CI with a message naming the field.
 
-**Total CI time**: Under 10 minutes (typically 3-5 minutes)
+## How sending works
 
-The pipeline enforces a "stop the line" mentality - all jobs must pass for the build to succeed. Failed builds must be fixed immediately before new work proceeds.
+The last screen is a [`wa.me`](https://faq.whatsapp.com/5913398998672934) link with the recipient
+and message pre-filled. On iOS and Android it opens the WhatsApp app; on a desktop it opens
+WhatsApp Web. The user just taps send. There is no backend and no data is stored anywhere except
+the customer's name in their own browser.
 
-### Quality Gates & Security
+## Develop
 
-**Automated Quality Enforcement:**
-
-- **Test Coverage**: Minimum 80% coverage required on all metrics
-- **Security Scanning**: npm audit blocks builds with high/critical vulnerabilities
-- **Dependency Updates**: Dependabot automatically creates PRs for security updates and dependency upgrades
-
-**Security Features:**
-
-- Automated vulnerability scanning on every commit
-- Grouped dependency updates to reduce PR noise
-- Automatic security patch notifications
-
-### Continuous Deployment
-
-When CI passes on the `main` branch, the CD pipeline automatically:
-
-1. **Builds multi-platform Docker images** (amd64, arm64)
-2. **Tags images** with multiple strategies:
-   - `latest` - Most recent main build
-   - `main-<sha>` - Specific commit SHA
-   - `v1.2.3` - Semantic version (when tagged)
-3. **Publishes to GitHub Container Registry** (ghcr.io)
-4. **Creates deployment summary** with pull commands
-
-**Published Images:**
-
-- `ghcr.io/rmstdope/dominos/backend:latest`
-- `ghcr.io/rmstdope/dominos/backend:main-<sha>`
-
-Pull and run the latest production image:
-
-```bash
-docker pull ghcr.io/rmstdope/dominos/backend:latest
-docker run -p 3000:3000 -e JWT_SECRET=your-secret ghcr.io/rmstdope/dominos/backend:latest
+```sh
+pnpm install
+pnpm dev            # Vite dev server with hot reload
+pnpm test:watch     # Vitest in watch mode
+pnpm check          # everything CI runs: lint, types, format, unit, build, e2e
 ```
 
-#### Local Development
+Stack: Vite, React 19, TypeScript, Tailwind CSS 4, Vitest + Testing Library, Playwright.
 
-Run the same checks locally before pushing:
+## Deploy
 
-```bash
-cd backend
-npm run lint        # Run linting
-npm test           # Run tests
-npm run build      # Verify build
-```
+`pnpm build` writes a plain static site to `dist/`, servable by any HTTP server.
 
-## Docker Deployment
+Every push to `main` runs CI, and a green CI run triggers the `Deploy` workflow, which builds,
+re-verifies the build end to end, uploads it over SFTP to one.com and checks the live site serves
+the new build. It can also be run by hand from the Actions tab. The workflow needs these
+repository settings:
 
-The application is fully containerized for consistent deployment across environments.
-
-### Production Deployment
-
-Build and run the application with Docker Compose:
-
-```bash
-# Build and start the backend
-docker-compose up -d
-
-# View logs
-docker-compose logs -f backend
-
-# Stop the application
-docker-compose down
-```
-
-The backend will be available at `http://localhost:3000`.
-
-### Environment Variables
-
-Configure the application using environment variables:
-
-- `JWT_SECRET`: Secret key for JWT token signing (required in production)
-- `PORT`: Port number (default: 3000)
-- `NODE_ENV`: Environment mode (development/production)
-- `DATABASE_PATH`: SQLite database file path
-
-Create a `.env` file in the project root:
-
-```env
-JWT_SECRET=your-secure-secret-key
-PORT=3000
-NODE_ENV=production
-```
-
-## Deployment
-
-### Render.com (Recommended - Free Tier Available)
-
-The application is configured for easy deployment to Render.com using Infrastructure as Code:
-
-```bash
-# One-click deployment using Blueprint
-# Just connect your GitHub repo and Render will use render.yaml
-```
-
-The `render.yaml` file defines:
-
-- **PostgreSQL Database**: Free tier (90 days), 1GB storage
-- **Backend Web Service**: Node.js with Docker, auto-connects to PostgreSQL
-- **Frontend Static Site**: React app with automatic API URL configuration
-- **Environment Variables**: Auto-configured with secure defaults
-
-**Important**: Free PostgreSQL is available for 90 days, then requires $7/month upgrade.
-
-**See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.**
-
-### Database Support
-
-The backend automatically detects and supports both:
-
-- **PostgreSQL**: For production deployment (Render, Heroku, etc.)
-- **SQLite**: For local development and testing
-
-Detection is automatic via `DATABASE_URL` environment variable.
-
-### Manual Deployment
-
-The application can also be deployed manually to any platform supporting:
-
-- Docker (backend)
-- Static hosting (frontend)
-
-Environment variables needed:
-
-- **Backend**:
-  - `JWT_SECRET` - Secure random string for JWT tokens
-  - `NODE_ENV` - Set to `production`
-  - `DATABASE_URL` - PostgreSQL connection string (or omit for SQLite)
-- **Frontend**:
-  - `VITE_API_URL` - Backend URL (e.g., `https://your-backend.onrender.com`)
-
-### Development with Docker
-
-For development with hot reload:
-
-```bash
-# Start development container
-docker-compose --profile dev up backend-dev
-
-# Run tests in container
-docker-compose exec backend npm test
-```
-
-### Manual Docker Build
-
-Build the backend image directly:
-
-```bash
-cd backend
-docker build -t dominos-backend .
-docker run -p 3000:3000 -e JWT_SECRET=secret dominos-backend
-```
+| Kind     | Name                    | Meaning                                    |
+| -------- | ----------------------- | ------------------------------------------ |
+| secret   | `ONECOM_FTP_SERVER`     | SFTP host                                  |
+| secret   | `ONECOM_FTP_USERNAME`   | SFTP user                                  |
+| secret   | `ONECOM_FTP_PASSWORD`   | SFTP password                              |
+| variable | `ONECOM_FTP_SERVER_DIR` | Directory that `dominos.kurelid.se` serves |
+| variable | `ONECOM_SFTP_PORT`      | Optional, defaults to 22                   |

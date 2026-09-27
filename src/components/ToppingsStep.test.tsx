@@ -1,0 +1,100 @@
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import { testMenu } from "../test/fixtures";
+import { ToppingsStep } from "./ToppingsStep";
+
+const baseProps = {
+  menu: testMenu,
+  customerName: "Henrik",
+  isSelected: () => false,
+  atLimit: false,
+  selectedCount: 0,
+  onToggle: vi.fn(),
+  onClear: vi.fn(),
+  onBack: vi.fn(),
+  onContinue: vi.fn(),
+};
+
+describe("ToppingsStep", () => {
+  it("renders every topping grouped under its heading", () => {
+    render(<ToppingsStep {...baseProps} />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Build your pizza, Henrik");
+    const meat = screen.getByRole("region", { name: "Meat" });
+    expect(
+      within(meat)
+        .getAllByRole("checkbox")
+        .map((c) => c.textContent),
+    ).toEqual([expect.stringContaining("Ham"), expect.stringContaining("Salami")]);
+    expect(screen.getAllByRole("checkbox")).toHaveLength(testMenu.toppings.length);
+    expect(screen.getByText(/pick up to 3 toppings/i)).toBeInTheDocument();
+  });
+
+  it("toggles a topping when tapped", async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+    render(<ToppingsStep {...baseProps} onToggle={onToggle} />);
+    await user.click(screen.getByRole("checkbox", { name: /olives/i }));
+    expect(onToggle).toHaveBeenCalledWith("olives");
+  });
+
+  it("reflects selection state and count", () => {
+    render(<ToppingsStep {...baseProps} isSelected={(id) => id === "ham"} selectedCount={1} />);
+    expect(screen.getByRole("checkbox", { name: /ham/i })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /olives/i })).not.toBeChecked();
+    expect(screen.getByText("1").parentElement).toHaveTextContent("1 of 3 selected");
+  });
+
+  it("disables review with nothing selected and continues otherwise", async () => {
+    const user = userEvent.setup();
+    const onContinue = vi.fn();
+    const { rerender } = render(<ToppingsStep {...baseProps} onContinue={onContinue} />);
+    expect(screen.getByRole("button", { name: /review/i })).toBeDisabled();
+    rerender(<ToppingsStep {...baseProps} onContinue={onContinue} selectedCount={2} />);
+    await user.click(screen.getByRole("button", { name: /review/i }));
+    expect(onContinue).toHaveBeenCalled();
+  });
+
+  it("blocks unselected toppings at the limit but lets selected ones be removed", async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+    render(
+      <ToppingsStep
+        {...baseProps}
+        atLimit
+        selectedCount={3}
+        isSelected={(id) => id !== "olives"}
+        onToggle={onToggle}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(/maximum/i);
+    await user.click(screen.getByRole("checkbox", { name: /olives/i }));
+    expect(onToggle).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("checkbox", { name: /ham/i }));
+    expect(onToggle).toHaveBeenCalledWith("ham");
+  });
+
+  it("offers clear all only when something is selected", async () => {
+    const user = userEvent.setup();
+    const onClear = vi.fn();
+    const { rerender } = render(<ToppingsStep {...baseProps} onClear={onClear} />);
+    expect(screen.queryByRole("button", { name: /clear all/i })).not.toBeInTheDocument();
+    rerender(<ToppingsStep {...baseProps} onClear={onClear} selectedCount={1} />);
+    await user.click(screen.getByRole("button", { name: /clear all/i }));
+    expect(onClear).toHaveBeenCalled();
+  });
+
+  it("goes back to the name step", async () => {
+    const user = userEvent.setup();
+    const onBack = vi.fn();
+    render(<ToppingsStep {...baseProps} onBack={onBack} />);
+    await user.click(screen.getByRole("button", { name: /not henrik/i }));
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it("describes an unlimited menu", () => {
+    render(<ToppingsStep {...baseProps} menu={{ ...testMenu, maxToppings: undefined }} />);
+    expect(screen.getByText(/as many toppings as you like/i)).toBeInTheDocument();
+    expect(screen.getByText("0").parentElement).toHaveTextContent(/^0 selected$/);
+  });
+});
