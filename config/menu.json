@@ -14,18 +14,6 @@
   "maxToppings": 6,
   "toppings": [
     {
-      "id": "mozzarella",
-      "name": {
-        "en": "Mozzarella",
-        "sv": "Mozzarella"
-      },
-      "emoji": "🧀",
-      "group": {
-        "en": "Cheese",
-        "sv": "Ost"
-      }
-    },
-    {
       "id": "pepperoni",
       "name": {
         "en": "Pepperoni",
@@ -71,18 +59,6 @@
       "group": {
         "en": "Meat",
         "sv": "Kött"
-      }
-    },
-    {
-      "id": "mushroom",
-      "name": {
-        "en": "Mushrooms",
-        "sv": "Champinjoner"
-      },
-      "emoji": "🍄",
-      "group": {
-        "en": "Veg",
-        "sv": "Grönt"
       }
     },
     {
