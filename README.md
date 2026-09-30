@@ -50,7 +50,9 @@ Stack: Vite, React 19, TypeScript, Tailwind CSS 4, Vitest + Testing Library, Pla
 
 Every push to `main` runs CI, and a green CI run triggers the `Deploy` workflow, which builds,
 re-verifies the build end to end, uploads it over SFTP to one.com and checks the live site serves
-the new build. It can also be run by hand from the Actions tab. The workflow needs these
+the new build. A push that changes only `config/menu.json` skips CI and goes straight to `Deploy`,
+which still verifies the build end to end before uploading. It can also be run by hand from the
+Actions tab. The workflow needs these
 repository settings:
 
 | Kind     | Name                    | Meaning                                    |

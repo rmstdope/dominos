@@ -2,7 +2,8 @@
 # exact bytes about to be uploaded, mirror them over SFTP to one.com with lftp, then check the live
 # site is serving the new build.
 #
-# Runs on every push to main once CI is green, and can also be started by hand.
+# Runs on every push to main once CI is green, and can also be started by hand. CI skips pushes that
+# change only config/menu.json, so those are published straight from the push instead.
 #
 # Required repository configuration:
 #   secrets:   ONECOM_FTP_SERVER, ONECOM_FTP_USERNAME, ONECOM_FTP_PASSWORD
@@ -12,6 +13,10 @@ name: Deploy
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "config/menu.json"
   workflow_run:
     workflows: ["CI"]
     types: [completed]
@@ -26,10 +31,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # A push that touches config/menu.json alongside anything else also runs CI, and is published
+  # when that goes green. Only a push that changes the menu and nothing else is published from here.
+  menu-only:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      menu-only: ${{ steps.diff.outputs.menu-only }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: List the files this push changed
+        id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          changed="$(git diff --name-only "$BEFORE" "$AFTER")"
+          echo "$changed"
+          if [ "$changed" = "config/menu.json" ]; then
+            echo "menu-only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "menu-only=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Not a menu-only push; CI runs and publishes it."
+          fi
+
   deploy:
+    needs: menu-only
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: >-
+      !cancelled() && (
+        github.event_name == 'workflow_dispatch' ||
+        github.event.workflow_run.conclusion == 'success' ||
+        needs.menu-only.outputs.menu-only == 'true'
+      )
     steps:
       - name: Checkout
         uses: actions/checkout@v5

@@ -1,11 +1,18 @@
 # Regression protection for every pull request and every push to main: lint, types, formatting,
 # unit tests, a production build and end-to-end tests against that build served statically.
+#
+# Skipped when the only change is config/menu.json: that is the baker's content, not code. Such a
+# push is published by the Deploy workflow directly, which still builds and verifies it end to end.
 name: CI
 
 on:
   pull_request:
+    paths-ignore:
+      - "config/menu.json"
   push:
     branches: [main]
+    paths-ignore:
+      - "config/menu.json"
 
 permissions:
   contents: read
