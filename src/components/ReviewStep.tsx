@@ -8,14 +8,24 @@ import { Shell } from "./Shell";
 type Props = {
   menu: Menu;
   customerName: string;
+  makeOwnPizza: boolean;
   toppings: Topping[];
+  comment: string;
   onBack: () => void;
   onStartOver: () => void;
 };
 
-export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }: Props) {
+export function ReviewStep({
+  menu,
+  customerName,
+  makeOwnPizza,
+  toppings,
+  comment,
+  onBack,
+  onStartOver,
+}: Props) {
   const { t, l, language } = useLanguage();
-  const message = buildOrderMessage({ customerName, toppings, language });
+  const message = buildOrderMessage({ customerName, makeOwnPizza, toppings, comment, language });
   const url = buildWhatsAppUrl(menu.recipient.whatsappNumber, message);
   const [copied, setCopied] = useState(false);
 
@@ -73,6 +83,15 @@ export function ReviewStep({ menu, customerName, toppings, onBack, onStartOver }
             </li>
           ))}
         </ul>
+        <p className="mt-4 text-sm text-cream-300/80">
+          {t.makeOwnPizza}:{" "}
+          <strong className="text-cream-100">{makeOwnPizza ? t.yes : t.no}</strong>
+        </p>
+        {comment.trim() !== "" && (
+          <p className="mt-2 text-sm whitespace-pre-wrap text-cream-100/90">
+            <span aria-hidden="true">💬</span> {comment.trim()}
+          </p>
+        )}
       </section>
 
       <details className="group mt-4 rounded-2xl bg-white/5 ring-1 ring-white/10">

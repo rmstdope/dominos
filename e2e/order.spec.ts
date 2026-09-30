@@ -19,6 +19,7 @@ test.describe("ordering a pizza", () => {
     await page.getByRole("checkbox", { name: first.name.en }).click();
     await page.getByRole("checkbox", { name: second.name.en }).click();
     await expect(page.getByRole("checkbox", { name: first.name.en })).toBeChecked();
+    await page.getByRole("textbox", { name: /comment/i }).fill("Extra crispy, please");
     await page.getByRole("button", { name: /review/i }).click();
 
     const link = page.getByRole("link", {
@@ -31,6 +32,8 @@ test.describe("ordering a pizza", () => {
     expect(text).toContain("Pizza order from Henrik");
     expect(text).toContain(`${first.emoji} ${first.name.en}`);
     expect(text).toContain(`${second.emoji} ${second.name.en}`);
+    expect(text).toContain("🧑‍🍳 Make my own pizza: No");
+    expect(text).toContain("💬 Comment:\nExtra crispy, please");
   });
 
   test("fits the viewport without horizontal scrolling", async ({ page }) => {
@@ -54,6 +57,7 @@ test.describe("ordering a pizza", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "sv");
 
     await page.getByLabel("Ditt namn").fill("Anna");
+    await page.getByRole("radio", { name: "Ja" }).click();
     await page.getByRole("button", { name: "Välj toppings" }).click();
     await expect(page.getByText(menu.note.sv)).toBeVisible();
     const first = menu.toppings[0]!;
@@ -63,6 +67,7 @@ test.describe("ordering a pizza", () => {
     const text = new URL((await link.getAttribute("href"))!).searchParams.get("text")!;
     expect(text).toContain("Pizzabeställning från Anna");
     expect(text).toContain(`${first.emoji} ${first.name.sv}`);
+    expect(text).toContain("🧑‍🍳 Göra egen pizza: Ja");
   });
 
   test("remembers the name across reloads", async ({ page }) => {

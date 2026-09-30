@@ -15,6 +15,7 @@ describe("App", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Build your pizza, Henrik");
     await user.click(screen.getByRole("checkbox", { name: /mozzarella/i }));
     await user.click(screen.getByRole("checkbox", { name: /olives/i }));
+    await user.type(screen.getByRole("textbox", { name: /comment/i }), "Extra crispy");
     await user.click(screen.getByRole("button", { name: /review/i }));
 
     const link = screen.getByRole("link", { name: /send to baker bob/i });
@@ -23,6 +24,8 @@ describe("App", () => {
     expect(text).toContain("🧀 Mozzarella");
     expect(text).toContain("🫒 Olives");
     expect(text).not.toContain("Ham");
+    expect(text).toContain("🧑‍🍳 Make my own pizza: No");
+    expect(text).toContain("💬 Comment:\nExtra crispy");
   });
 
   it("switches language mid-flow and keeps the selection", async () => {
@@ -82,5 +85,19 @@ describe("App", () => {
     expect(screen.getByLabelText(/your name/i)).toHaveValue("Henrik");
     await user.click(screen.getByRole("button", { name: /pick toppings/i }));
     expect(screen.getByRole("checkbox", { name: /ham/i })).not.toBeChecked();
+  });
+
+  it("sends a Yes to making your own pizza", async () => {
+    const user = userEvent.setup();
+    render(<App menu={testMenu} />);
+    await user.type(screen.getByLabelText(/your name/i), "Anna");
+    await user.click(screen.getByRole("radio", { name: "Yes" }));
+    await user.click(screen.getByRole("button", { name: /pick toppings/i }));
+    await user.click(screen.getByRole("checkbox", { name: /ham/i }));
+    await user.click(screen.getByRole("button", { name: /review/i }));
+    const link = screen.getByRole("link", { name: /send to baker bob/i });
+    const text = new URL(link.getAttribute("href")!).searchParams.get("text")!;
+    expect(text).toContain("🧑‍🍳 Make my own pizza: Yes");
+    expect(text).not.toContain("Comment");
   });
 });

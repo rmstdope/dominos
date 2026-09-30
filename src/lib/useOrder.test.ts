@@ -34,6 +34,8 @@ describe("useOrder", () => {
     expect(result.current.step).toBe("name");
     expect(result.current.customerName).toBe("");
     expect(result.current.selectedToppings).toEqual([]);
+    expect(result.current.makeOwnPizza).toBe(false);
+    expect(result.current.comment).toBe("");
   });
 
   it("prefills a remembered name", () => {
@@ -44,13 +46,13 @@ describe("useOrder", () => {
 
   it("refuses a blank name and stays on the name step", () => {
     const { result } = renderHook(() => useOrder(menu));
-    act(() => result.current.submitName("   "));
+    act(() => result.current.submitName("   ", false));
     expect(result.current.step).toBe("name");
   });
 
   it("stores a trimmed name and moves on to toppings", () => {
     const { result } = renderHook(() => useOrder(menu));
-    act(() => result.current.submitName("  Henrik "));
+    act(() => result.current.submitName("  Henrik ", false));
     expect(result.current.customerName).toBe("Henrik");
     expect(result.current.step).toBe("toppings");
     expect(window.localStorage.getItem("dominos.customerName")).toBe("Henrik");
@@ -94,7 +96,7 @@ describe("useOrder", () => {
 
   it("only reaches review with at least one topping", () => {
     const { result } = renderHook(() => useOrder(menu));
-    act(() => result.current.submitName("Henrik"));
+    act(() => result.current.submitName("Henrik", false));
     act(() => result.current.goToReview());
     expect(result.current.step).toBe("toppings");
     act(() => result.current.toggleTopping("cheese"));
@@ -104,7 +106,7 @@ describe("useOrder", () => {
 
   it("navigates back and resets", () => {
     const { result } = renderHook(() => useOrder(menu));
-    act(() => result.current.submitName("Henrik"));
+    act(() => result.current.submitName("Henrik", false));
     act(() => result.current.toggleTopping("cheese"));
     act(() => result.current.goToReview());
     act(() => result.current.backToToppings());
@@ -118,5 +120,21 @@ describe("useOrder", () => {
     expect(result.current.customerName).toBe("Henrik");
     act(() => result.current.clearToppings());
     expect(result.current.selectedIds).toEqual([]);
+  });
+
+  it("keeps the own-pizza answer and the comment, and clears both on reset", () => {
+    const { result } = renderHook(() => useOrder(menu));
+    act(() => result.current.submitName("Henrik", true));
+    expect(result.current.makeOwnPizza).toBe(true);
+    act(() => result.current.setComment("Extra crispy"));
+    expect(result.current.comment).toBe("Extra crispy");
+    act(() => result.current.backToName());
+    act(() => result.current.submitName("Henrik", false));
+    expect(result.current.makeOwnPizza).toBe(false);
+    expect(result.current.comment).toBe("Extra crispy");
+    act(() => result.current.submitName("Henrik", true));
+    act(() => result.current.reset());
+    expect(result.current.makeOwnPizza).toBe(false);
+    expect(result.current.comment).toBe("");
   });
 });

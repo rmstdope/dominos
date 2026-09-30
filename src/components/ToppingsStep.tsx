@@ -10,6 +10,8 @@ type Props = {
   atLimit: boolean;
   selectedCount: number;
   onToggle: (id: string) => void;
+  comment: string;
+  onCommentChange: (comment: string) => void;
   onClear: () => void;
   onBack: () => void;
   onContinue: () => void;
@@ -22,6 +24,8 @@ export function ToppingsStep({
   atLimit,
   selectedCount,
   onToggle,
+  comment,
+  onCommentChange,
   onClear,
   onBack,
   onContinue,
@@ -105,6 +109,22 @@ export function ToppingsStep({
           </section>
         ))}
       </div>
+      <label
+        htmlFor="order-comment"
+        className="mt-6 mb-2 block text-xs font-semibold tracking-widest text-cream-300/60 uppercase"
+      >
+        {t.commentLabel}
+      </label>
+      <textarea
+        id="order-comment"
+        name="comment"
+        rows={3}
+        maxLength={500}
+        placeholder={t.commentPlaceholder}
+        value={comment}
+        onChange={(event) => onCommentChange(event.target.value)}
+        className="w-full resize-y rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-base text-cream-100 placeholder:text-cream-300/30 focus:border-cheese-400 focus:ring-2 focus:ring-cheese-400/40 focus:outline-none"
+      />
     </Shell>
   );
 }

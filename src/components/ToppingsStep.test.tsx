@@ -12,6 +12,8 @@ const baseProps = {
   atLimit: false,
   selectedCount: 0,
   onToggle: vi.fn(),
+  comment: "",
+  onCommentChange: vi.fn(),
   onClear: vi.fn(),
   onBack: vi.fn(),
   onContinue: vi.fn(),
@@ -118,5 +120,21 @@ describe("ToppingsStep", () => {
     render(<ToppingsStep {...baseProps} menu={{ ...testMenu, maxToppings: undefined }} />);
     expect(screen.getByText(/as many toppings as you like/i)).toBeInTheDocument();
     expect(screen.getByText("0 selected")).toBeInTheDocument();
+  });
+
+  it("takes an optional comment below the toppings", async () => {
+    const user = userEvent.setup();
+    const onCommentChange = vi.fn();
+    const { rerender } = render(<ToppingsStep {...baseProps} onCommentChange={onCommentChange} />);
+    const field = screen.getByRole("textbox", { name: /comment/i });
+    await user.type(field, "!");
+    expect(onCommentChange).toHaveBeenCalledWith("!");
+    rerender(<ToppingsStep {...baseProps} comment="Extra crispy" />);
+    expect(screen.getByRole("textbox", { name: /comment/i })).toHaveValue("Extra crispy");
+  });
+
+  it("labels the comment in Swedish", () => {
+    render(<ToppingsStep {...baseProps} />, { language: "sv" });
+    expect(screen.getByRole("textbox", { name: /kommentar/i })).toBeInTheDocument();
   });
 });

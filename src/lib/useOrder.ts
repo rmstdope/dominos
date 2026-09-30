@@ -7,11 +7,14 @@ export type Step = "name" | "toppings" | "review";
 export type OrderState = {
   step: Step;
   customerName: string;
+  makeOwnPizza: boolean;
+  comment: string;
   selectedIds: string[];
   selectedToppings: Topping[];
   atLimit: boolean;
   isSelected: (id: string) => boolean;
-  submitName: (name: string) => void;
+  submitName: (name: string, makeOwnPizza: boolean) => void;
+  setComment: (comment: string) => void;
   toggleTopping: (id: string) => void;
   clearToppings: () => void;
   goToReview: () => void;
@@ -24,6 +27,8 @@ export type OrderState = {
 export function useOrder(menu: Menu): OrderState {
   const [step, setStep] = useState<Step>("name");
   const [customerName, setCustomerName] = useState<string>(() => loadCustomerName());
+  const [makeOwnPizza, setMakeOwnPizza] = useState(false);
+  const [comment, setComment] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const selectedToppings = useMemo(
@@ -32,10 +37,11 @@ export function useOrder(menu: Menu): OrderState {
   );
   const atLimit = menu.maxToppings !== undefined && selectedIds.length >= menu.maxToppings;
 
-  const submitName = useCallback((name: string) => {
+  const submitName = useCallback((name: string, makeOwn: boolean) => {
     const trimmed = name.trim();
     if (trimmed === "") return;
     setCustomerName(trimmed);
+    setMakeOwnPizza(makeOwn);
     saveCustomerName(trimmed);
     setStep("toppings");
   }, []);
@@ -55,11 +61,14 @@ export function useOrder(menu: Menu): OrderState {
   return {
     step,
     customerName,
+    makeOwnPizza,
+    comment,
     selectedIds,
     selectedToppings,
     atLimit,
     isSelected: (id) => selectedIds.includes(id),
     submitName,
+    setComment,
     toggleTopping,
     clearToppings: () => setSelectedIds([]),
     goToReview: () => {
@@ -69,6 +78,8 @@ export function useOrder(menu: Menu): OrderState {
     backToName: () => setStep("name"),
     reset: () => {
       setSelectedIds([]);
+      setMakeOwnPizza(false);
+      setComment("");
       setStep("name");
     },
   };

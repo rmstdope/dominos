@@ -10,7 +10,9 @@ const toppings = [testMenu.toppings[0]!, testMenu.toppings[3]!];
 const baseProps = {
   menu: testMenu,
   customerName: "Henrik",
+  makeOwnPizza: false,
   toppings,
+  comment: "",
   onBack: vi.fn(),
   onStartOver: vi.fn(),
 };
@@ -32,9 +34,7 @@ describe("ReviewStep", () => {
     const link = screen.getByRole("link", { name: /send to baker bob/i });
     const href = new URL(link.getAttribute("href")!);
     expect(href.origin + href.pathname).toBe("https://wa.me/46701234567");
-    expect(href.searchParams.get("text")).toBe(
-      buildOrderMessage({ customerName: "Henrik", toppings, language: "en" }),
-    );
+    expect(href.searchParams.get("text")).toBe(buildOrderMessage({ ...baseProps, language: "en" }));
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
   });
@@ -46,9 +46,7 @@ describe("ReviewStep", () => {
     render(<ReviewStep {...baseProps} />);
     expect(screen.getByText(/pizza order from henrik/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /copy message/i }));
-    expect(writeText).toHaveBeenCalledWith(
-      buildOrderMessage({ customerName: "Henrik", toppings, language: "en" }),
-    );
+    expect(writeText).toHaveBeenCalledWith(buildOrderMessage({ ...baseProps, language: "en" }));
     expect(screen.getByRole("button", { name: /copied/i })).toBeInTheDocument();
   });
 
@@ -83,5 +81,15 @@ describe("ReviewStep", () => {
     expect(onBack).toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: /start over/i }));
     expect(onStartOver).toHaveBeenCalled();
+  });
+
+  it("shows and sends the own-pizza answer and the comment", () => {
+    render(<ReviewStep {...baseProps} makeOwnPizza comment="Extra crispy" />);
+    expect(screen.getByText(/i want to make my own pizza/i)).toHaveTextContent(": Yes");
+    expect(screen.getAllByText(/extra crispy/i)[0]).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /send to baker bob/i });
+    const text = new URL(link.getAttribute("href")!).searchParams.get("text")!;
+    expect(text).toContain("🧑‍🍳 Make my own pizza: Yes");
+    expect(text).toContain("💬 Comment:\nExtra crispy");
   });
 });

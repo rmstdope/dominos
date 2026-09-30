@@ -17,6 +17,9 @@ const en = {
   nameSubtitle: "Tell the baker who this pizza is for.",
   nameLabel: "Your name",
   namePlaceholder: "e.g. Henrik",
+  makeOwnPizza: "I want to make my own pizza",
+  yes: "Yes",
+  no: "No",
   pickToppings: "Pick toppings",
   toppingsTitle: (name: string) => `Build your pizza, ${name}`,
   toppingsSubtitleLimited: (max: number) => `Pick up to ${max} toppings.`,
@@ -26,6 +29,8 @@ const en = {
   selectedCount: (count: number, max: number | undefined) =>
     max === undefined ? `${count} selected` : `${count} of ${max} selected`,
   clearAll: "Clear all",
+  commentLabel: "Comment (optional)",
+  commentPlaceholder: "Anything else the baker should know?",
   review: "Review",
   reviewTitle: "Looks delicious",
   reviewSubtitle: (recipient: string) =>
@@ -40,6 +45,8 @@ const en = {
   msgHeader: (name: string) => `🍕 Pizza order from ${name}`,
   msgNoToppings: "Plain pizza, no toppings.",
   msgToppings: (count: number) => `Toppings (${count}):`,
+  msgMakeOwn: (yes: boolean) => `🧑‍🍳 Make my own pizza: ${yes ? "Yes" : "No"}`,
+  msgComment: "💬 Comment:",
   msgThanks: "Thanks!",
 };
 
@@ -56,6 +63,9 @@ const sv: Translations = {
   nameSubtitle: "Berätta för bagaren vem pizzan är till.",
   nameLabel: "Ditt namn",
   namePlaceholder: "t.ex. Henrik",
+  makeOwnPizza: "Jag vill göra min egen pizza",
+  yes: "Ja",
+  no: "Nej",
   pickToppings: "Välj toppings",
   toppingsTitle: (name) => `Bygg din pizza, ${name}`,
   toppingsSubtitleLimited: (max) => `Välj upp till ${max} toppings.`,
@@ -65,6 +75,8 @@ const sv: Translations = {
   selectedCount: (count, max) =>
     max === undefined ? `${count} valda` : `${count} av ${max} valda`,
   clearAll: "Rensa alla",
+  commentLabel: "Kommentar (valfritt)",
+  commentPlaceholder: "Något mer bagaren ska veta?",
   review: "Granska",
   reviewTitle: "Ser gott ut",
   reviewSubtitle: (recipient) => `Skicka till ${recipient} på WhatsApp så åker den in i ugnen.`,
@@ -78,6 +90,8 @@ const sv: Translations = {
   msgHeader: (name) => `🍕 Pizzabeställning från ${name}`,
   msgNoToppings: "Vanlig pizza, inga toppings.",
   msgToppings: (count) => `Toppings (${count}):`,
+  msgMakeOwn: (yes) => `🧑‍🍳 Göra egen pizza: ${yes ? "Ja" : "Nej"}`,
+  msgComment: "💬 Kommentar:",
   msgThanks: "Tack!",
 };
 

@@ -11,7 +11,6 @@
     "en": "Every pizza comes with tomato sauce and cheese.",
     "sv": "Alla pizzor har tomatsås och ost."
   },
-  "maxToppings": 6,
   "toppings": [
     {
       "id": "pepperoni",

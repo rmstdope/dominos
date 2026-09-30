@@ -18,7 +18,13 @@ function Order({ menu }: { menu: Menu }) {
 
   switch (order.step) {
     case "name":
-      return <NameStep initialName={order.customerName} onSubmit={order.submitName} />;
+      return (
+        <NameStep
+          initialName={order.customerName}
+          initialMakeOwnPizza={order.makeOwnPizza}
+          onSubmit={order.submitName}
+        />
+      );
     case "toppings":
       return (
         <ToppingsStep
@@ -28,6 +34,8 @@ function Order({ menu }: { menu: Menu }) {
           atLimit={order.atLimit}
           selectedCount={order.selectedIds.length}
           onToggle={order.toggleTopping}
+          comment={order.comment}
+          onCommentChange={order.setComment}
           onClear={order.clearToppings}
           onBack={order.backToName}
           onContinue={order.goToReview}
@@ -38,7 +46,9 @@ function Order({ menu }: { menu: Menu }) {
         <ReviewStep
           menu={menu}
           customerName={order.customerName}
+          makeOwnPizza={order.makeOwnPizza}
           toppings={order.selectedToppings}
+          comment={order.comment}
           onBack={order.backToToppings}
           onStartOver={order.reset}
         />
