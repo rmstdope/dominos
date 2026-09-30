@@ -1,9 +1,10 @@
-# Publishing the site to dominos.kurelid.se, the same way atlantis-hud publishes: build, verify the
-# exact bytes about to be uploaded, mirror them over SFTP to one.com with lftp, then check the live
-# site is serving the new build.
+# Publishing the site to dominos.kurelid.se: mirror a build over SFTP to one.com with lftp, then
+# check the live site is serving it.
 #
-# Runs on every push to main once CI is green, and can also be started by hand. CI skips pushes that
-# change only config/menu.json, so those are published straight from the push instead.
+# Where the build comes from depends on what started the run:
+#   - a green CI run on main: the exact dist/ CI built and tested end to end, downloaded as is;
+#   - a push that changes only config/menu.json (CI skips those): the menu is validated, then built;
+#   - by hand: built from main after the unit tests pass.
 #
 # Required repository configuration:
 #   secrets:   ONECOM_FTP_SERVER, ONECOM_FTP_USERNAME, ONECOM_FTP_PASSWORD
@@ -24,6 +25,7 @@ on:
 
 permissions:
   contents: read
+  actions: read # to download the build CI kept
 
 # Serialised rather than cancelled: an interrupted upload leaves the site half-replaced.
 concurrency:
@@ -71,12 +73,6 @@ jobs:
         needs.menu-only.outputs.menu-only == 'true'
       )
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          # On workflow_run, check out exactly the commit CI validated.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
       # A failing step rather than a job-level `if`: a skipped job reports as success, and a deploy
       # that quietly did not happen is the failure this guard exists to prevent.
       - name: Refuse to publish anything but main
@@ -107,25 +103,46 @@ jobs:
           fi
           echo "Publishing to $SERVER_DIR"
 
+      - name: Take the build CI tested
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v5
+        with:
+          name: site
+          path: dist/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Checkout
+        if: github.event_name != 'workflow_run'
+        uses: actions/checkout@v5
+
       - name: Setup Node
+        if: github.event_name != 'workflow_run'
         uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
 
       - name: Setup pnpm
+        if: github.event_name != 'workflow_run'
         uses: pnpm/action-setup@v5
 
       - name: Install dependencies
+        if: github.event_name != 'workflow_run'
         run: pnpm install --frozen-lockfile
 
-      - name: Build the site
-        run: pnpm run build
+      # A menu edit is checked against the menu's own rules only; a hand-started run gets the whole
+      # unit suite. Neither needs a browser.
+      - name: Validate the menu
+        if: github.event_name == 'push'
+        run: pnpm exec vitest run src/config/menu.test.ts
 
-      # Against the very bytes that are about to be uploaded, not a rebuild of them.
-      - name: Verify the build that is about to be published
-        run: |
-          pnpm exec playwright install --with-deps chromium webkit
-          pnpm run test:e2e
+      - name: Unit and component tests
+        if: github.event_name == 'workflow_dispatch'
+        run: pnpm run test
+
+      - name: Build the site
+        if: github.event_name != 'workflow_run'
+        run: pnpm run build
 
       - name: Install lftp
         run: |

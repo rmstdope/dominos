@@ -2,7 +2,7 @@
 # unit tests, a production build and end-to-end tests against that build served statically.
 #
 # Skipped when the only change is config/menu.json: that is the baker's content, not code. Such a
-# push is published by the Deploy workflow directly, which still builds and verifies it end to end.
+# push is published by the Deploy workflow directly, which validates the menu before building it.
 name: CI
 
 on:
@@ -25,6 +25,11 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Playwright's own image carries the browsers and the system libraries they need, so nothing is
+    # installed through apt: `playwright install --with-deps` once spent 13 minutes on a slow Ubuntu
+    # mirror. The tag must match @playwright/test in the lockfile; the first step below checks it.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -39,6 +44,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Check the Playwright image matches the lockfile
+        run: |
+          version="$(pnpm exec playwright --version | awk '{print $2}')"
+          if ! grep -q "mcr.microsoft.com/playwright:v$version-" .github/workflows/ci.yml; then
+            echo "::error::@playwright/test is $version; update the container image tag in .github/workflows/ci.yml to v$version-noble."
+            exit 1
+          fi
 
       - name: Lint
         run: pnpm run lint
@@ -55,11 +68,17 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium webkit
-
       - name: End-to-end tests against the static build
         run: pnpm run test:e2e
+
+      # The Deploy workflow publishes these exact bytes rather than rebuilding them.
+      - name: Keep the tested build for Deploy
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist/
+          retention-days: 7
 
       - name: Upload Playwright report
         if: failure()

@@ -48,11 +48,13 @@ Stack: Vite, React 19, TypeScript, Tailwind CSS 4, Vitest + Testing Library, Pla
 
 `pnpm build` writes a plain static site to `dist/`, servable by any HTTP server.
 
-Every push to `main` runs CI, and a green CI run triggers the `Deploy` workflow, which builds,
-re-verifies the build end to end, uploads it over SFTP to one.com and checks the live site serves
-the new build. A push that changes only `config/menu.json` skips CI and goes straight to `Deploy`,
-which still verifies the build end to end before uploading. It can also be run by hand from the
-Actions tab. The workflow needs these
+Every push to `main` runs CI, and a green CI run triggers the `Deploy` workflow, which uploads the
+exact build CI tested over SFTP to one.com and checks the live site serves it. A push that changes
+only `config/menu.json` skips CI and goes straight to `Deploy`, which validates the menu, builds
+and uploads. It can also be run by hand from the Actions tab (builds after the unit tests pass).
+
+CI runs in Playwright's container image, whose tag in `.github/workflows/ci.yml` must match the
+`@playwright/test` version in the lockfile; CI fails with a pointer to it when they drift. The workflow needs these
 repository settings:
 
 | Kind     | Name                    | Meaning                                    |
