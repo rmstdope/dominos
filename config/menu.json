@@ -61,6 +61,18 @@
       }
     },
     {
+      "id": "mushroom",
+      "name": {
+        "en": "Mushrooms",
+        "sv": "Champinjoner"
+      },
+      "emoji": "🍄",
+      "group": {
+        "en": "Veg",
+        "sv": "Grönt"
+      }
+    },
+    {
       "id": "onion",
       "name": {
         "en": "Red onion",
