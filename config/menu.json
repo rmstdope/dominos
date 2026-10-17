@@ -11,6 +11,7 @@
     "en": "Every pizza comes with tomato sauce and cheese.",
     "sv": "Alla pizzor har tomatsås och ost."
   },
+  "maxToppings": 6,
   "toppings": [
     {
       "id": "pepperoni",
@@ -61,18 +62,6 @@
       }
     },
     {
-      "id": "mushroom",
-      "name": {
-        "en": "Mushrooms",
-        "sv": "Champinjoner"
-      },
-      "emoji": "🍄",
-      "group": {
-        "en": "Veg",
-        "sv": "Grönt"
-      }
-    },
-    {
       "id": "onion",
       "name": {
         "en": "Red onion",
@@ -103,18 +92,6 @@
         "sv": "Paprika"
       },
       "emoji": "🫑",
-      "group": {
-        "en": "Veg",
-        "sv": "Grönt"
-      }
-    },
-    {
-      "id": "black-olives",
-      "name": {
-        "en": "Black olives",
-        "sv": "Svarta oliver"
-      },
-      "emoji": "🫒",
       "group": {
         "en": "Veg",
         "sv": "Grönt"
@@ -154,18 +131,6 @@
       "group": {
         "en": "Veg",
         "sv": "Grönt"
-      }
-    },
-    {
-      "id": "basil",
-      "name": {
-        "en": "Fresh basil",
-        "sv": "Färsk basilika"
-      },
-      "emoji": "🌱",
-      "group": {
-        "en": "Extras",
-        "sv": "Extra"
       }
     },
     {
