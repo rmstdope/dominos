@@ -1,0 +1,84 @@
+# Everything Dominos runs on the VPS. The deploy workflow copies this file to /opt/dominos next
+# to a .env (see .env.example) and runs `docker compose pull && docker compose up -d`.
+
+services:
+  web:
+    image: ghcr.io/rmstdope/dominos-web:${TAG:-latest}
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    environment:
+      SITE: ${SITE:?Set SITE, e.g. dominos.kurelid.se}
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+  api:
+    image: ghcr.io/rmstdope/dominos-api:${TAG:-latest}
+    build:
+      context: ..
+      dockerfile: deploy/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://dominos:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/dominos
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN, e.g. https://dominos.kurelid.se}
+      TRUST_PROXY: "true"
+      SMTP_URL: ${SMTP_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-Dominos <dominos@kurelid.se>}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dominos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: dominos
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dominos", "-d", "dominos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # A compressed dump every night, kept for 30 days, in ./backups on the server. HostUp's snapshots
+  # cover the whole machine; these are for restoring just the data.
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          file="/backups/dominos-$$(date +%Y-%m-%d).sql.gz"
+          if pg_dump -h db -U dominos dominos | gzip > "$$file.tmp"; then
+            mv "$$file.tmp" "$$file" && echo "Backed up to $$file"
+          else
+            rm -f "$$file.tmp"; echo "Backup failed" >&2
+          fi
+          find /backups -name 'dominos-*.sql.gz' -mtime +30 -delete
+          sleep 86400
+        done
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:

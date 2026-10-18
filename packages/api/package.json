@@ -8,7 +8,8 @@
     "start": "node src/main.ts",
     "create-staff": "node --env-file-if-exists=.env src/cli/create-staff.ts",
     "db:generate": "drizzle-kit generate",
-    "test": "vitest run"
+    "test": "vitest run",
+    "import-menu": "node --env-file-if-exists=.env src/cli/import-menu.ts"
   },
   "dependencies": {
     "@dominos/shared": "workspace:*",
