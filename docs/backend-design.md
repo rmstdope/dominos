@@ -45,10 +45,10 @@ needs Docker. Production uses a real Postgres with the same schema and queries.
 | `users`              | email (unique, lower-cased), name, role, language, password_hash (null until the invitation is accepted), disabled_at                        | ✅ Built                                                     |
 | `auth_tokens`        | user_id, kind `invite`/`reset`, token_hash, expires_at, used_at                                                                              | ✅ Built. Single use; invitations last 7 days, resets 1 hour |
 | `sessions`           | token_hash, user_id, expires_at                                                                                                              | ✅ Built. 30 days, extended while in use                     |
-| `ingredient_groups`  | name_en, name_sv, sort                                                                                                                       | Meat / Veg / Extras                                          |
-| `ingredients`        | group_id, name_en, name_sv, in_stock, archived_at, sort                                                                                      | Archived, never deleted, so old orders keep their toppings   |
-| `events`             | name, starts_at, location, orders_close_at, max_toppings (null = no limit), note_en/sv, ask_make_own, status `draft`/`published`/`cancelled` | "Orders open", "Closed" and "Past" follow from the times     |
-| `event_ingredients`  | event_id, ingredient_id                                                                                                                      | The event's menu                                             |
+| `ingredient_groups`  | name_en, name_sv, sort                                                                                                                       | ✅ Built. Meat / Veg / Extras                                |
+| `ingredients`        | group_id, name_en, name_sv, in_stock, archived_at, sort                                                                                      | ✅ Built. Archived, never deleted, so old orders keep them   |
+| `events`             | name, starts_at, location, orders_close_at, max_toppings (null = no limit), note_en/sv, ask_make_own, status `draft`/`published`/`cancelled` | ✅ Built. "Open", "closed" and "past" follow from the times  |
+| `event_ingredients`  | event_id, ingredient_id                                                                                                                      | ✅ Built. The event's menu                                   |
 | `event_invitations`  | event_id, user_id, status `invited`/`declined`, invited_at, last_reminded_at, first_seen_at                                                  | "Opened" means seen in the app                               |
 | `orders`             | event_id, user_id, **unique (event_id, user_id)**, number, make_own, comment, baked_at                                                       | `number` is per event (#07)                                  |
 | `order_toppings`     | order_id, ingredient_id                                                                                                                      |                                                              |
@@ -82,11 +82,18 @@ JSON under `/api`. Errors are `{ "error": { "code", "message" } }`, with the cod
 /me/favourite`, `GET /events` (only invited ones), `GET /events/:id` (menu and my order), `PUT`/`DELETE
 /events/:id/order`, `POST /events/:id/decline`.
 
-**Staff** (`/staff/…`, 403 for customers): events (create, update, `PUT :id/menu`, publish,
-cancel), `POST events/:id/invitations` (existing people and new ones, who get the account
+**Staff** (`/staff/…`, 401 signed out, 403 for customers)
+
+| Endpoints ✅ built                                                                                                                      | Does                                                                                                                    |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `GET`/`POST /ingredient-groups`, `PATCH`/`DELETE /ingredient-groups/:id`                                                                | Groups in both languages; a group is deleted only when empty                                                            |
+| `GET /ingredients[?archived=include]`, `POST`, `PATCH /ingredients/:id`                                                                 | Rename, move group, in stock, archive and restore                                                                       |
+| `GET`/`POST /people`, `PATCH /people/:id`, `POST /people/:id/resend-invitation`                                                         | Invite with a role (emails the link), change email, name or role, disable; always one staff member left                 |
+| `GET`/`POST /events`, `GET`/`PATCH`/`DELETE /events/:id`, `PUT /events/:id/menu`, `POST /events/:id/publish`, `POST /events/:id/cancel` | Drafts with a menu; publishing needs a menu and a future deadline; only drafts are deleted; cancelled events are frozen |
+
+Still to come: `POST events/:id/invitations` (existing people and new ones, who get the account
 invitation in the same email), `POST events/:id/reminders`, `GET events/:id/orders` (with prep
-totals), `PATCH orders/:id` (baked), ingredients and groups, and people (list, invite with role,
-change role, resend, disable).
+totals) and `PATCH orders/:id` (baked).
 
 ## Security
 
@@ -104,12 +111,16 @@ change role, resend, disable).
 ## Build order
 
 1. **Foundation** ✅ Workspace, API, database and migrations, `create-staff`, every sign-in flow.
-2. **Staff setup:** ingredients and groups, people and roles, events with menus. The sign-in screens
-   in the frontend.
-3. **The core loop:** event invitations and their emails, the customer's events, the pizza builder,
+2. **Staff API and sign-in screens** ✅ Ingredients and groups, people and roles, events with menus
+   (API only). Sign in, accept an invitation, forgot and reset password in the frontend, behind
+   `VITE_ACCOUNTS=true`.
+3. **Staff screens:** events and their menus, ingredients, people and roles (S1, S2, S5, S6 on the
+   canvas).
+4. **The core loop:** event invitations and their emails, the customer's events, the pizza builder,
    order placed.
-4. **Running the night:** orders and prep list, baked, reminders, profile and favourite pizza.
-5. **Cutover:** the VPS (Docker Compose, Caddy, Postgres, backups), the deploy pipeline, DNS for
-   `dominos.kurelid.se`, importing `config/menu.json` as ingredients, removing WhatsApp.
+5. **Running the night:** orders and prep list, baked, reminders, profile and favourite pizza.
+6. **Cutover:** the VPS (Docker Compose, Caddy, Postgres, backups), the deploy pipeline, DNS for
+   `dominos.kurelid.se`, importing `config/menu.json` as ingredients, removing WhatsApp and the
+   `VITE_ACCOUNTS` flag.
 
-The current app keeps working, and deploying to one.com, until step 5.
+The current app keeps working, and deploying to one.com, until step 6.

@@ -1,7 +1,11 @@
+import type { Role } from "@dominos/shared";
 import { sql } from "drizzle-orm";
 import { createApp, type App } from "../app.ts";
+import { createSession } from "../auth/sessions.ts";
 import type { Config } from "../config.ts";
 import { connectPglite, type Database } from "../db/client.ts";
+import { users } from "../db/schema.ts";
+import { SESSION_COOKIE } from "../http/session.ts";
 import type { Email, Mailer } from "../mail/mailer.ts";
 
 export const APP_ORIGIN = "https://dominos.test";
@@ -33,7 +37,9 @@ export class Harness {
   }
 
   async reset() {
-    await this.database.db.execute(sql`truncate users, auth_tokens, sessions cascade`);
+    await this.database.db.execute(
+      sql`truncate users, auth_tokens, sessions, ingredient_groups, ingredients, events, event_ingredients cascade`,
+    );
     this.sent = [];
     this.now = new Date("2026-11-02T12:00:00Z");
     const mailer: Mailer = {
@@ -71,6 +77,23 @@ export class Harness {
   browser() {
     return new Browser(this);
   }
+
+  /**
+   * Someone with an accepted invitation, and a browser signed in as them. Skips hashing a real
+   * password and the sign-in request, which other tests cover.
+   */
+  async signedIn(role: Role, email = `${role}-${++this.people}@example.com`) {
+    const [user] = await this.db
+      .insert(users)
+      .values({ email, name: `A ${role}`, role, passwordHash: "not-used-in-these-tests" })
+      .returning();
+    const { token } = await createSession(this.db, user!.id, this.now);
+    const browser = this.browser();
+    browser.cookies.set(SESSION_COOKIE, token);
+    return { user: user!, browser };
+  }
+
+  private people = 0;
 }
 
 export class Browser {
@@ -116,6 +139,28 @@ export class Browser {
 
   post(path: string, body?: unknown) {
     return this.request("POST", path, body);
+  }
+
+  patch(path: string, body: unknown) {
+    return this.request("PATCH", path, body);
+  }
+
+  put(path: string, body: unknown) {
+    return this.request("PUT", path, body);
+  }
+
+  delete(path: string) {
+    return this.request("DELETE", path);
+  }
+
+  /** Sends the request and returns the parsed body, failing the test on an unexpected status. */
+  async json<T>(method: string, path: string, body?: unknown, status = 200): Promise<T> {
+    const res = await this.request(method, path, body);
+    const text = await res.text();
+    if (res.status !== status) {
+      throw new Error(`${method} ${path}: expected ${status}, got ${res.status} ${text}`);
+    }
+    return (text ? JSON.parse(text) : undefined) as T;
   }
 }
 

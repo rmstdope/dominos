@@ -6,6 +6,10 @@ import tailwindcss from "@tailwindcss/vite";
 // to the API (`pnpm dev:api`), so the browser sees one origin, as it will in production.
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: { host: true, port: 5173, proxy: { "/api": "http://localhost:3000" } },
+  server: {
+    host: true,
+    port: 5173,
+    proxy: { "/api": process.env.API_PROXY_TARGET ?? "http://localhost:3000" },
+  },
   preview: { port: 4173 },
 });

@@ -18,6 +18,8 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "e2e",
+    "e2e-accounts",
+    "playwright.accounts.config.ts",
     "eslint.config.js"
   ]
 }

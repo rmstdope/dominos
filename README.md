@@ -50,9 +50,14 @@ The app is getting accounts, events and orders; see [docs/backend-design.md](doc
 The API lives in `packages/api` (Hono, Drizzle, Postgres) and shares its request and response types
 with the frontend through `packages/shared`. Nothing uses it in production yet.
 
+The new frontend lives in `src/accounts/` and is only built when `VITE_ACCOUNTS=true`; a normal
+build is still the WhatsApp app, unchanged, so the live site cannot pick it up by accident.
+
 ```sh
 pnpm dev:api        # the API on :3000; `pnpm dev` proxies /api to it
 pnpm --filter @dominos/api create-staff --email you@example.com --name "Your Name"
+VITE_ACCOUNTS=true pnpm dev    # the app with accounts, against that API
+pnpm test:e2e:accounts         # end to end: the real API and an accounts build
 ```
 
 Locally the API needs no database server: without `DATABASE_URL` it keeps an embedded

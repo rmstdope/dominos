@@ -71,6 +71,11 @@ jobs:
       - name: End-to-end tests against the static build
         run: pnpm run test:e2e
 
+      # The app with accounts (VITE_ACCOUNTS=true) against the real API on an embedded database.
+      # Not deployed yet; this keeps it working until it replaces the app above.
+      - name: End-to-end tests of the app with accounts
+        run: pnpm run test:e2e:accounts
+
       # The Deploy workflow publishes these exact bytes rather than rebuilding them.
       - name: Keep the tested build for Deploy
         if: github.event_name == 'push'

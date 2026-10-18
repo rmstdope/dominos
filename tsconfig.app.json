@@ -12,6 +12,7 @@
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "allowImportingTsExtensions": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
     "noEmit": true,

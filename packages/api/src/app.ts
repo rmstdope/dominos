@@ -8,6 +8,7 @@ import { ApiHttpError, errorBody } from "./http/errors.ts";
 import { loadSession } from "./http/session.ts";
 import { authRoutes } from "./routes/auth.ts";
 import { meRoutes } from "./routes/me.ts";
+import { staffRoutes } from "./routes/staff/index.ts";
 
 function clientIp(trustProxy: boolean): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
@@ -43,6 +44,7 @@ export function createApp(deps: AppDeps) {
   });
   app.route("/api/auth", authRoutes(deps));
   app.route("/api/me", meRoutes());
+  app.route("/api/staff", staffRoutes(deps));
 
   app.notFound((c) => c.json(errorBody("not_found", "No such endpoint."), 404));
   app.onError((err, c) => {
