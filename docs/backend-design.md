@@ -126,8 +126,10 @@ turn either off in their profile.
    and shows the event), the guest's events, the pizza builder, the order ticket, declining.
 5. **Running the night** ✅ Orders and prep list, baked, reminders (by hand and automatic), profile
    and favourite pizza.
-6. **Cutover:** the VPS (Docker Compose, Caddy, Postgres, backups), the deploy pipeline, DNS for
-   `dominos.kurelid.se`, importing `config/menu.json` as ingredients, removing WhatsApp and the
-   `VITE_ACCOUNTS` flag.
+6. **Cutover:** the VPS, the deploy pipeline, DNS for `dominos.kurelid.se`, importing
+   `config/menu.json` as ingredients, removing WhatsApp and the `VITE_ACCOUNTS` flag. ✅ Ready:
+   the images, the compose stack with backups, the server setup script, the deploy workflow and
+   the menu import, all tested together by the Production stack workflow. The checklist for the
+   switch itself is in [deploy.md](deploy.md).
 
 The current app keeps working, and deploying to one.com, until step 6.
