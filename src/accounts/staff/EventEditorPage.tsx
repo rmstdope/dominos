@@ -6,8 +6,9 @@ import { Button } from "../../components/Button";
 import { useLanguage } from "../../i18n/useLanguage";
 import { errorMessage, useAccountsText } from "../text";
 import { keys, staffApi, useEvent, useGroups, useIngredients, useStaffMutation } from "./api";
-import { fromInputs, toDateInput, toTimeInput } from "./dates";
+import { fromInputs, toDateInput, toTimeInput } from "../dates";
 import { PhasePill } from "./EventsPage";
+import { GuestsSection } from "./GuestsSection";
 import { useStaffText, type StaffText } from "./text";
 import { Feedback, Loaded, Pill, cardClass, inputClass, labelClass, smallButtonClass } from "./ui";
 
@@ -197,217 +198,220 @@ function EventForm({
     problem === null ? null : typeof problem === "string" ? problem : errorMessage(problem, a);
 
   return (
-    <form onSubmit={submit} className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          {event ? event.name : t.newEventTitle}
-        </h1>
-        {event && <PhasePill phase={event.phase} />}
-      </div>
-      {frozen && (
-        <p className="rounded-2xl bg-white/5 px-4 py-3 text-cream-300/80">{t.cancelledNote}</p>
-      )}
+    <>
+      <form onSubmit={submit} className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {event ? event.name : t.newEventTitle}
+          </h1>
+          {event && <PhasePill phase={event.phase} />}
+        </div>
+        {frozen && (
+          <p className="rounded-2xl bg-white/5 px-4 py-3 text-cream-300/80">{t.cancelledNote}</p>
+        )}
 
-      <fieldset disabled={frozen || busy} className="grid gap-6 lg:grid-cols-2">
-        <section aria-labelledby="details" className={`${cardClass} space-y-4`}>
-          <h2 id="details" className="text-lg font-bold">
-            {t.details}
-          </h2>
-          <Labeled id="name" label={t.eventName}>
-            <input
-              id="name"
-              required
-              maxLength={80}
-              placeholder={t.eventNamePlaceholder}
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              className={inputClass}
-            />
-          </Labeled>
-          <div className="grid grid-cols-2 gap-3">
-            <Labeled id="date" label={t.date}>
+        <fieldset disabled={frozen || busy} className="grid gap-6 lg:grid-cols-2">
+          <section aria-labelledby="details" className={`${cardClass} space-y-4`}>
+            <h2 id="details" className="text-lg font-bold">
+              {t.details}
+            </h2>
+            <Labeled id="name" label={t.eventName}>
               <input
-                id="date"
-                type="date"
+                id="name"
                 required
-                value={form.date}
-                onChange={(e) => set("date", e.target.value)}
+                maxLength={80}
+                placeholder={t.eventNamePlaceholder}
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
                 className={inputClass}
               />
             </Labeled>
-            <Labeled id="start" label={t.startTime}>
+            <div className="grid grid-cols-2 gap-3">
+              <Labeled id="date" label={t.date}>
+                <input
+                  id="date"
+                  type="date"
+                  required
+                  value={form.date}
+                  onChange={(e) => set("date", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+              <Labeled id="start" label={t.startTime}>
+                <input
+                  id="start"
+                  type="time"
+                  required
+                  value={form.startTime}
+                  onChange={(e) => set("startTime", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+            </div>
+            <Labeled id="location" label={t.location}>
               <input
-                id="start"
-                type="time"
+                id="location"
                 required
-                value={form.startTime}
-                onChange={(e) => set("startTime", e.target.value)}
+                maxLength={120}
+                value={form.location}
+                onChange={(e) => set("location", e.target.value)}
                 className={inputClass}
               />
             </Labeled>
-          </div>
-          <Labeled id="location" label={t.location}>
-            <input
-              id="location"
-              required
-              maxLength={120}
-              value={form.location}
-              onChange={(e) => set("location", e.target.value)}
-              className={inputClass}
-            />
-          </Labeled>
-          <div className="grid grid-cols-2 gap-3">
-            <Labeled id="close-date" label={t.ordersCloseDate}>
+            <div className="grid grid-cols-2 gap-3">
+              <Labeled id="close-date" label={t.ordersCloseDate}>
+                <input
+                  id="close-date"
+                  type="date"
+                  required
+                  value={form.closeDate}
+                  onChange={(e) => set("closeDate", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+              <Labeled id="close-time" label={t.ordersCloseTime}>
+                <input
+                  id="close-time"
+                  type="time"
+                  required
+                  value={form.closeTime}
+                  onChange={(e) => set("closeTime", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+            </div>
+            <Labeled id="max" label={t.maxToppings} hint={t.maxToppingsHint}>
               <input
-                id="close-date"
-                type="date"
-                required
-                value={form.closeDate}
-                onChange={(e) => set("closeDate", e.target.value)}
-                className={inputClass}
+                id="max"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={30}
+                value={form.maxToppings}
+                onChange={(e) => set("maxToppings", e.target.value)}
+                className={`${inputClass} max-w-32`}
               />
             </Labeled>
-            <Labeled id="close-time" label={t.ordersCloseTime}>
-              <input
-                id="close-time"
-                type="time"
-                required
-                value={form.closeTime}
-                onChange={(e) => set("closeTime", e.target.value)}
-                className={inputClass}
+            <Labeled id="note-en" label={t.noteEn}>
+              <textarea
+                id="note-en"
+                rows={2}
+                maxLength={500}
+                value={form.noteEn}
+                onChange={(e) => set("noteEn", e.target.value)}
+                className={`${inputClass} resize-y`}
               />
             </Labeled>
-          </div>
-          <Labeled id="max" label={t.maxToppings} hint={t.maxToppingsHint}>
-            <input
-              id="max"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={30}
-              value={form.maxToppings}
-              onChange={(e) => set("maxToppings", e.target.value)}
-              className={`${inputClass} max-w-32`}
-            />
-          </Labeled>
-          <Labeled id="note-en" label={t.noteEn}>
-            <textarea
-              id="note-en"
-              rows={2}
-              maxLength={500}
-              value={form.noteEn}
-              onChange={(e) => set("noteEn", e.target.value)}
-              className={`${inputClass} resize-y`}
-            />
-          </Labeled>
-          <Labeled id="note-sv" label={t.noteSv} hint={t.noteHint}>
-            <textarea
-              id="note-sv"
-              rows={2}
-              maxLength={500}
-              value={form.noteSv}
-              onChange={(e) => set("noteSv", e.target.value)}
-              className={`${inputClass} resize-y`}
-            />
-          </Labeled>
-          <label className="flex min-h-11 items-center gap-3">
-            <input
-              type="checkbox"
-              checked={form.askMakeOwn}
-              onChange={(e) => set("askMakeOwn", e.target.checked)}
-              className="size-5 accent-cheese-400"
-            />
-            {t.askMakeOwn}
-          </label>
-        </section>
+            <Labeled id="note-sv" label={t.noteSv} hint={t.noteHint}>
+              <textarea
+                id="note-sv"
+                rows={2}
+                maxLength={500}
+                value={form.noteSv}
+                onChange={(e) => set("noteSv", e.target.value)}
+                className={`${inputClass} resize-y`}
+              />
+            </Labeled>
+            <label className="flex min-h-11 items-center gap-3">
+              <input
+                type="checkbox"
+                checked={form.askMakeOwn}
+                onChange={(e) => set("askMakeOwn", e.target.checked)}
+                className="size-5 accent-cheese-400"
+              />
+              {t.askMakeOwn}
+            </label>
+          </section>
 
-        <MenuPicker
-          groups={groups}
-          ingredients={ingredients}
-          menu={form.menu}
-          onChange={(menu) => set("menu", menu)}
-        />
-      </fieldset>
+          <MenuPicker
+            groups={groups}
+            ingredients={ingredients}
+            menu={form.menu}
+            onChange={(menu) => set("menu", menu)}
+          />
+        </fieldset>
 
-      {!frozen && (
-        <div className={`${cardClass} space-y-3`}>
-          <Feedback error={message} success={justSaved && !dirty ? t.saved : null} />
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={busy || (event && !dirty)}>
-              {event ? t.saveChanges : t.createDraft}
-            </Button>
-            {event?.status === "draft" && (
-              <Button variant="ghost" onClick={doPublish} disabled={busy || dirty}>
-                {t.publish}
+        {!frozen && (
+          <div className={`${cardClass} space-y-3`}>
+            <Feedback error={message} success={justSaved && !dirty ? t.saved : null} />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" disabled={busy || (event && !dirty)}>
+                {event ? t.saveChanges : t.createDraft}
               </Button>
-            )}
-            {event && (
-              <div className="ml-auto flex flex-wrap items-center gap-2">
-                {confirming ? (
-                  <>
-                    <span className="text-sm text-cream-300/80">
-                      {confirming === "cancel" ? t.confirmCancel : t.confirmDelete}
-                    </span>
-                    <button
-                      type="button"
-                      className={`${smallButtonClass} text-sauce-400`}
-                      disabled={busy}
-                      onClick={() =>
-                        confirming === "cancel"
-                          ? cancel.mutate(undefined, {
-                              onSuccess: (updated) => {
-                                remember(updated);
-                                setConfirming(null);
-                              },
-                              onError: setProblem,
-                            })
-                          : remove.mutate(undefined, {
-                              onSuccess: () => navigate("/staff/events", { replace: true }),
-                              onError: setProblem,
-                            })
-                      }
-                    >
-                      {confirming === "cancel" ? t.confirmCancelYes : t.confirmDeleteYes}
-                    </button>
-                    <button
-                      type="button"
-                      className={smallButtonClass}
-                      onClick={() => setConfirming(null)}
-                    >
-                      {t.keep}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {event.status === "draft" && (
+              {event?.status === "draft" && (
+                <Button variant="ghost" onClick={doPublish} disabled={busy || dirty}>
+                  {t.publish}
+                </Button>
+              )}
+              {event && (
+                <div className="ml-auto flex flex-wrap items-center gap-2">
+                  {confirming ? (
+                    <>
+                      <span className="text-sm text-cream-300/80">
+                        {confirming === "cancel" ? t.confirmCancel : t.confirmDelete}
+                      </span>
+                      <button
+                        type="button"
+                        className={`${smallButtonClass} text-sauce-400`}
+                        disabled={busy}
+                        onClick={() =>
+                          confirming === "cancel"
+                            ? cancel.mutate(undefined, {
+                                onSuccess: (updated) => {
+                                  remember(updated);
+                                  setConfirming(null);
+                                },
+                                onError: setProblem,
+                              })
+                            : remove.mutate(undefined, {
+                                onSuccess: () => navigate("/staff/events", { replace: true }),
+                                onError: setProblem,
+                              })
+                        }
+                      >
+                        {confirming === "cancel" ? t.confirmCancelYes : t.confirmDeleteYes}
+                      </button>
                       <button
                         type="button"
                         className={smallButtonClass}
-                        onClick={() => setConfirming("delete")}
+                        onClick={() => setConfirming(null)}
                       >
-                        {t.deleteDraft}
+                        {t.keep}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      className={smallButtonClass}
-                      onClick={() => setConfirming("cancel")}
-                    >
-                      {t.cancelEvent}
-                    </button>
-                  </>
-                )}
-              </div>
+                    </>
+                  ) : (
+                    <>
+                      {event.status === "draft" && (
+                        <button
+                          type="button"
+                          className={smallButtonClass}
+                          onClick={() => setConfirming("delete")}
+                        >
+                          {t.deleteDraft}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={smallButtonClass}
+                        onClick={() => setConfirming("cancel")}
+                      >
+                        {t.cancelEvent}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            {event?.status === "draft" && (
+              <p className="text-sm text-cream-300/60">
+                {dirty ? t.unsavedBeforePublish : t.publishHint}
+              </p>
             )}
           </div>
-          {event?.status === "draft" && (
-            <p className="text-sm text-cream-300/60">
-              {dirty ? t.unsavedBeforePublish : t.publishHint}
-            </p>
-          )}
-        </div>
-      )}
-    </form>
+        )}
+      </form>
+      {event && event.status !== "draft" && <GuestsSection event={event} />}
+    </>
   );
 }
 

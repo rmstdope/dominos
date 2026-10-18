@@ -78,9 +78,10 @@ JSON under `/api`. Errors are `{ "error": { "code", "message" } }`, with the cod
 | `GET /me`                       | The signed-in user                                                 |
 | `GET /health`                   | Checks the database answers                                        |
 
-**Customer:** `PATCH /me` (name, language, reminders), `POST /me/password`, `GET`/`PUT
-/me/favourite`, `GET /events` (only invited ones), `GET /events/:id` (menu and my order), `PUT`/`DELETE
-/events/:id/order`, `POST /events/:id/decline`.
+**Guests** ✅ built: `GET /events` (only invited ones, never drafts), `GET /events/:id` (menu and my
+order; marks it seen), `PUT`/`DELETE /events/:id/order`, `POST /events/:id/decline`. Still to come:
+`PATCH /me` (name, language, reminders), `POST /me/password`, `GET`/`PUT
+/me/favourite`.
 
 **Staff** (`/staff/…`, 401 signed out, 403 for customers)
 
@@ -91,9 +92,9 @@ JSON under `/api`. Errors are `{ "error": { "code", "message" } }`, with the cod
 | `GET`/`POST /people`, `PATCH /people/:id`, `POST /people/:id/resend-invitation`                                                         | Invite with a role (emails the link), change email, name or role, disable; always one staff member left                 |
 | `GET`/`POST /events`, `GET`/`PATCH`/`DELETE /events/:id`, `PUT /events/:id/menu`, `POST /events/:id/publish`, `POST /events/:id/cancel` | Drafts with a menu; publishing needs a menu and a future deadline; only drafts are deleted; cancelled events are frozen |
 
-Still to come: `POST events/:id/invitations` (existing people and new ones, who get the account
-invitation in the same email), `POST events/:id/reminders`, `GET events/:id/orders` (with prep
-totals) and `PATCH orders/:id` (baked).
+Also built: `GET events/:id/guests` and `POST events/:id/invitations` (existing people and new ones,
+who get the account invitation in the same email). Still to come: `POST events/:id/reminders`,
+`GET events/:id/orders` (with prep totals) and `PATCH orders/:id` (baked).
 
 ## Security
 
@@ -116,8 +117,8 @@ totals) and `PATCH orders/:id` (baked).
    `VITE_ACCOUNTS=true`.
 3. **Staff screens** ✅ Events and their menus, ingredients and groups, people and roles (S1, S2,
    S5, S6 on the canvas), at phone and desktop sizes.
-4. **The core loop:** event invitations and their emails, the customer's events, the pizza builder,
-   order placed.
+4. **The core loop** ✅ Event invitations and their emails (one email sets up a new person's account
+   and shows the event), the guest's events, the pizza builder, the order ticket, declining.
 5. **Running the night:** orders and prep list, baked, reminders, profile and favourite pizza.
 6. **Cutover:** the VPS (Docker Compose, Caddy, Postgres, backups), the deploy pipeline, DNS for
    `dominos.kurelid.se`, importing `config/menu.json` as ingredients, removing WhatsApp and the

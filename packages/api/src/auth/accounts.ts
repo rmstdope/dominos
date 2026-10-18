@@ -35,6 +35,11 @@ export async function inviteUser(
   db: Db,
   person: { email: string; name: string; role: Role; language: Language },
   now: Date,
+  /**
+   * Keep links sent earlier working. An event invitation adds a link to a new email, and every
+   * email the person got should still let them in; resending replaces the old link instead.
+   */
+  { keepEarlierLinks = false }: { keepEarlierLinks?: boolean } = {},
 ): Promise<{ user: User; token: string }> {
   return db.transaction(async (tx) => {
     const [existing] = await tx.select().from(users).where(eq(users.email, person.email));
@@ -54,15 +59,17 @@ export async function inviteUser(
       : await tx.insert(users).values(person).returning();
     if (!user) throw new Error("Could not save the user");
 
-    await tx
-      .delete(authTokens)
-      .where(
-        and(
-          eq(authTokens.userId, user.id),
-          eq(authTokens.kind, "invite"),
-          isNull(authTokens.usedAt),
-        ),
-      );
+    if (!keepEarlierLinks) {
+      await tx
+        .delete(authTokens)
+        .where(
+          and(
+            eq(authTokens.userId, user.id),
+            eq(authTokens.kind, "invite"),
+            isNull(authTokens.usedAt),
+          ),
+        );
+    }
     const token = await issueToken(tx, user.id, "invite", INVITATION_TTL_MS, now);
     return { user, token };
   });

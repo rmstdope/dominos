@@ -34,7 +34,7 @@ describe("accepting an invitation", () => {
     const { token } = await invite();
     const res = await t.browser().get(`/api/auth/invitations/${token}`);
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ email: "anna@example.com", name: "Anna" });
+    expect(await res.json()).toEqual({ email: "anna@example.com", name: "Anna", event: null });
   });
 
   it("sets the name and password and signs the person in", async () => {

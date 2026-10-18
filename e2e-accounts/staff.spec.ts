@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
 test.use({ locale: "en-GB", timezoneId: "Europe/Stockholm" });
@@ -13,7 +14,7 @@ async function signIn(page: Page) {
   await page.getByLabel(/^email/i).fill("baker@example.com");
   await page.getByLabel(/^password/i).fill("pizzapizza");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/hi the baker/i);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Pizza events");
 }
 
 // Runs after sign-in.spec.ts, which set the staff member's password.
@@ -89,4 +90,57 @@ test("staff set up the pantry, plan an event and invite a guest", async ({ page 
   await me.getByRole("combobox", { name: /role for/i }).selectOption("customer");
   await expect(me.getByRole("alert")).toHaveText(/at least one staff member/i);
   await expect(me.getByRole("combobox", { name: /role for/i })).toHaveValue("staff");
+});
+
+/** The last link the API "emailed" to `email`, from its log. */
+function lastLinkTo(email: string): string {
+  const log = readFileSync(".e2e-accounts/api.log", "utf8");
+  const emails = log.split("--- email to ").filter((e) => e.startsWith(email));
+  const link = emails.at(-1)?.match(/https?:\/\/\S+/)?.[0];
+  if (!link) throw new Error(`No email to ${email} in the API log`);
+  return link;
+}
+
+test("someone new is invited to the event, sets up an account and orders", async ({
+  page,
+  browser,
+}) => {
+  const heading = page.getByRole("heading", { level: 1 });
+  await signIn(page);
+  await page.goto("/staff/events");
+  await page.getByRole("link", { name: "Friday Pizza Night" }).first().click();
+  const guests = page.getByRole("region", { name: "Guests" });
+  await guests.getByRole("textbox", { name: "Name" }).fill("Sven");
+  await guests.getByRole("textbox", { name: "Email" }).fill("sven@example.com");
+  await guests.getByRole("button", { name: "Send 1 invitation" }).click();
+  await expect(guests.getByRole("status")).toHaveText("1 invitation sent.");
+  await expect(guests.getByText("sven@example.com · Account not set up yet")).toBeVisible();
+
+  // Sven, on his own phone, in Swedish: the invitation was written in Swedish.
+  const phone = await browser.newContext({ locale: "sv-SE", timezoneId: "Europe/Stockholm" });
+  const sven = await phone.newPage();
+  const svenHeading = sven.getByRole("heading", { level: 1 });
+  await sven.goto(lastLinkTo("sven@example.com"));
+  await expect(sven.getByRole("region", { name: "Friday Pizza Night" })).toBeVisible();
+  await sven.getByLabel("Välj ett lösenord").fill("pizzapizza");
+  await sven.getByRole("button", { name: /gå med/i }).click();
+
+  await expect(svenHeading).toHaveText("Bygg din pizza");
+  await sven.getByRole("button", { name: "Skinka" }).click();
+  await sven.getByLabel(/meddelande till bagaren/i).fill("Extra krispig");
+  await sven.getByRole("button", { name: "Beställ" }).click();
+  await expect(svenHeading).toHaveText("Du är med, Sven");
+  await expect(sven.getByRole("article", { name: "Din beställning" })).toContainText("#01");
+
+  await sven.getByRole("link", { name: /kvällar/i }).click();
+  const orderedSection = sven.getByRole("region", { name: "Beställt" });
+  await expect(orderedSection).toContainText("Friday Pizza Night");
+  await expect(orderedSection).toContainText("Skinka");
+  await phone.close();
+
+  // Back with the baker: Sven has ordered.
+  await page.reload();
+  await expect(heading).toHaveText("Friday Pizza Night");
+  const svenRow = guests.getByRole("listitem").filter({ hasText: "sven@example.com" });
+  await expect(svenRow.getByText("Ordered")).toBeVisible();
 });

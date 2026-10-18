@@ -114,6 +114,8 @@ export type StaffEvent = {
   status: EventStatus;
   phase: EventPhase;
   ingredientIds: string[];
+  /** How the invitations are going. */
+  guests: { invited: number; declined: number; ordered: number };
 };
 
 const dateTime = z.iso.datetime({ offset: true });

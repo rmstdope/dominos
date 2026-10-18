@@ -1,5 +1,7 @@
 import type {
   CreateEvent,
+  EventGuest,
+  InviteToEvent,
   CreateIngredient,
   CreateIngredientGroup,
   Ingredient,
@@ -52,6 +54,9 @@ export const staffApi = {
   publishEvent: (id: string) => request<StaffEvent>("POST", `${base}/events/${id}/publish`),
   cancelEvent: (id: string) => request<StaffEvent>("POST", `${base}/events/${id}/cancel`),
   deleteEvent: (id: string) => request<void>("DELETE", `${base}/events/${id}`),
+  guests: (id: string) => request<EventGuest[]>("GET", `${base}/events/${id}/guests`),
+  inviteToEvent: (id: string, body: InviteToEvent) =>
+    request<EventGuest[]>("POST", `${base}/events/${id}/invitations`, body),
 };
 
 export const keys = {
@@ -61,6 +66,7 @@ export const keys = {
   people: ["staff", "people"] as const,
   events: ["staff", "events"] as const,
   event: (id: string) => ["staff", "events", id] as const,
+  guests: (id: string) => ["staff", "events", id, "guests"] as const,
 };
 
 export const useGroups = () => useQuery({ queryKey: keys.groups, queryFn: staffApi.groups });
@@ -72,6 +78,9 @@ export const useIngredients = (includeArchived = false) =>
   });
 
 export const usePeople = () => useQuery({ queryKey: keys.people, queryFn: staffApi.people });
+
+export const useGuests = (eventId: string) =>
+  useQuery({ queryKey: keys.guests(eventId), queryFn: () => staffApi.guests(eventId) });
 
 export const useEvents = () => useQuery({ queryKey: keys.events, queryFn: staffApi.events });
 

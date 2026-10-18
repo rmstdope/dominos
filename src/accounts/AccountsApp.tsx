@@ -4,8 +4,9 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Button } from "../components/Button";
 import { LanguageProvider } from "../i18n/LanguageContext";
 import { AuthLayout } from "./components";
+import { GuestEventPage } from "./guest/GuestEventPage";
+import { GuestEventsPage } from "./guest/GuestEventsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
-import { HomePage } from "./pages/HomePage";
 import { InvitationPage } from "./pages/InvitationPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SignInPage } from "./pages/SignInPage";
@@ -59,7 +60,14 @@ export function AccountsRoutes() {
   const staff = me?.role === "staff" ? me : null;
   return (
     <Routes>
-      <Route path="/" element={me ? <HomePage me={me} /> : <Navigate to="/sign-in" replace />} />
+      <Route
+        path="/"
+        element={me ? <GuestEventsPage me={me} /> : <Navigate to="/sign-in" replace />}
+      />
+      <Route
+        path="/events/:id"
+        element={me ? <GuestEventPage me={me} /> : <Navigate to="/sign-in" replace />}
+      />
       <Route path="/sign-in" element={me ? <Navigate to="/" replace /> : <SignInPage />} />
       <Route path="/invitation" element={<InvitationPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

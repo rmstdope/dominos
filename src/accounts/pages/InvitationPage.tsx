@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router";
 import { Button } from "../../components/Button";
 import { ApiRequestError, api } from "../api";
 import { AuthLayout, Field, FormError, linkClass } from "../components";
+import { useLanguage } from "../../i18n/useLanguage";
+import { formatWhen } from "../dates";
 import { useSession } from "../useSession";
 import { PASSWORD_TOO_SHORT, errorMessage, useAccountsText } from "../text";
 import { useFragmentToken } from "../useFragmentToken";
@@ -95,7 +97,8 @@ function AcceptForm({
     setError(null);
     try {
       signedIn(await api.acceptInvitation(token, { name, password }));
-      navigate("/", { replace: true });
+      // Straight to the event they were invited to, to pick toppings.
+      navigate(info.event ? `/events/${info.event.id}` : "/", { replace: true });
     } catch (err) {
       if (isInvalid(err)) return onInvalid();
       setError(err);
@@ -119,6 +122,7 @@ function AcceptForm({
         </p>
       }
     >
+      {info.event && <InvitedTo event={info.event} />}
       <form onSubmit={submit} className="space-y-4">
         <Field
           id="email"
@@ -157,6 +161,20 @@ function AcceptForm({
         </Button>
       </form>
     </AuthLayout>
+  );
+}
+
+function InvitedTo({ event }: { event: NonNullable<InvitationInfo["event"]> }) {
+  const t = useAccountsText();
+  const { language } = useLanguage();
+  return (
+    <section aria-label={event.name} className="mb-6 rounded-3xl bg-cheese-400 p-5 text-crust-950">
+      <p className="text-sm font-bold tracking-wide uppercase">{t.invitedTo}</p>
+      <h2 className="mt-1 text-2xl leading-tight font-extrabold">{event.name}</h2>
+      <p className="mt-1">
+        {formatWhen(event.startsAt, language)} · {event.location}
+      </p>
+    </section>
   );
 }
 

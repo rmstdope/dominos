@@ -5,7 +5,7 @@ import {
   resetPasswordRequestSchema,
   type InvitationInfo,
 } from "@dominos/shared";
-import { and, eq, isNotNull, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, gt, isNotNull, isNull, ne } from "drizzle-orm";
 import { Hono } from "hono";
 import {
   PASSWORD_RESET_TTL_MS,
@@ -16,7 +16,7 @@ import {
 } from "../auth/accounts.ts";
 import { hashPassword, verifyPassword } from "../auth/crypto.ts";
 import { deleteUserSessions } from "../auth/sessions.ts";
-import { authTokens, users } from "../db/schema.ts";
+import { authTokens, eventInvitations, events, users } from "../db/schema.ts";
 import type { AppDeps, AppEnv } from "../http/env.ts";
 import { ApiHttpError, readJson } from "../http/errors.ts";
 import { RateLimiter, rateLimit } from "../http/rate-limit.ts";
@@ -76,7 +76,30 @@ export function authRoutes(deps: AppDeps) {
     async (c) => {
       const found = await findUsableToken(deps.db, c.req.param("token"), "invite", deps.now());
       if (!found || found.user.passwordHash) throw invalidInvitation();
-      const info: InvitationInfo = { email: found.user.email, name: found.user.name };
+      // The event they were invited to, if any, so the screen can say what the account is for.
+      const [next] = await deps.db
+        .select({
+          id: events.id,
+          name: events.name,
+          startsAt: events.startsAt,
+          location: events.location,
+        })
+        .from(eventInvitations)
+        .innerJoin(events, eq(events.id, eventInvitations.eventId))
+        .where(
+          and(
+            eq(eventInvitations.userId, found.user.id),
+            eq(events.status, "published"),
+            gt(events.ordersCloseAt, deps.now()),
+          ),
+        )
+        .orderBy(asc(events.startsAt))
+        .limit(1);
+      const info: InvitationInfo = {
+        email: found.user.email,
+        name: found.user.name,
+        event: next ? { ...next, startsAt: next.startsAt.toISOString() } : null,
+      };
       return c.json(info);
     },
   );

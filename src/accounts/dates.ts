@@ -1,4 +1,4 @@
-import type { Language } from "../../i18n/translations";
+import type { Language } from "../i18n/translations";
 
 const locales: Record<Language, string> = { en: "en-GB", sv: "sv-SE" };
 

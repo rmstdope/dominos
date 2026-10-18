@@ -7,6 +7,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -14,6 +15,7 @@ export const role = pgEnum("role", ["customer", "staff"]);
 export const language = pgEnum("language", ["en", "sv"]);
 export const authTokenKind = pgEnum("auth_token_kind", ["invite", "reset"]);
 export const eventStatus = pgEnum("event_status", ["draft", "published", "cancelled"]);
+export const invitationStatus = pgEnum("invitation_status", ["invited", "declined"]);
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 
@@ -127,6 +129,65 @@ export const eventIngredients = pgTable(
       .references(() => ingredients.id, { onDelete: "restrict" }),
   },
   (t) => [primaryKey({ columns: [t.eventId, t.ingredientId] })],
+);
+
+/** Who is invited to an event. Only invited people see the event and can order for it. */
+export const eventInvitations = pgTable(
+  "event_invitations",
+  {
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: invitationStatus("status").notNull().default("invited"),
+    invitedAt: timestamp("invited_at", { withTimezone: true }).notNull().defaultNow(),
+    /** When they first opened the event in the app: the staff's "seen it". */
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.eventId, t.userId] }),
+    index("event_invitations_user_id_idx").on(t.userId),
+  ],
+);
+
+/** One pizza per person per event, which the unique key enforces. */
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Counts up from 1 within the event: the "#07" on the ticket. */
+    number: integer("number").notNull(),
+    makeOwn: boolean("make_own").notNull().default(false),
+    comment: text("comment"),
+    bakedAt: timestamp("baked_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("orders_event_user_unique").on(t.eventId, t.userId),
+    unique("orders_event_number_unique").on(t.eventId, t.number),
+  ],
+);
+
+export const orderToppings = pgTable(
+  "order_toppings",
+  {
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    ingredientId: uuid("ingredient_id")
+      .notNull()
+      .references(() => ingredients.id, { onDelete: "restrict" }),
+  },
+  (t) => [primaryKey({ columns: [t.orderId, t.ingredientId] })],
 );
 
 export type User = typeof users.$inferSelect;

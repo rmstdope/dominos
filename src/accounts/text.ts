@@ -15,6 +15,7 @@ const en = {
     "Dominos is invite-only. Open the invitation email from the baker to set up your account.",
 
   invitationTitle: "Set up your account",
+  invitedTo: "You're invited to",
   invitationSubtitle: "Pick a password and you're in. Next time, sign in with your email.",
   emailFromInvitation: "Set by your invitation",
   yourName: "Your name",
@@ -46,11 +47,6 @@ const en = {
 
   backToSignIn: "Sign in",
   loading: "Loading…",
-  homeGreeting: (name: string) => `Hi ${name}`,
-  homeBody: "You're signed in. Pizza events will show up here.",
-  staffBadge: "Staff",
-  staffConsole: "Open the staff console",
-  signedInAs: (email: string) => `Signed in as ${email}`,
   signOut: "Sign out",
 
   errorInvalidCredentials: "Wrong email or password.",
@@ -77,6 +73,7 @@ const sv: AccountsText = {
     "Dominos kräver inbjudan. Öppna inbjudningsmejlet från bagaren för att skapa ditt konto.",
 
   invitationTitle: "Skapa ditt konto",
+  invitedTo: "Du är bjuden på",
   invitationSubtitle: "Välj ett lösenord så är du med. Nästa gång loggar du in med din e-post.",
   emailFromInvitation: "Bestäms av din inbjudan",
   yourName: "Ditt namn",
@@ -107,11 +104,6 @@ const sv: AccountsText = {
 
   backToSignIn: "Logga in",
   loading: "Laddar…",
-  homeGreeting: (name) => `Hej ${name}`,
-  homeBody: "Du är inloggad. Pizzakvällar dyker upp här.",
-  staffBadge: "Personal",
-  staffConsole: "Öppna personalvyn",
-  signedInAs: (email) => `Inloggad som ${email}`,
   signOut: "Logga ut",
 
   errorInvalidCredentials: "Fel e-post eller lösenord.",

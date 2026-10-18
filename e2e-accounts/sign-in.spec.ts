@@ -28,12 +28,13 @@ test("the first staff member accepts the invitation, signs out and signs back in
   await page.getByLabel(/choose a password/i).fill("pizzapizza");
   await page.getByRole("button", { name: /join/i }).click();
 
-  await expect(heading).toHaveText(/hi the baker/i);
-  await expect(page.getByText("Staff", { exact: true })).toBeVisible();
+  await expect(heading).toHaveText("Pizza events");
+  await expect(page.getByText("Hi The Baker")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Staff console" })).toBeVisible();
 
   // The session is a cookie, so it survives a reload.
   await page.reload();
-  await expect(heading).toHaveText(/hi the baker/i);
+  await expect(heading).toHaveText("Pizza events");
 
   await page.getByRole("button", { name: /sign out/i }).click();
   await expect(heading).toHaveText(/pizza night, sorted/i);
@@ -45,7 +46,7 @@ test("the first staff member accepts the invitation, signs out and signs back in
 
   await page.getByLabel(/^password/i).fill("pizzapizza");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(heading).toHaveText(/hi the baker/i);
+  await expect(heading).toHaveText("Pizza events");
 
   // The invitation worked once.
   await page.goto(link);

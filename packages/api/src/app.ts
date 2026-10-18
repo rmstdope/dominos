@@ -7,6 +7,7 @@ import type { AppDeps, AppEnv } from "./http/env.ts";
 import { ApiHttpError, errorBody } from "./http/errors.ts";
 import { loadSession } from "./http/session.ts";
 import { authRoutes } from "./routes/auth.ts";
+import { guestEventRoutes } from "./routes/events.ts";
 import { meRoutes } from "./routes/me.ts";
 import { staffRoutes } from "./routes/staff/index.ts";
 
@@ -44,6 +45,7 @@ export function createApp(deps: AppDeps) {
   });
   app.route("/api/auth", authRoutes(deps));
   app.route("/api/me", meRoutes());
+  app.route("/api/events", guestEventRoutes(deps));
   app.route("/api/staff", staffRoutes(deps));
 
   app.notFound((c) => c.json(errorBody("not_found", "No such endpoint."), 404));

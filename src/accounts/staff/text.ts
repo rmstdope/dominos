@@ -128,6 +128,27 @@ const en = {
   errorAlreadyMember: (email: string) => `${email} already has an account.`,
   errorLastStaff: "There must always be at least one staff member.",
   errorEmailNotSent: "The person was saved, but the email could not be sent. Try resending it.",
+
+  guestsTitle: "Guests",
+  guestCounts: (invited: number, ordered: number, declined: number) =>
+    `${invited} invited · ${ordered} ordered · ${declined} can't come`,
+  orderedOf: (ordered: number, invited: number) =>
+    invited === 0 ? "No one invited yet" : `${ordered} of ${invited} ordered`,
+  colGuests: "Guests",
+  guestStatus: { ordered: "Ordered", seen: "Seen it", invited: "Invited", declined: "Can't come" },
+  noAccountYet: "Account not set up yet",
+  noGuests: "No one is invited yet.",
+  invitePeople: "Invite people",
+  invitesWhenOpen: "You can invite people once the event is published, until orders close.",
+  everyoneInvited: "Everyone with an account is invited.",
+  someoneNew: "Someone new",
+  someoneNewHint: "They get one email that sets up their account and shows the event.",
+  personalMessage: "Personal message (optional)",
+  sendInvites: (n: number) =>
+    n === 0 ? "Send invitations" : n === 1 ? "Send 1 invitation" : `Send ${n} invitations`,
+  invitesSent: (n: number) => (n === 1 ? "1 invitation sent." : `${n} invitations sent.`),
+  errorInvitesNotSent: "Everyone was invited, but some emails could not be sent.",
+  errorEventNotOpen: "Orders are not open for this event, so invitations cannot go out.",
 };
 
 export type StaffText = typeof en;
@@ -258,6 +279,32 @@ const sv: StaffText = {
   errorAlreadyMember: (email) => `${email} har redan ett konto.`,
   errorLastStaff: "Det måste alltid finnas minst en i personalen.",
   errorEmailNotSent: "Personen sparades men mejlet kunde inte skickas. Försök skicka igen.",
+
+  guestsTitle: "Gäster",
+  guestCounts: (invited, ordered, declined) =>
+    `${invited} inbjudna · ${ordered} har beställt · ${declined} kan inte`,
+  orderedOf: (ordered, invited) =>
+    invited === 0 ? "Ingen inbjuden än" : `${ordered} av ${invited} har beställt`,
+  colGuests: "Gäster",
+  guestStatus: {
+    ordered: "Har beställt",
+    seen: "Har sett den",
+    invited: "Inbjuden",
+    declined: "Kan inte",
+  },
+  noAccountYet: "Har inte skapat konto än",
+  noGuests: "Ingen är inbjuden än.",
+  invitePeople: "Bjud in",
+  invitesWhenOpen: "Du kan bjuda in när kvällen är publicerad, tills beställningen stänger.",
+  everyoneInvited: "Alla med konto är inbjudna.",
+  someoneNew: "Någon ny",
+  someoneNewHint: "De får ett mejl som skapar kontot och visar kvällen.",
+  personalMessage: "Personligt meddelande (valfritt)",
+  sendInvites: (n) =>
+    n === 0 ? "Skicka inbjudningar" : n === 1 ? "Skicka 1 inbjudan" : `Skicka ${n} inbjudningar`,
+  invitesSent: (n) => (n === 1 ? "1 inbjudan skickad." : `${n} inbjudningar skickade.`),
+  errorInvitesNotSent: "Alla bjöds in, men några mejl kunde inte skickas.",
+  errorEventNotOpen: "Kvällen är inte öppen för beställning, så inbjudningar kan inte skickas.",
 };
 
 const texts: Record<Language, StaffText> = { en, sv };

@@ -7,17 +7,32 @@ import {
   type StaffEvent,
   type UpdateEvent,
 } from "@dominos/shared";
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Db } from "../../db/client.ts";
-import { eventIngredients, events, ingredients, type EventRow } from "../../db/schema.ts";
+import {
+  eventIngredients,
+  eventInvitations,
+  events,
+  ingredients,
+  orders,
+  type EventRow,
+} from "../../db/schema.ts";
 import { definedOnly } from "../../db/util.ts";
 import type { AppDeps, AppEnv } from "../../http/env.ts";
 import { ApiHttpError, readJson } from "../../http/errors.ts";
 import { conflict, idParam, notFound } from "../../http/params.ts";
 import { currentUser } from "../../http/session.ts";
 
-function toStaffEvent(row: EventRow, ingredientIds: string[], now: Date): StaffEvent {
+type GuestCounts = StaffEvent["guests"];
+const noGuests: GuestCounts = { invited: 0, declined: 0, ordered: 0 };
+
+function toStaffEvent(
+  row: EventRow,
+  ingredientIds: string[],
+  guests: GuestCounts,
+  now: Date,
+): StaffEvent {
   return {
     id: row.id,
     name: row.name,
@@ -30,6 +45,7 @@ function toStaffEvent(row: EventRow, ingredientIds: string[], now: Date): StaffE
     status: row.status,
     phase: eventPhase(row, now),
     ingredientIds,
+    guests,
   };
 }
 
@@ -63,6 +79,28 @@ async function requireUsableIngredients(db: Db, ids: string[]): Promise<string[]
     );
   }
   return unique;
+}
+
+/** How many are invited to each event, how many said no, and how many ordered. */
+async function guestCountsOf(db: Db, eventIds: string[]): Promise<Map<string, GuestCounts>> {
+  const counts = new Map<string, GuestCounts>();
+  if (eventIds.length === 0) return counts;
+  const rows = await db
+    .select({
+      eventId: eventInvitations.eventId,
+      invited: count(),
+      declined: count(sql`case when ${eventInvitations.status} = 'declined' then 1 end`),
+      ordered: count(orders.id),
+    })
+    .from(eventInvitations)
+    .leftJoin(
+      orders,
+      and(eq(orders.eventId, eventInvitations.eventId), eq(orders.userId, eventInvitations.userId)),
+    )
+    .where(inArray(eventInvitations.eventId, eventIds))
+    .groupBy(eventInvitations.eventId);
+  for (const { eventId, ...c } of rows) counts.set(eventId, c);
+  return counts;
 }
 
 async function menuOf(db: Db, eventIds: string[]): Promise<Map<string, string[]>> {
@@ -99,7 +137,8 @@ export function eventRoutes(deps: AppDeps) {
 
   async function respond(row: EventRow) {
     const menus = await menuOf(db, [row.id]);
-    return toStaffEvent(row, menus.get(row.id) ?? [], deps.now());
+    const guests = await guestCountsOf(db, [row.id]);
+    return toStaffEvent(row, menus.get(row.id) ?? [], guests.get(row.id) ?? noGuests, deps.now());
   }
 
   routes.get("/events", async (c) => {
@@ -108,8 +147,14 @@ export function eventRoutes(deps: AppDeps) {
       db,
       rows.map((r) => r.id),
     );
+    const guests = await guestCountsOf(
+      db,
+      rows.map((r) => r.id),
+    );
     const now = deps.now();
-    return c.json(rows.map((r) => toStaffEvent(r, menus.get(r.id) ?? [], now)));
+    return c.json(
+      rows.map((r) => toStaffEvent(r, menus.get(r.id) ?? [], guests.get(r.id) ?? noGuests, now)),
+    );
   });
 
   routes.post("/events", async (c) => {

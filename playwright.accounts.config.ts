@@ -21,7 +21,8 @@ export default defineConfig({
       command: [
         `rm -rf ${data} && mkdir -p ${data}`,
         `node packages/api/src/cli/create-staff.ts --email baker@example.com --name 'The Baker' > ${data}/invitation.txt`,
-        "exec node packages/api/src/main.ts",
+        // Without SMTP the API prints emails to its log; the tests read invitation links from it.
+        `exec node packages/api/src/main.ts > ${data}/api.log 2>&1`,
       ].join(" && "),
       url: `${api}/api/health`,
       env: { ...process.env, PORT: "3100", APP_ORIGIN: web, PGLITE_DIR: `${data}/db` },

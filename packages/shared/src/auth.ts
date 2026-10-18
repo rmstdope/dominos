@@ -48,4 +48,6 @@ export type Me = {
 export type InvitationInfo = {
   email: string;
   name: string;
+  /** The next event they are invited to, if any, so the screen can show what it is for. */
+  event: { id: string; name: string; startsAt: string; location: string } | null;
 };

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useLanguage } from "../../i18n/useLanguage";
 import { useEvents } from "./api";
-import { formatWhen } from "./dates";
+import { formatWhen } from "../dates";
 import { useStaffText } from "./text";
 import { Loaded, PageHeader, Pill, cardClass } from "./ui";
 
@@ -109,6 +109,9 @@ function NextUp({ event }: { event: StaffEvent }) {
         <p className="mt-1 text-sm text-cream-300/70">
           {t.ordersClose(formatWhen(event.ordersCloseAt, language))}
         </p>
+        <p className="mt-3 font-semibold">
+          {t.guestCounts(event.guests.invited, event.guests.ordered, event.guests.declined)}
+        </p>
       </div>
       <Link
         to={`/staff/events/${event.id}`}
@@ -140,6 +143,9 @@ function EventTable({ events }: { events: StaffEvent[] }) {
             <th scope="col" className="px-4 py-3 font-semibold">
               {t.colMenu}
             </th>
+            <th scope="col" className="px-4 py-3 font-semibold">
+              {t.colGuests}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -161,6 +167,9 @@ function EventTable({ events }: { events: StaffEvent[] }) {
               </td>
               <td className="px-4 py-3 text-cream-300/80">
                 {t.toppingCount(event.ingredientIds.length)}
+              </td>
+              <td className="px-4 py-3 text-cream-300/80">
+                {t.orderedOf(event.guests.ordered, event.guests.invited)}
               </td>
             </tr>
           ))}

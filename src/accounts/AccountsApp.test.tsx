@@ -25,8 +25,8 @@ describe("signing in", () => {
     await user.type(screen.getByLabelText(/^password/i), "correct horse");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
-    expect(await heading(/hi anna/i)).toBeInTheDocument();
-    expect(calls.at(-1)).toEqual({
+    expect(await heading(/pizza events/i)).toBeInTheDocument();
+    expect(calls.filter((c) => c.method !== "GET").at(-1)).toEqual({
       method: "POST",
       path: "/api/auth/login",
       body: { email: "anna@example.com", password: "correct horse" },
@@ -78,14 +78,14 @@ describe("signed in", () => {
   it("skips the sign-in screen", async () => {
     fakeApi({ "GET /api/me": ok(anna) });
     renderAccounts("/sign-in");
-    expect(await heading(/hi anna/i)).toBeInTheDocument();
+    expect(await heading(/pizza events/i)).toBeInTheDocument();
   });
 
-  it("marks staff", async () => {
+  it("gives staff a way to the staff console", async () => {
     fakeApi({ "GET /api/me": ok({ ...anna, role: "staff" }) });
     renderAccounts("/");
-    await heading(/hi anna/i);
-    expect(screen.getByText("Staff")).toBeInTheDocument();
+    await heading(/pizza events/i);
+    expect(screen.getByRole("link", { name: "Staff console" })).toHaveAttribute("href", "/staff");
   });
 
   it("signs out back to the sign-in screen", async () => {
@@ -105,7 +105,7 @@ describe("when the API cannot be reached", () => {
 
     fakeApi({ "GET /api/me": ok(anna) });
     await userEvent.setup().click(screen.getByRole("button", { name: /try again/i }));
-    expect(await heading(/hi anna/i)).toBeInTheDocument();
+    expect(await heading(/pizza events/i)).toBeInTheDocument();
   });
 });
 
@@ -132,8 +132,12 @@ describe("accepting an invitation", () => {
     await user.type(screen.getByLabelText(/choose a password/i), "pizzapizza");
     await user.click(screen.getByRole("button", { name: /join/i }));
 
-    expect(await heading(/hi anna berg/i)).toBeInTheDocument();
-    expect(calls.at(-1)?.body).toEqual({ name: "Anna Berg", password: "pizzapizza" });
+    expect(await heading(/pizza events/i)).toBeInTheDocument();
+    expect(screen.getByText("Hi Anna Berg")).toBeInTheDocument();
+    expect(calls.filter((c) => c.method !== "GET").at(-1)?.body).toEqual({
+      name: "Anna Berg",
+      password: "pizzapizza",
+    });
   });
 
   it("asks for a longer password before sending it", async () => {
@@ -173,7 +177,9 @@ describe("a forgotten password", () => {
 
     expect(await heading(/check your email/i)).toBeInTheDocument();
     expect(screen.getByText(/anna@example.com has an account/i)).toBeInTheDocument();
-    expect(calls.at(-1)?.body).toEqual({ email: "anna@example.com" });
+    expect(calls.filter((c) => c.method !== "GET").at(-1)?.body).toEqual({
+      email: "anna@example.com",
+    });
   });
 
   it("is reset with the emailed link, which signs in", async () => {
@@ -182,8 +188,11 @@ describe("a forgotten password", () => {
     const user = userEvent.setup();
     await user.type(await screen.findByLabelText(/new password/i), "a brand new one");
     await user.click(screen.getByRole("button", { name: /save and sign in/i }));
-    expect(await heading(/hi anna/i)).toBeInTheDocument();
-    expect(calls.at(-1)?.body).toEqual({ token: "reset1", password: "a brand new one" });
+    expect(await heading(/pizza events/i)).toBeInTheDocument();
+    expect(calls.filter((c) => c.method !== "GET").at(-1)?.body).toEqual({
+      token: "reset1",
+      password: "a brand new one",
+    });
   });
 
   it("offers a new link when the old one has expired", async () => {

@@ -49,6 +49,7 @@ const friday: StaffEvent = {
   status: "draft",
   phase: "draft",
   ingredientIds: [ham.id],
+  guests: { invited: 0, declined: 0, ordered: 0 },
 };
 
 const staffApi = (routes: Parameters<typeof fakeApi>[0] = {}) =>
@@ -65,14 +66,14 @@ describe("the staff console", () => {
   it("is closed to customers", async () => {
     fakeApi({ "GET /api/me": ok(anna) });
     renderAccounts("/staff/events");
-    expect(await heading(/hi anna/i)).toBeInTheDocument();
+    expect(await heading(/pizza events/i)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /staff console/i })).not.toBeInTheDocument();
   });
 
   it("is linked from a staff member's home screen", async () => {
     staffApi({ "GET /api/staff/events": ok([]) });
     renderAccounts("/");
-    await userEvent.setup().click(await screen.findByRole("link", { name: /staff console/i }));
+    await userEvent.setup().click(await screen.findByRole("link", { name: "Staff console" }));
     expect(await heading("Events")).toBeInTheDocument();
     expect(screen.getByText(/no events planned/i)).toBeInTheDocument();
   });

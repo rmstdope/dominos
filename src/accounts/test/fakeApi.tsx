@@ -26,12 +26,17 @@ export const anna: Me = {
 };
 
 /**
- * Replaces fetch with answers keyed by "METHOD /path". GET /api/me answers 401 unless given.
+ * Replaces fetch with answers keyed by "METHOD /path". Unless given, GET /api/me answers 401
+ * and GET /api/events an empty list.
  * Returns the requests made, bodies parsed.
  */
 export function fakeApi(routes: Record<string, Handler>) {
   const calls: { method: string; path: string; body: unknown }[] = [];
-  const handlers: Record<string, Handler> = { "GET /api/me": fail(401, "unauthorized"), ...routes };
+  const handlers: Record<string, Handler> = {
+    "GET /api/me": fail(401, "unauthorized"),
+    "GET /api/events": ok([]),
+    ...routes,
+  };
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: string, init: RequestInit = {}) => {
