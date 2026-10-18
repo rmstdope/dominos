@@ -1,0 +1,7 @@
+packages:
+  - packages/*
+
+# esbuild (pulled in by drizzle-kit) ships its binary as an optional dependency; its install
+# script only double-checks it, so it is not allowed to run.
+allowBuilds:
+  esbuild: false

@@ -5,14 +5,30 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      environment: "jsdom",
-      globals: true,
-      setupFiles: ["./src/test/setup.ts"],
-      include: ["src/**/*.test.{ts,tsx}", "config/**/*.test.ts"],
+      projects: [
+        {
+          extends: true,
+          test: {
+            name: "web",
+            environment: "jsdom",
+            globals: true,
+            setupFiles: ["./src/test/setup.ts"],
+            include: ["src/**/*.test.{ts,tsx}", "config/**/*.test.ts"],
+          },
+        },
+        // Has its own config: Node instead of jsdom, and none of the React setup.
+        "packages/api",
+      ],
       coverage: {
         provider: "v8",
-        include: ["src/**/*.{ts,tsx}"],
-        exclude: ["src/main.tsx", "src/test/**"],
+        include: ["src/**/*.{ts,tsx}", "packages/*/src/**/*.ts"],
+        exclude: [
+          "src/main.tsx",
+          "src/test/**",
+          "packages/*/src/test/**",
+          "packages/api/src/main.ts",
+          "packages/api/src/cli/**",
+        ],
       },
     },
   }),

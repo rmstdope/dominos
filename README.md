@@ -44,6 +44,24 @@ pnpm check          # everything CI runs: lint, types, format, unit, build, e2e
 
 Stack: Vite, React 19, TypeScript, Tailwind CSS 4, Vitest + Testing Library, Playwright.
 
+## The API (in progress)
+
+The app is getting accounts, events and orders; see [docs/backend-design.md](docs/backend-design.md).
+The API lives in `packages/api` (Hono, Drizzle, Postgres) and shares its request and response types
+with the frontend through `packages/shared`. Nothing uses it in production yet.
+
+```sh
+pnpm dev:api        # the API on :3000; `pnpm dev` proxies /api to it
+pnpm --filter @dominos/api create-staff --email you@example.com --name "Your Name"
+```
+
+Locally the API needs no database server: without `DATABASE_URL` it keeps an embedded
+[PGlite](https://pglite.dev) database in `packages/api/.data/`, and without `SMTP_URL` it prints
+emails, links included, to its log. `create-staff` prints an invitation link; open it to choose a
+password. Settings are listed in `packages/api/.env.example`. After changing
+`packages/api/src/db/schema.ts`, run `pnpm --filter @dominos/api db:generate` to write the migration;
+the API applies migrations when it starts.
+
 ## Deploy
 
 `pnpm build` writes a plain static site to `dist/`, servable by any HTTP server.
