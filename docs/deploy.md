@@ -107,5 +107,6 @@ username is written `%40`). Then `docker compose up -d` and invite yourself to c
 | Restore a backup     | `gunzip -c backups/dominos-<date>.sql.gz \| docker compose exec -T db psql -U dominos dominos` (into an empty database) |
 | Make someone staff   | `docker compose exec api node packages/api/src/cli/create-staff.ts --email … --name …`                                  |
 
-Backups are in `/opt/dominos/backups`, one per night, kept for 30 days. Copy them off the server
+Backups are in `/opt/dominos/backups`, one per night (02:00 UTC), kept for 30 days;
+`docker compose run --rm backup once` takes one right away, e.g. before a risky change. Copy them off the server
 now and then; HostUp's own snapshots cover the whole machine.

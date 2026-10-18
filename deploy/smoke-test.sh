@@ -64,8 +64,8 @@ compose up -d --wait --wait-timeout 60 >/dev/null
   fail "the session did not survive a restart"
 check "data and sessions survive restarting the API"
 
-for _ in $(seq 1 20); do ls backups/dominos-*.sql.gz >/dev/null 2>&1 && break; sleep 1; done
+compose run --rm -T backup once
 gunzip -c backups/dominos-*.sql.gz | grep -q 'CREATE TABLE public.users' || fail "no usable backup"
-check "the nightly backup writes a dump"
+check "a backup on demand holds the whole database"
 
 echo "Smoke test passed."

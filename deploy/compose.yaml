@@ -52,8 +52,9 @@ services:
       timeout: 5s
       retries: 10
 
-  # A compressed dump every night, kept for 30 days, in ./backups on the server. HostUp's snapshots
-  # cover the whole machine; these are for restoring just the data.
+  # A compressed dump every night at 02:00 UTC, kept for 30 days, in ./backups on the server.
+  # `docker compose run --rm backup once` takes one right away. HostUp's snapshots cover the whole
+  # machine; these are for restoring just the data.
   backup:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -61,19 +62,28 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ./backups:/backups
-    entrypoint: ["/bin/sh", "-c"]
-    command:
+    entrypoint:
+      - /bin/sh
+      - -c
       - |
-        while true; do
-          file="/backups/dominos-$$(date +%Y-%m-%d).sql.gz"
+        dump() {
+          file="/backups/dominos-$$(date -u +%Y-%m-%d-%H%M).sql.gz"
           if pg_dump -h db -U dominos dominos | gzip > "$$file.tmp"; then
             mv "$$file.tmp" "$$file" && echo "Backed up to $$file"
           else
-            rm -f "$$file.tmp"; echo "Backup failed" >&2
+            rm -f "$$file.tmp"; echo "Backup failed" >&2; return 1
           fi
+        }
+        if [ "$$1" = once ]; then dump; exit $$?; fi
+        while true; do
+          now=$$(date -u +%s)
+          wait=$$(( (7200 - now % 86400 + 86400) % 86400 ))
+          sleep $$(( wait == 0 ? 86400 : wait ))
+          dump
           find /backups -name 'dominos-*.sql.gz' -mtime +30 -delete
-          sleep 86400
         done
+      - backup
+    command: ["nightly"]
     depends_on:
       db:
         condition: service_healthy
