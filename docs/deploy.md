@@ -10,7 +10,7 @@ below bring the VPS up next to it, test it on its own address, and only then mov
 
 ## 1. Order and prepare the VPS
 
-1. Order a HostUp VPS: **Nano** (1 vCPU, 2 GB) is plenty. Pick **Ubuntu 24.04** and add your own
+1. Order a HostUp VPS: **Nano** (1 vCPU, 2 GB) is plenty. Pick **Ubuntu 26.04 LTS** (supported until 2031; 24.04 works too) and add your own
    SSH key so you can log in as root.
 2. Make a key pair for the deploy workflow, on your own machine:
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepares a fresh Ubuntu 24.04 VPS for Dominos. Run once, as root, with the public key the deploy
+# Prepares a fresh Ubuntu 26.04 (or 24.04) VPS for Dominos. Run once, as root, with the public key the deploy
 # workflow will log in with:
 #
 #   scp deploy/setup-vps.sh root@<vps>:
