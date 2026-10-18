@@ -1,5 +1,6 @@
 import type { Me } from "@dominos/shared";
 import { useState } from "react";
+import { Link } from "react-router";
 import { Button } from "../../components/Button";
 import { AuthLayout, FormError } from "../components";
 import { useSession } from "../useSession";
@@ -31,6 +32,14 @@ export function HomePage({ me }: { me: Me }) {
             </span>
           )}
         </p>
+        {me.role === "staff" && (
+          <Link
+            to="/staff"
+            className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-cheese-400 px-5 font-semibold text-crust-950 shadow-lg shadow-cheese-400/25 hover:bg-cheese-300"
+          >
+            {t.staffConsole}
+          </Link>
+        )}
         <FormError message={error === null ? null : errorMessage(error, t)} />
         <Button variant="ghost" className="w-full" onClick={leave}>
           {t.signOut}

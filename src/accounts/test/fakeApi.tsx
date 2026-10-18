@@ -1,4 +1,5 @@
 import type { ApiErrorCode, Me } from "@dominos/shared";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { vi } from "vitest";
@@ -53,11 +54,15 @@ export function fakeApi(routes: Record<string, Handler>) {
 export function renderAccounts(path: string, language: Language = "en") {
   return render(
     <LanguageProvider initial={language}>
-      <SessionProvider>
-        <MemoryRouter initialEntries={[path]}>
-          <AccountsRoutes />
-        </MemoryRouter>
-      </SessionProvider>
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <SessionProvider>
+          <MemoryRouter initialEntries={[path]}>
+            <AccountsRoutes />
+          </MemoryRouter>
+        </SessionProvider>
+      </QueryClientProvider>
     </LanguageProvider>,
   );
 }

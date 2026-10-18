@@ -11,6 +11,8 @@ export default mergeConfig(
           test: {
             name: "web",
             environment: "jsdom",
+            // Staff type dates in local time; pin it so the times sent to the API are predictable.
+            env: { TZ: "Europe/Stockholm" },
             globals: true,
             setupFiles: ["./src/test/setup.ts"],
             include: ["src/**/*.test.{ts,tsx}", "config/**/*.test.ts"],

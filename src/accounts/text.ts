@@ -49,6 +49,7 @@ const en = {
   homeGreeting: (name: string) => `Hi ${name}`,
   homeBody: "You're signed in. Pizza events will show up here.",
   staffBadge: "Staff",
+  staffConsole: "Open the staff console",
   signedInAs: (email: string) => `Signed in as ${email}`,
   signOut: "Sign out",
 
@@ -109,6 +110,7 @@ const sv: AccountsText = {
   homeGreeting: (name) => `Hej ${name}`,
   homeBody: "Du är inloggad. Pizzakvällar dyker upp här.",
   staffBadge: "Personal",
+  staffConsole: "Öppna personalvyn",
   signedInAs: (email) => `Inloggad som ${email}`,
   signOut: "Logga ut",
 

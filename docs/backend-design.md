@@ -114,8 +114,8 @@ totals) and `PATCH orders/:id` (baked).
 2. **Staff API and sign-in screens** ✅ Ingredients and groups, people and roles, events with menus
    (API only). Sign in, accept an invitation, forgot and reset password in the frontend, behind
    `VITE_ACCOUNTS=true`.
-3. **Staff screens:** events and their menus, ingredients, people and roles (S1, S2, S5, S6 on the
-   canvas).
+3. **Staff screens** ✅ Events and their menus, ingredients and groups, people and roles (S1, S2,
+   S5, S6 on the canvas), at phone and desktop sizes.
 4. **The core loop:** event invitations and their emails, the customer's events, the pizza builder,
    order placed.
 5. **Running the night:** orders and prep list, baked, reminders, profile and favourite pizza.

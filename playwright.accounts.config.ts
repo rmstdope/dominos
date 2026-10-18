@@ -14,7 +14,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
-  use: { baseURL: web, trace: "retain-on-failure" },
+  use: { baseURL: web, trace: "retain-on-failure", timezoneId: "Europe/Stockholm" },
   projects: [{ name: "mobile-ios", use: { ...devices["iPhone 13"] } }],
   webServer: [
     {
