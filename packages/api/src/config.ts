@@ -32,7 +32,9 @@ export type Config = {
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const parsed = envSchema.safeParse(env);
+  // An empty variable counts as unset: compose passes `SMTP_URL=` when .env leaves it blank.
+  const set = Object.fromEntries(Object.entries(env).filter(([, value]) => value !== ""));
+  const parsed = envSchema.safeParse(set);
   if (!parsed.success) {
     const problems = parsed.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`);
     throw new Error(`Invalid environment:\n${problems.join("\n")}`);
