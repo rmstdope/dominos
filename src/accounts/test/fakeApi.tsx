@@ -23,6 +23,7 @@ export const anna: Me = {
   name: "Anna",
   role: "customer",
   language: "en",
+  reminders: { beforeClose: true, dayBefore: true },
 };
 
 /**
@@ -35,6 +36,7 @@ export function fakeApi(routes: Record<string, Handler>) {
   const handlers: Record<string, Handler> = {
     "GET /api/me": fail(401, "unauthorized"),
     "GET /api/events": ok([]),
+    "GET /api/me/favourite": ok({ ingredients: [] }),
     ...routes,
   };
   vi.stubGlobal(

@@ -179,3 +179,67 @@ export function welcomeToEventEmail(
 }
 
 export const eventLink = (appOrigin: string, eventId: string) => `${appOrigin}/events/${eventId}`;
+
+/** To someone invited who has not ordered yet, the day before orders close or when staff ask. */
+export function orderReminderEmail(to: Recipient, event: EventDetails, link: string): Email {
+  const text = {
+    en: [
+      `Hi ${to.name},`,
+      "",
+      `Orders for ${event.name} close ${when(event.ordersCloseAt, "en")}, and we don't have yours yet.`,
+      "",
+      "Pick your toppings here:",
+      link,
+      "",
+      "Can't make it? Say so on the same page, so the baker knows.",
+    ],
+    sv: [
+      `Hej ${to.name}!`,
+      "",
+      `Beställningen till ${event.name} stänger ${when(event.ordersCloseAt, "sv")}, och vi har inte fått din än.`,
+      "",
+      "Välj dina toppings här:",
+      link,
+      "",
+      "Kan du inte komma? Säg till på samma sida, så vet bagaren.",
+    ],
+  };
+  const subject = {
+    en: `Pick your toppings: ${event.name}`,
+    sv: `Välj dina toppings: ${event.name}`,
+  };
+  return { to: to.email, subject: subject[to.language], text: text[to.language].join("\n") };
+}
+
+/** To someone who has ordered, the day before the event. */
+export function dayBeforeEmail(
+  to: Recipient,
+  event: EventDetails,
+  toppings: string[],
+  link: string,
+): Email {
+  const pizza = {
+    en: toppings.length ? toppings.join(", ") : "a plain pizza, just sauce and cheese",
+    sv: toppings.length ? toppings.join(", ") : "en vanlig pizza, bara sås och ost",
+  };
+  const text = {
+    en: [
+      `Hi ${to.name},`,
+      "",
+      `See you at ${event.name}: ${when(event.startsAt, "en")}, ${event.location}.`,
+      "",
+      `Your pizza: ${pizza.en}.`,
+      link,
+    ],
+    sv: [
+      `Hej ${to.name}!`,
+      "",
+      `Vi ses på ${event.name}: ${when(event.startsAt, "sv")}, ${event.location}.`,
+      "",
+      `Din pizza: ${pizza.sv}.`,
+      link,
+    ],
+  };
+  const subject = { en: `Tomorrow: ${event.name}`, sv: `Imorgon: ${event.name}` };
+  return { to: to.email, subject: subject[to.language], text: text[to.language].join("\n") };
+}

@@ -78,3 +78,37 @@ export const inviteToEventSchema = z
     message: "Invite at least one person",
   });
 export type InviteToEvent = z.input<typeof inviteToEventSchema>;
+
+// --- Favourites ----------------------------------------------------------------------------------
+
+/** A person's favourite pizza, which the builder starts from. */
+export type Favourite = { ingredients: { id: string; name: Localized }[] };
+
+export const setFavouriteSchema = z.object({ ingredientIds: z.array(z.uuid()).max(30) });
+export type SetFavourite = z.infer<typeof setFavouriteSchema>;
+
+// --- The night itself (staff) --------------------------------------------------------------------
+
+export type StaffOrder = {
+  id: string;
+  number: number;
+  name: string;
+  email: string;
+  toppings: Localized[];
+  makeOwn: boolean;
+  comment: string | null;
+  baked: boolean;
+};
+
+/** Everything the kitchen needs: each order, and how many pizzas need each topping. */
+export type EventOrders = {
+  pizzas: number;
+  makeOwn: number;
+  prep: { ingredientId: string; name: Localized; count: number }[];
+  orders: StaffOrder[];
+};
+
+export const markBakedSchema = z.object({ baked: z.boolean() });
+
+/** How many reminder emails went out. */
+export type RemindResult = { sent: number };

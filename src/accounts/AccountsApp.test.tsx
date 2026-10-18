@@ -90,7 +90,7 @@ describe("signed in", () => {
 
   it("signs out back to the sign-in screen", async () => {
     const calls = fakeApi({ "GET /api/me": ok(anna), "POST /api/auth/logout": ok() });
-    renderAccounts("/");
+    renderAccounts("/profile");
     await userEvent.setup().click(await screen.findByRole("button", { name: /sign out/i }));
     expect(await heading(/pizza night, sorted/i)).toBeInTheDocument();
     expect(calls.some((c) => c.path === "/api/auth/logout")).toBe(true);

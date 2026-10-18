@@ -42,7 +42,25 @@ export type Me = {
   name: string;
   role: Role;
   language: Language;
+  /** Which reminder emails they want. */
+  reminders: { beforeClose: boolean; dayBefore: boolean };
 };
+
+/** What people may change about themselves. Their email is changed by staff. */
+export const updateMeSchema = z.object({
+  name: nameSchema.optional(),
+  language: z.enum(LANGUAGES).optional(),
+  reminders: z
+    .object({ beforeClose: z.boolean().optional(), dayBefore: z.boolean().optional() })
+    .optional(),
+});
+export type UpdateMe = z.infer<typeof updateMeSchema>;
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(200),
+  newPassword: newPasswordSchema,
+});
+export type ChangePassword = z.infer<typeof changePasswordSchema>;
 
 /** What the accept-invitation screen shows before the person picks a password. */
 export type InvitationInfo = {

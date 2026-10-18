@@ -149,6 +149,24 @@ const en = {
   invitesSent: (n: number) => (n === 1 ? "1 invitation sent." : `${n} invitations sent.`),
   errorInvitesNotSent: "Everyone was invited, but some emails could not be sent.",
   errorEventNotOpen: "Orders are not open for this event, so invitations cannot go out.",
+
+  ordersTitle: "Orders",
+  ordersLink: (n: number) => `Orders · ${n}`,
+  backToEvent: "Event details",
+  pizzas: "Pizzas",
+  makingOwn: "Make their own",
+  prepTitle: "Prep list",
+  prepHint: "How many pizzas need each topping",
+  noOrders: "No orders yet.",
+  plain: "Plain: sauce and cheese",
+  makesOwn: "Makes own",
+  baked: "Baked",
+  bakedFor: (number: string) => `Order ${number} baked`,
+  print: "Print",
+  remindWaiting: (n: number) =>
+    n === 1 ? "Remind the 1 who hasn't ordered" : `Remind the ${n} who haven't ordered`,
+  reminded: (n: number) =>
+    n === 1 ? "Reminder sent to 1 person." : `Reminders sent to ${n} people.`,
 };
 
 export type StaffText = typeof en;
@@ -305,6 +323,24 @@ const sv: StaffText = {
   invitesSent: (n) => (n === 1 ? "1 inbjudan skickad." : `${n} inbjudningar skickade.`),
   errorInvitesNotSent: "Alla bjöds in, men några mejl kunde inte skickas.",
   errorEventNotOpen: "Kvällen är inte öppen för beställning, så inbjudningar kan inte skickas.",
+
+  ordersTitle: "Beställningar",
+  ordersLink: (n) => `Beställningar · ${n}`,
+  backToEvent: "Om kvällen",
+  pizzas: "Pizzor",
+  makingOwn: "Gör sin egen",
+  prepTitle: "Förberedelser",
+  prepHint: "Hur många pizzor som behöver varje topping",
+  noOrders: "Inga beställningar än.",
+  plain: "Vanlig: sås och ost",
+  makesOwn: "Gör sin egen",
+  baked: "Bakad",
+  bakedFor: (number) => `Beställning ${number} bakad`,
+  print: "Skriv ut",
+  remindWaiting: (n) =>
+    n === 1 ? "Påminn den 1 som inte beställt" : `Påminn de ${n} som inte beställt`,
+  reminded: (n) =>
+    n === 1 ? "Påminnelse skickad till 1 person." : `Påminnelser skickade till ${n} personer.`,
 };
 
 const texts: Record<Language, StaffText> = { en, sv };

@@ -18,7 +18,7 @@ export function StaffLayout({ me }: { me: Me }) {
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <aside className="border-b border-white/10 bg-crust-950/70 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3 md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:shrink-0 md:flex-col md:border-r md:border-b-0 md:py-6">
+      <aside className="print:hidden border-b border-white/10 bg-crust-950/70 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3 md:sticky md:top-0 md:flex md:h-dvh md:w-64 md:shrink-0 md:flex-col md:border-r md:border-b-0 md:py-6">
         <div className="flex items-center justify-between gap-2 md:mb-6">
           <Link
             to="/staff/events"

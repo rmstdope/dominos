@@ -143,4 +143,15 @@ test("someone new is invited to the event, sets up an account and orders", async
   await expect(heading).toHaveText("Friday Pizza Night");
   const svenRow = guests.getByRole("listitem").filter({ hasText: "sven@example.com" });
   await expect(svenRow.getByText("Ordered")).toBeVisible();
+
+  // The night itself: the kitchen's view of the orders.
+  await page.getByRole("link", { name: /orders · 1/i }).click();
+  await expect(page.getByRole("heading", { name: "Prep list" })).toBeVisible();
+  const ticket = page.getByRole("article", { name: "#01 Sven" });
+  await expect(ticket).toContainText("Ham");
+  await expect(ticket).toContainText("“Extra krispig”");
+  const baked = ticket.getByRole("checkbox", { name: "Order #01 baked" });
+  await baked.check();
+  await page.reload();
+  await expect(page.getByRole("checkbox", { name: "Order #01 baked" })).toBeChecked();
 });

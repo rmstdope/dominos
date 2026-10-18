@@ -264,7 +264,11 @@ function IngredientRow({
           <label className="flex min-h-10 items-center gap-2 text-sm text-cream-300/80">
             <input
               type="checkbox"
-              checked={ingredient.inStock}
+              checked={
+                update.isPending && update.variables.inStock !== undefined
+                  ? update.variables.inStock
+                  : ingredient.inStock
+              }
               aria-label={t.inStockFor(label)}
               disabled={update.isPending}
               onChange={(e) => update.mutate({ inStock: e.target.checked })}

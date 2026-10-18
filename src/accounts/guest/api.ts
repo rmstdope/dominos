@@ -1,10 +1,19 @@
-import type { GuestEvent, GuestEventDetail, PlaceOrder } from "@dominos/shared";
+import type {
+  ChangePassword,
+  Favourite,
+  GuestEvent,
+  GuestEventDetail,
+  Me,
+  PlaceOrder,
+  UpdateMe,
+} from "@dominos/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "../api";
 
 export const guestKeys = {
   events: ["guest", "events"] as const,
   event: (id: string) => ["guest", "events", id] as const,
+  favourite: ["guest", "favourite"] as const,
 };
 
 export const useGuestEvents = () =>
@@ -44,3 +53,23 @@ export const useWithdrawOrder = (id: string) =>
 
 export const useDecline = (id: string) =>
   useEventChange(id, () => request<GuestEventDetail>("POST", `/api/events/${id}/decline`));
+
+export const useFavourite = () =>
+  useQuery({
+    queryKey: guestKeys.favourite,
+    queryFn: () => request<Favourite>("GET", "/api/me/favourite"),
+  });
+
+export function useSetFavourite() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ingredientIds: string[]) =>
+      request<Favourite>("PUT", "/api/me/favourite", { ingredientIds }),
+    onSuccess: (favourite) => queryClient.setQueryData(guestKeys.favourite, favourite),
+  });
+}
+
+export const updateMe = (body: UpdateMe) => request<Me>("PATCH", "/api/me", body);
+
+export const changePassword = (body: ChangePassword) =>
+  request<void>("POST", "/api/me/password", body);

@@ -204,7 +204,19 @@ function EventForm({
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {event ? event.name : t.newEventTitle}
           </h1>
-          {event && <PhasePill phase={event.phase} />}
+          {event && (
+            <div className="flex flex-wrap items-center gap-3">
+              <PhasePill phase={event.phase} />
+              {event.status !== "draft" && (
+                <Link
+                  to={`/staff/events/${event.id}/orders`}
+                  className="inline-flex min-h-10 items-center rounded-xl bg-cream-100 px-3 text-sm font-bold text-crust-950 hover:bg-white"
+                >
+                  {t.ordersLink(event.guests.ordered)}
+                </Link>
+              )}
+            </div>
+          )}
         </div>
         {frozen && (
           <p className="rounded-2xl bg-white/5 px-4 py-3 text-cream-300/80">{t.cancelledNote}</p>

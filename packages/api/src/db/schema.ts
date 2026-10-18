@@ -16,6 +16,7 @@ export const language = pgEnum("language", ["en", "sv"]);
 export const authTokenKind = pgEnum("auth_token_kind", ["invite", "reset"]);
 export const eventStatus = pgEnum("event_status", ["draft", "published", "cancelled"]);
 export const invitationStatus = pgEnum("invitation_status", ["invited", "declined"]);
+export const reminderKind = pgEnum("reminder_kind", ["before_close", "day_before"]);
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 
@@ -31,6 +32,9 @@ export const users = pgTable("users", {
   role: role("role").notNull().default("customer"),
   language: language("language").notNull().default("en"),
   passwordHash: text("password_hash"),
+  /** Email reminders, both on unless the person turns them off in their profile. */
+  remindBeforeClose: boolean("remind_before_close").notNull().default(true),
+  remindDayBefore: boolean("remind_day_before").notNull().default(true),
   createdAt: createdAt(),
   disabledAt: timestamp("disabled_at", { withTimezone: true }),
 });
@@ -188,6 +192,36 @@ export const orderToppings = pgTable(
       .references(() => ingredients.id, { onDelete: "restrict" }),
   },
   (t) => [primaryKey({ columns: [t.orderId, t.ingredientId] })],
+);
+
+/** The toppings a person saved as their favourite pizza; the builder starts from them. */
+export const favouriteToppings = pgTable(
+  "favourite_toppings",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ingredientId: uuid("ingredient_id")
+      .notNull()
+      .references(() => ingredients.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.ingredientId] })],
+);
+
+/** Automatic reminders already sent, so the job never sends the same one twice. */
+export const remindersSent = pgTable(
+  "reminders_sent",
+  {
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: reminderKind("kind").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.eventId, t.userId, t.kind] })],
 );
 
 export type User = typeof users.$inferSelect;

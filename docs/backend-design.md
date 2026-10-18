@@ -25,7 +25,8 @@ dominos.kurelid.se  →  HostUp VPS, Docker Compose
 ```
 
 The browser sees one origin, so there is no CORS and the session cookie is first-party. Reminder
-emails run from a systemd timer on the VPS rather than a scheduled GitHub Actions workflow. Email
+emails are sent by the API itself, which checks every ten minutes (no cron or GitHub Actions
+schedule to keep running); the `reminders_sent` table makes each one go out once. Email
 goes out through SMTP (a transactional provider or a kurelid.se mailbox), since VPS hosts often
 block sending mail directly.
 
@@ -79,9 +80,9 @@ JSON under `/api`. Errors are `{ "error": { "code", "message" } }`, with the cod
 | `GET /health`                   | Checks the database answers                                        |
 
 **Guests** ✅ built: `GET /events` (only invited ones, never drafts), `GET /events/:id` (menu and my
-order; marks it seen), `PUT`/`DELETE /events/:id/order`, `POST /events/:id/decline`. Still to come:
-`PATCH /me` (name, language, reminders), `POST /me/password`, `GET`/`PUT
-/me/favourite`.
+order; marks it seen), `PUT`/`DELETE /events/:id/order`, `POST /events/:id/decline`. Also built:
+`PATCH /me` (name, language, reminders; not the email), `POST /me/password` (needs the current one,
+signs out other devices), `GET`/`PUT /me/favourite`.
 
 **Staff** (`/staff/…`, 401 signed out, 403 for customers)
 
@@ -93,8 +94,12 @@ order; marks it seen), `PUT`/`DELETE /events/:id/order`, `POST /events/:id/decli
 | `GET`/`POST /events`, `GET`/`PATCH`/`DELETE /events/:id`, `PUT /events/:id/menu`, `POST /events/:id/publish`, `POST /events/:id/cancel` | Drafts with a menu; publishing needs a menu and a future deadline; only drafts are deleted; cancelled events are frozen |
 
 Also built: `GET events/:id/guests` and `POST events/:id/invitations` (existing people and new ones,
-who get the account invitation in the same email). Still to come: `POST events/:id/reminders`,
-`GET events/:id/orders` (with prep totals) and `PATCH orders/:id` (baked).
+who get the account invitation in the same email), `GET events/:id/orders` (with prep totals),
+`PATCH orders/:id` (baked) and `POST events/:id/reminders` (everyone invited who has not ordered).
+
+Automatic reminders: a day before orders close to those without an order (not to anyone invited in
+the last 12 hours), and a day before the event to those with one, with their pizza. Each person can
+turn either off in their profile.
 
 ## Security
 
@@ -119,7 +124,8 @@ who get the account invitation in the same email). Still to come: `POST events/:
    S5, S6 on the canvas), at phone and desktop sizes.
 4. **The core loop** ✅ Event invitations and their emails (one email sets up a new person's account
    and shows the event), the guest's events, the pizza builder, the order ticket, declining.
-5. **Running the night:** orders and prep list, baked, reminders, profile and favourite pizza.
+5. **Running the night** ✅ Orders and prep list, baked, reminders (by hand and automatic), profile
+   and favourite pizza.
 6. **Cutover:** the VPS (Docker Compose, Caddy, Postgres, backups), the deploy pipeline, DNS for
    `dominos.kurelid.se`, importing `config/menu.json` as ingredients, removing WhatsApp and the
    `VITE_ACCOUNTS` flag.

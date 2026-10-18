@@ -44,7 +44,7 @@ export function createApp(deps: AppDeps) {
     return c.json({ ok: true });
   });
   app.route("/api/auth", authRoutes(deps));
-  app.route("/api/me", meRoutes());
+  app.route("/api/me", meRoutes(deps));
   app.route("/api/events", guestEventRoutes(deps));
   app.route("/api/staff", staffRoutes(deps));
 

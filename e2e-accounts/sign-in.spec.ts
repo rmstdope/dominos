@@ -36,6 +36,7 @@ test("the first staff member accepts the invitation, signs out and signs back in
   await page.reload();
   await expect(heading).toHaveText("Pizza events");
 
+  await page.getByRole("link", { name: "Profile" }).click();
   await page.getByRole("button", { name: /sign out/i }).click();
   await expect(heading).toHaveText(/pizza night, sorted/i);
 

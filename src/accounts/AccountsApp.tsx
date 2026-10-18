@@ -6,6 +6,7 @@ import { LanguageProvider } from "../i18n/LanguageContext";
 import { AuthLayout } from "./components";
 import { GuestEventPage } from "./guest/GuestEventPage";
 import { GuestEventsPage } from "./guest/GuestEventsPage";
+import { ProfilePage } from "./guest/ProfilePage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { InvitationPage } from "./pages/InvitationPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -14,6 +15,7 @@ import { SessionProvider } from "./SessionProvider";
 import { EventEditorPage } from "./staff/EventEditorPage";
 import { EventsPage } from "./staff/EventsPage";
 import { IngredientsPage } from "./staff/IngredientsPage";
+import { OrdersPage } from "./staff/OrdersPage";
 import { PeoplePage } from "./staff/PeoplePage";
 import { StaffLayout } from "./staff/StaffLayout";
 import { useAccountsText } from "./text";
@@ -68,6 +70,10 @@ export function AccountsRoutes() {
         path="/events/:id"
         element={me ? <GuestEventPage me={me} /> : <Navigate to="/sign-in" replace />}
       />
+      <Route
+        path="/profile"
+        element={me ? <ProfilePage me={me} /> : <Navigate to="/sign-in" replace />}
+      />
       <Route path="/sign-in" element={me ? <Navigate to="/" replace /> : <SignInPage />} />
       <Route path="/invitation" element={<InvitationPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -80,6 +86,7 @@ export function AccountsRoutes() {
         <Route path="events" element={<EventsPage />} />
         <Route path="events/new" element={<EventEditorPage />} />
         <Route path="events/:id" element={<EventEditorPage />} />
+        <Route path="events/:id/orders" element={<OrdersPage />} />
         <Route path="ingredients" element={<IngredientsPage />} />
         <Route path="people" element={staff && <PeoplePage me={staff} />} />
       </Route>

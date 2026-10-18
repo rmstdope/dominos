@@ -16,6 +16,7 @@ export function toMe(user: User): Me {
     name: user.name,
     role: user.role,
     language: user.language,
+    reminders: { beforeClose: user.remindBeforeClose, dayBefore: user.remindDayBefore },
   };
 }
 

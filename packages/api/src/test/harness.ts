@@ -38,7 +38,7 @@ export class Harness {
 
   async reset() {
     await this.database.db.execute(
-      sql`truncate users, auth_tokens, sessions, ingredient_groups, ingredients, events, event_ingredients, event_invitations, orders, order_toppings cascade`,
+      sql`truncate users, auth_tokens, sessions, ingredient_groups, ingredients, events, event_ingredients, event_invitations, orders, order_toppings, favourite_toppings, reminders_sent cascade`,
     );
     this.sent = [];
     this.now = new Date("2026-11-02T12:00:00Z");

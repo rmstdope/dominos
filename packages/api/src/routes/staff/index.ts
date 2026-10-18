@@ -4,6 +4,7 @@ import { requireStaff } from "../../http/session.ts";
 import { eventRoutes } from "./events.ts";
 import { ingredientRoutes } from "./ingredients.ts";
 import { invitationRoutes } from "./invitations.ts";
+import { orderRoutes } from "./orders.ts";
 import { peopleRoutes } from "./people.ts";
 
 /** Everything under /api/staff: 401 when signed out, 403 for customers. */
@@ -14,5 +15,6 @@ export function staffRoutes(deps: AppDeps) {
   routes.route("/", peopleRoutes(deps));
   routes.route("/", eventRoutes(deps));
   routes.route("/", invitationRoutes(deps));
+  routes.route("/", orderRoutes(deps));
   return routes;
 }

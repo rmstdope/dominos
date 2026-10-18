@@ -7,7 +7,7 @@ import { ApiRequestError } from "../api";
 import { formatWhen } from "../dates";
 import { Loaded } from "../staff/ui";
 import { errorMessage, useAccountsText } from "../text";
-import { useDecline, useGuestEvent, usePlaceOrder } from "./api";
+import { useDecline, useFavourite, useGuestEvent, usePlaceOrder, useSetFavourite } from "./api";
 import { GuestLayout } from "./GuestLayout";
 import { useGuestText, type GuestText } from "./text";
 
@@ -15,6 +15,7 @@ export function GuestEventPage({ me }: { me: Me }) {
   const { id = "" } = useParams();
   const t = useGuestText();
   const event = useGuestEvent(id);
+  const favourite = useFavourite();
   return (
     <GuestLayout me={me}>
       <Link
@@ -24,14 +25,33 @@ export function GuestEventPage({ me }: { me: Me }) {
         ← {t.allEvents}
       </Link>
       <Loaded query={event}>
-        {(detail) => <EventView key={detail.id} me={me} event={detail} />}
+        {(detail) => (
+          <Loaded query={favourite}>
+            {(fav) => (
+              <EventView
+                key={detail.id}
+                me={me}
+                event={detail}
+                favourite={fav.ingredients.map((i) => i.id)}
+              />
+            )}
+          </Loaded>
+        )}
       </Loaded>
     </GuestLayout>
   );
 }
 
 /** Builder while ordering is open and there is no order (or it is being changed); else the ticket. */
-function EventView({ me, event }: { me: Me; event: GuestEventDetail }) {
+function EventView({
+  me,
+  event,
+  favourite,
+}: {
+  me: Me;
+  event: GuestEventDetail;
+  favourite: string[];
+}) {
   const t = useGuestText();
   const { language } = useLanguage();
   const [editing, setEditing] = useState(false);
@@ -61,6 +81,7 @@ function EventView({ me, event }: { me: Me; event: GuestEventDetail }) {
         {header}
         <Builder
           event={event}
+          favourite={favourite}
           onPlaced={() => {
             setEditing(false);
             setJustPlaced(true);
@@ -213,12 +234,21 @@ function orderError(err: unknown, t: GuestText, a: ReturnType<typeof useAccounts
   return errorMessage(err, a);
 }
 
+/** Where a new order starts: the favourite, minus what this menu lacks, up to the limit. */
+function startingToppings(event: GuestEventDetail, favourite: string[]): string[] {
+  const available = new Set(event.menu.filter((m) => m.inStock).map((m) => m.id));
+  const picked = favourite.filter((id) => available.has(id));
+  return event.maxToppings === null ? picked : picked.slice(0, event.maxToppings);
+}
+
 function Builder({
   event,
+  favourite,
   onPlaced,
   onCancel,
 }: {
   event: GuestEventDetail;
+  favourite: string[];
   onPlaced: () => void;
   onCancel?: () => void;
 }) {
@@ -226,7 +256,11 @@ function Builder({
   const a = useAccountsText();
   const { language } = useLanguage();
   const place = usePlaceOrder(event.id);
-  const [picked, setPicked] = useState<string[]>(event.order?.toppingIds ?? []);
+  const saveFavourite = useSetFavourite();
+  const [picked, setPicked] = useState<string[]>(
+    () => event.order?.toppingIds ?? startingToppings(event, favourite),
+  );
+  const [asFavourite, setAsFavourite] = useState(false);
   const [makeOwn, setMakeOwn] = useState(event.order?.makeOwn ?? false);
   const [comment, setComment] = useState(event.order?.comment ?? "");
   const atLimit = event.maxToppings !== null && picked.length >= event.maxToppings;
@@ -239,7 +273,12 @@ function Builder({
     e.preventDefault();
     place.mutate(
       { toppingIds: picked, makeOwn, comment: comment.trim() || null },
-      { onSuccess: onPlaced },
+      {
+        onSuccess: () => {
+          if (asFavourite) saveFavourite.mutate(picked);
+          onPlaced();
+        },
+      },
     );
   };
 
@@ -321,6 +360,16 @@ function Builder({
           />
         </label>
       )}
+
+      <label className="mt-4 flex min-h-11 items-center gap-3 text-sm text-cream-300/80">
+        <input
+          type="checkbox"
+          checked={asFavourite}
+          onChange={(e) => setAsFavourite(e.target.checked)}
+          className="size-5 accent-cheese-400"
+        />
+        {t.saveFavourite}
+      </label>
 
       <label
         htmlFor="comment"
