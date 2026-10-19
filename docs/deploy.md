@@ -78,9 +78,27 @@ Repository → Settings → Secrets and variables → Actions:
 
 ## 5. Email
 
-Pick the sender and fill in `SMTP_URL` and `MAIL_FROM` in `/opt/dominos/.env`, e.g. a mailbox at
-one.com: `smtps://dominos%40kurelid.se:<password>@send.one.com:465` (the `@` in the username is
-written `%40`). Then `docker compose up -d` and invite yourself to check it arrives.
+Mail goes out through HostUp's relay, which needs no login: it trusts the VPS's address.
+
+1. In HostUp's DNS for `rmstdope.eu`, add three TXT records:
+
+   | Name                  | Value                                            |
+   | --------------------- | ------------------------------------------------ |
+   | `_hostup.rmstdope.eu` | `v=mc1 auth=h_MTM2LjE0OC4yMTUuODc=_29b82ae43920` |
+   | `rmstdope.eu`         | `v=spf1 include:spf.hostup.se ~all`              |
+   | `_dmarc.rmstdope.eu`  | `v=DMARC1; p=none`                               |
+
+   The first lets the relay send for the domain, the SPF record tells receivers to trust it, and
+   Gmail and Outlook want a DMARC record too.
+
+2. In `/opt/dominos/.env`:
+
+   ```sh
+   SMTP_URL=smtp://relay.hostup.se:587?requireTLS=true
+   MAIL_FROM=Dominos <dominos@rmstdope.eu>
+   ```
+
+   Then `docker compose up -d` and invite yourself to check it arrives (and not in spam).
 
 ## 6. Retire one.com
 

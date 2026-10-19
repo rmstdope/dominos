@@ -27,7 +27,7 @@ dominos.rmstdope.eu  →  HostUp VPS, Docker Compose
 The browser sees one origin, so there is no CORS and the session cookie is first-party. Reminder
 emails are sent by the API itself, which checks every ten minutes (no cron or GitHub Actions
 schedule to keep running); the `reminders_sent` table makes each one go out once. Email
-goes out through SMTP (a transactional provider or a kurelid.se mailbox), since VPS hosts often
+goes out through SMTP (HostUp's relay), since VPS hosts often
 block sending mail directly.
 
 | Path              | What                                                                       |

@@ -32,7 +32,7 @@ services:
       APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN, e.g. https://dominos.rmstdope.eu}
       TRUST_PROXY: "true"
       SMTP_URL: ${SMTP_URL:-}
-      MAIL_FROM: ${MAIL_FROM:-Dominos <dominos@kurelid.se>}
+      MAIL_FROM: ${MAIL_FROM:-Dominos <dominos@rmstdope.eu>}
     depends_on:
       db:
         condition: service_healthy

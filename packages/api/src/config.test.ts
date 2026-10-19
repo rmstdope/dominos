@@ -17,7 +17,7 @@ describe("loading the configuration", () => {
     const config = loadConfig({ SMTP_URL: "", DATABASE_URL: "", MAIL_FROM: "" });
     expect(config.smtpUrl).toBeUndefined();
     expect(config.databaseUrl).toBeUndefined();
-    expect(config.mailFrom).toBe("Dominos <dominos@kurelid.se>");
+    expect(config.mailFrom).toBe("Dominos <dominos@rmstdope.eu>");
   });
 
   it("uses secure cookies on an https origin", () => {

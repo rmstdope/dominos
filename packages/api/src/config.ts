@@ -13,7 +13,7 @@ const envSchema = z.object({
   PGLITE_DIR: z.string().min(1).default(".data/pglite"),
   /** e.g. smtps://user:password@smtp.example.com:465. Without it emails are printed to the log. */
   SMTP_URL: z.string().min(1).optional(),
-  MAIL_FROM: z.string().min(1).default("Dominos <dominos@kurelid.se>"),
+  MAIL_FROM: z.string().min(1).default("Dominos <dominos@rmstdope.eu>"),
   /** Session cookies are Secure unless this is false, which only plain-http local dev needs. */
   COOKIE_SECURE: boolean.optional(),
   /** Behind Caddy: take the client address from the last X-Forwarded-For hop. */
