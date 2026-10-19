@@ -91,6 +91,10 @@ Mail goes out through HostUp's relay, which needs no login: it trusts the VPS's 
    The first lets the relay send for the domain, the SPF record tells receivers to trust it, and
    Gmail and Outlook want a DMARC record too.
 
+   The relay also refuses a sender domain without an MX record (`554 5.7.27 Sender domain cannot
+receive mail`). Ours is `rmstdope.eu MX 10 mail.rmstdope.eu`, which is the VPS. Nothing there
+   receives mail, so replies and bounces are lost.
+
 2. In `/opt/dominos/.env`:
 
    ```sh
