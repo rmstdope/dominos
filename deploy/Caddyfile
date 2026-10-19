@@ -1,5 +1,5 @@
 # One site: the app and its API on the same origin, so the session cookie is first-party and
-# there is no CORS. SITE is the address Caddy serves, e.g. dominos.kurelid.se (it then gets and
+# there is no CORS. SITE is the address Caddy serves, e.g. dominos.rmstdope.eu (it then gets and
 # renews the certificate itself) or ":80" for a plain-HTTP test.
 {$SITE} {
 	encode zstd gzip

@@ -13,7 +13,7 @@ services:
       - "${HTTPS_PORT:-443}:443"
       - "${HTTPS_PORT:-443}:443/udp"
     environment:
-      SITE: ${SITE:?Set SITE, e.g. dominos.kurelid.se}
+      SITE: ${SITE:?Set SITE, e.g. dominos.rmstdope.eu}
     volumes:
       - caddy-data:/data
       - caddy-config:/config
@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://dominos:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/dominos
-      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN, e.g. https://dominos.kurelid.se}
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN, e.g. https://dominos.rmstdope.eu}
       TRUST_PROXY: "true"
       SMTP_URL: ${SMTP_URL:-}
       MAIL_FROM: ${MAIL_FROM:-Dominos <dominos@kurelid.se>}

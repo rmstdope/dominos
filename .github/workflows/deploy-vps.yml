@@ -7,7 +7,7 @@
 # Required repository configuration:
 #   secrets:   VPS_HOST (address), VPS_SSH_KEY (private key of the deploy user),
 #              VPS_KNOWN_HOSTS (the line `ssh-keyscan <host>` prints)
-#   variables: VPS_SITE (the address to check afterwards, e.g. https://dominos.kurelid.se)
+#   variables: VPS_SITE (the address to check afterwards, e.g. https://dominos.rmstdope.eu)
 name: Deploy to VPS
 
 on:

@@ -5,96 +5,89 @@ certificate, the API sits behind it, Postgres keeps the data, and a backup job d
 every night. Everything is in [`deploy/`](../deploy), and the whole stack is tested on every push
 by the **Production stack** workflow (`deploy/smoke-test.sh`).
 
-Until the switch, `dominos.kurelid.se` keeps serving the WhatsApp app from one.com. The steps
-below bring the VPS up next to it, test it on its own address, and only then move the domain.
+The new home is `dominos.rmstdope.eu` on the VPS at `136.148.215.87`; its DNS (at HostUp) already
+points there. Until the switch, `dominos.kurelid.se` keeps serving the WhatsApp app from one.com.
 
-## 1. Order and prepare the VPS
+## 1. Prepare the VPS
 
-1. Order a HostUp VPS: **Nano** (1 vCPU, 2 GB) is plenty. Pick **Ubuntu 26.04 LTS** (supported until 2031; 24.04 works too) and add your own
-   SSH key so you can log in as root.
-2. Make a key pair for the deploy workflow, on your own machine:
+You run these on your own machine, in this repository.
+
+1. Make an SSH key pair that only the GitHub deploy workflow will use. It is separate from your own
+   key so it can be revoked on its own, and it has no passphrase because nobody is there to type one:
 
    ```sh
    ssh-keygen -t ed25519 -N "" -C github-deploy -f ~/.ssh/dominos-deploy
    ```
 
-3. Prepare the server (installs Docker and a firewall, creates the `deploy` user, turns off
-   password logins and turns on security updates):
+   This writes `~/.ssh/dominos-deploy` (private, goes into a GitHub secret in step 3) and
+   `~/.ssh/dominos-deploy.pub` (public, goes onto the server next).
+
+2. Prepare the server with [`deploy/setup-vps.sh`](../deploy/setup-vps.sh). It installs Docker and
+   a firewall, creates the `deploy` user that logs in with the key above, turns off password logins
+   and turns on security updates. Copy it up and run it as root, which uses your own key from the
+   order:
 
    ```sh
-   scp deploy/setup-vps.sh root@<vps-ip>:
-   ssh root@<vps-ip> bash setup-vps.sh "$(cat ~/.ssh/dominos-deploy.pub)"
+   scp deploy/setup-vps.sh root@136.148.215.87:
+   ssh root@136.148.215.87 bash setup-vps.sh "$(cat ~/.ssh/dominos-deploy.pub)"
    ```
+
+   If HostUp gave you a root password rather than taking your key, first run
+   `ssh-copy-id root@136.148.215.87`: after the script, root can only log in with a key.
 
 ## 2. Settings on the server
 
 Make `/opt/dominos/.env` from [`deploy/.env.example`](../deploy/.env.example):
 
 ```sh
-ssh deploy@<vps-ip> -i ~/.ssh/dominos-deploy
-cd /opt/dominos && nano .env   # paste deploy/.env.example and fill it in
+ssh -i ~/.ssh/dominos-deploy deploy@136.148.215.87
+cd /opt/dominos && nano .env   # paste deploy/.env.example and fill in POSTGRES_PASSWORD
 chmod 600 .env
 ```
 
-For a first test before the domain moves, use the server's own address over plain HTTP:
-
-```sh
-SITE=:80
-APP_ORIGIN=http://<vps-ip>
-```
-
-`SMTP_URL` can stay empty to begin with: emails, invitation links included, then go to the API's
-log (`docker compose logs api`).
+`SITE` and `APP_ORIGIN` in the example are already `dominos.rmstdope.eu`. `SMTP_URL` can stay
+empty to begin with: emails, invitation links included, then go to the API's log
+(`docker compose logs api`).
 
 ## 3. Settings in GitHub
 
 Repository → Settings → Secrets and variables → Actions:
 
-| Kind     | Name              | Value                                         |
-| -------- | ----------------- | --------------------------------------------- |
-| secret   | `VPS_HOST`        | the VPS's IP address                          |
-| secret   | `VPS_SSH_KEY`     | the contents of `~/.ssh/dominos-deploy`       |
-| secret   | `VPS_KNOWN_HOSTS` | the output of `ssh-keyscan <vps-ip>`          |
-| variable | `VPS_SITE`        | `http://<vps-ip>` now, the real address later |
+| Kind     | Name              | Value                                      |
+| -------- | ----------------- | ------------------------------------------ |
+| secret   | `VPS_HOST`        | `136.148.215.87`                           |
+| secret   | `VPS_SSH_KEY`     | the contents of `~/.ssh/dominos-deploy`    |
+| secret   | `VPS_KNOWN_HOSTS` | the output of `ssh-keyscan 136.148.215.87` |
+| variable | `VPS_SITE`        | `https://dominos.rmstdope.eu`              |
 
 ## 4. Deploy and try it
 
 1. Actions → **Deploy to VPS** → Run workflow (from `main`). It builds the images, starts the stack
-   and checks the site answers.
+   (Caddy gets the HTTPS certificate on the first start) and checks the site answers.
 2. Create the first staff account and fill the pantry from the old menu:
 
    ```sh
-   ssh deploy@<vps-ip> -i ~/.ssh/dominos-deploy
+   ssh -i ~/.ssh/dominos-deploy deploy@136.148.215.87
    cd /opt/dominos
    docker compose exec api node packages/api/src/cli/create-staff.ts --email you@example.com --name "Your Name"
    docker compose exec api node packages/api/src/cli/import-menu.ts
    ```
 
-3. Open the printed invitation link (with the VPS's address in it), choose a password, and try the
-   whole night: an event, an invitation, an order.
+3. Open the printed invitation link, choose a password, and try the whole night: an event, an
+   invitation, an order.
 
 ## 5. Email
 
-Pick the sender and fill in `SMTP_URL` and `MAIL_FROM` in `/opt/dominos/.env`, e.g. a kurelid.se
-mailbox at one.com: `smtps://dominos%40kurelid.se:<password>@send.one.com:465` (the `@` in the
-username is written `%40`). Then `docker compose up -d` and invite yourself to check it arrives.
+Pick the sender and fill in `SMTP_URL` and `MAIL_FROM` in `/opt/dominos/.env`, e.g. a mailbox at
+one.com: `smtps://dominos%40kurelid.se:<password>@send.one.com:465` (the `@` in the username is
+written `%40`). Then `docker compose up -d` and invite yourself to check it arrives.
 
-## 6. Move the domain
+## 6. Retire one.com
 
-1. In one.com's DNS for kurelid.se, point `dominos` at the VPS: an `A` record to its IPv4 address
-   (and `AAAA` to its IPv6 one). Delete whatever `dominos` pointed at before.
-2. When `dig +short dominos.kurelid.se` shows the VPS, set in `/opt/dominos/.env`:
-
-   ```sh
-   SITE=dominos.kurelid.se
-   APP_ORIGIN=https://dominos.kurelid.se
-   ```
-
-   and `docker compose up -d`. Caddy gets the certificate within a minute.
-
-3. Set the GitHub variable `VPS_SITE` to `https://dominos.kurelid.se`.
-4. Last, in the code: deploys on every green CI run go to the VPS, the one.com workflow and the
-   WhatsApp app go away, and the accounts app stops needing `VITE_ACCOUNTS`.
+1. Tell people the new address. Optionally point `dominos.kurelid.se` at the new site with a
+   redirect in one.com's control panel.
+2. In the code: deploys on every green CI run go to the VPS, the one.com workflow and the WhatsApp
+   app go away, and the accounts app stops needing `VITE_ACCOUNTS`.
 
 ## Running it
 

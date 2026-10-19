@@ -21,9 +21,9 @@ describe("loading the configuration", () => {
   });
 
   it("uses secure cookies on an https origin", () => {
-    const config = loadConfig({ APP_ORIGIN: "https://dominos.kurelid.se/", TRUST_PROXY: "true" });
+    const config = loadConfig({ APP_ORIGIN: "https://dominos.rmstdope.eu/", TRUST_PROXY: "true" });
     expect(config).toMatchObject({
-      appOrigin: "https://dominos.kurelid.se",
+      appOrigin: "https://dominos.rmstdope.eu",
       cookieSecure: true,
       trustProxy: true,
     });

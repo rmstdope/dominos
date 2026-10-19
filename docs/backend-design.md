@@ -18,7 +18,7 @@ are invited to. The screens are mocked up on the
 ## Architecture
 
 ```
-dominos.kurelid.se  →  HostUp VPS, Docker Compose
+dominos.rmstdope.eu  →  HostUp VPS, Docker Compose
   Caddy     automatic HTTPS; serves the React build and proxies /api/* to the API
   API       Hono on Node 22+, run straight from TypeScript (Node type stripping)
   Postgres  migrations applied by the API on start; nightly pg_dump plus HostUp snapshots
@@ -126,7 +126,7 @@ turn either off in their profile.
    and shows the event), the guest's events, the pizza builder, the order ticket, declining.
 5. **Running the night** ✅ Orders and prep list, baked, reminders (by hand and automatic), profile
    and favourite pizza.
-6. **Cutover:** the VPS, the deploy pipeline, DNS for `dominos.kurelid.se`, importing
+6. **Cutover:** the VPS, the deploy pipeline, the new address `dominos.rmstdope.eu`, importing
    `config/menu.json` as ingredients, removing WhatsApp and the `VITE_ACCOUNTS` flag. ✅ Ready:
    the images, the compose stack with backups, the server setup script, the deploy workflow and
    the menu import, all tested together by the Production stack workflow. The checklist for the
