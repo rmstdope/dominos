@@ -94,7 +94,7 @@ test("staff set up the pantry, plan an event and invite a guest", async ({ page 
 
 /** The last link the API "emailed" to `email`, from its log. */
 function lastLinkTo(email: string): string {
-  const log = readFileSync(".e2e-accounts/api.log", "utf8");
+  const log = readFileSync(".e2e/api.log", "utf8");
   const emails = log.split("--- email to ").filter((e) => e.startsWith(email));
   const link = emails.at(-1)?.match(/https?:\/\/\S+/)?.[0];
   if (!link) throw new Error(`No email to ${email} in the API log`);

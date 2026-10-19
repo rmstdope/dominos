@@ -56,7 +56,7 @@ check "an invitation from create-staff signs the first staff member in"
 compose exec -T api node packages/api/src/cli/import-menu.ts
 groups="$(curl -fsS -b "$jar" "$base/api/staff/ingredient-groups" | jq length)"
 [ "$groups" -gt 0 ] || fail "the menu import added no groups"
-check "the WhatsApp menu imports into the pantry ($groups groups)"
+check "the old menu imports into the pantry ($groups groups)"
 
 compose restart api >/dev/null
 compose up -d --wait --wait-timeout 60 >/dev/null

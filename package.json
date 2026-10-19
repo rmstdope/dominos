@@ -2,7 +2,7 @@
   "name": "dominos",
   "version": "1.0.0",
   "private": true,
-  "description": "Pick your pizza toppings and send the order to the baker on WhatsApp.",
+  "description": "Pizza nights: staff plan events and invite people, guests order their pizza.",
   "type": "module",
   "packageManager": "pnpm@11.24.0",
   "engines": {
@@ -21,9 +21,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run format:check && pnpm run test && pnpm run build && pnpm run test:e2e && pnpm run test:e2e:accounts",
-    "build:accounts": "VITE_ACCOUNTS=true vite build --outDir dist-accounts",
-    "test:e2e:accounts": "playwright test -c playwright.accounts.config.ts"
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run format:check && pnpm run test && pnpm run build && pnpm run test:e2e"
   },
   "dependencies": {
     "@dominos/shared": "workspace:*",

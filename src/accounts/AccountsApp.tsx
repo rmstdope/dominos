@@ -21,7 +21,7 @@ import { StaffLayout } from "./staff/StaffLayout";
 import { useAccountsText } from "./text";
 import { useSession } from "./useSession";
 
-/** The app with accounts. Built only with VITE_ACCOUNTS=true until it replaces the WhatsApp app. */
+/** The app: sign-in, the staff screens and the guest screens. */
 export function AccountsApp() {
   const [queryClient] = useState(() => new QueryClient());
   return (

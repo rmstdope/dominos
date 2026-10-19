@@ -26,7 +26,6 @@ export function LanguageProvider({
     () => ({
       language,
       t: translations[language],
-      l: (text) => text[language],
       setLanguage: (next) => {
         setLanguageState(next);
         saveLanguage(next);

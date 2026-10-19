@@ -7,6 +7,5 @@ test-results/
 *.local
 .data/
 .env
-dist-accounts/
-.e2e-accounts/
+.e2e/
 deploy/backups/

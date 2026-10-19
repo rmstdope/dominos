@@ -15,7 +15,7 @@ describe("LanguageProvider", () => {
     vi.spyOn(navigator, "language", "get").mockReturnValue("sv-SE");
     const { result } = renderHook(() => useLanguage(), { wrapper });
     expect(result.current.language).toBe("sv");
-    expect(result.current.t.nameTitle).toBe("Vem är hungrig?");
+    expect(result.current.t.language).toBe("Språk");
   });
 
   it("prefers a remembered language over the browser locale", () => {
@@ -25,13 +25,13 @@ describe("LanguageProvider", () => {
     expect(result.current.language).toBe("en");
   });
 
-  it("switches, remembers and resolves localized config strings", () => {
+  it("switches and remembers the language", () => {
     vi.spyOn(navigator, "language", "get").mockReturnValue("en-US");
     const { result } = renderHook(() => useLanguage(), { wrapper });
-    expect(result.current.l({ en: "Ham", sv: "Skinka" })).toBe("Ham");
+    expect(result.current.t.language).toBe("Language");
     act(() => result.current.setLanguage("sv"));
     expect(result.current.language).toBe("sv");
-    expect(result.current.l({ en: "Ham", sv: "Skinka" })).toBe("Skinka");
+    expect(result.current.t.language).toBe("Språk");
     expect(window.localStorage.getItem("dominos.language")).toBe("sv");
     expect(document.documentElement.lang).toBe("sv");
   });

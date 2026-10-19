@@ -1,6 +1,6 @@
 # Backend design
 
-Dominos is moving from a static page that sends orders over WhatsApp to an app with accounts. Staff
+Dominos began as a static page that sent orders over WhatsApp and is now an app with accounts. Staff
 plan pizza events, pick the menu, invite people and see orders; customers order for the events they
 are invited to. The screens are mocked up on the
 [design canvas](https://claude.ai/artifact/NLMMJjZcGKJ4zX6YAdZzJr) (direction A, "Late oven").
@@ -30,11 +30,11 @@ schedule to keep running); the `reminders_sent` table makes each one go out once
 goes out through SMTP (HostUp's relay), since VPS hosts often
 block sending mail directly.
 
-| Path              | What                                                                       |
-| ----------------- | -------------------------------------------------------------------------- |
-| `/` (repo root)   | The React app. Moves to `apps/web` at cutover, when its deploy changes too |
-| `packages/shared` | zod schemas and types for every request and response                       |
-| `packages/api`    | The API, its Drizzle schema and SQL migrations (`drizzle/`)                |
+| Path              | What                                                        |
+| ----------------- | ----------------------------------------------------------- |
+| `/` (repo root)   | The React app                                               |
+| `packages/shared` | zod schemas and types for every request and response        |
+| `packages/api`    | The API, its Drizzle schema and SQL migrations (`drizzle/`) |
 
 Tests and local dev use [PGlite](https://pglite.dev), Postgres compiled to WebAssembly, so neither
 needs Docker. Production uses a real Postgres with the same schema and queries.
@@ -126,10 +126,7 @@ turn either off in their profile.
    and shows the event), the guest's events, the pizza builder, the order ticket, declining.
 5. **Running the night** ✅ Orders and prep list, baked, reminders (by hand and automatic), profile
    and favourite pizza.
-6. **Cutover:** the VPS, the deploy pipeline, the new address `dominos.rmstdope.eu`, importing
-   `config/menu.json` as ingredients, removing WhatsApp and the `VITE_ACCOUNTS` flag. ✅ Ready:
-   the images, the compose stack with backups, the server setup script, the deploy workflow and
-   the menu import, all tested together by the Production stack workflow. The checklist for the
-   switch itself is in [deploy.md](deploy.md).
-
-The current app keeps working, and deploying to one.com, until step 6.
+6. **Cutover** ✅ The VPS at `dominos.rmstdope.eu`, deployed after every green CI run, with
+   nightly backups and email through HostUp's relay; `config/menu.json` imported as ingredients.
+   The WhatsApp app, its one.com deploy and the `VITE_ACCOUNTS` flag are gone. Running it is
+   described in [deploy.md](deploy.md).

@@ -1,11 +1,9 @@
 import { createContext } from "react";
-import type { Language, Localized, Translations } from "./translations";
+import type { Language, Translations } from "./translations";
 
 export type LanguageContextValue = {
   language: Language;
   t: Translations;
-  /** Resolves a config string given in every language to the current one. */
-  l: (text: Localized) => string;
   setLanguage: (language: Language) => void;
 };
 

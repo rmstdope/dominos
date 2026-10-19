@@ -15,7 +15,7 @@ export default mergeConfig(
             env: { TZ: "Europe/Stockholm" },
             globals: true,
             setupFiles: ["./src/test/setup.ts"],
-            include: ["src/**/*.test.{ts,tsx}", "config/**/*.test.ts"],
+            include: ["src/**/*.test.{ts,tsx}"],
           },
         },
         // Has its own config: Node instead of jsdom, and none of the React setup.

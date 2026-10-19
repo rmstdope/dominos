@@ -5,7 +5,7 @@ test.use({ locale: "en-GB" });
 
 /** The link create-staff printed before the API started. */
 function invitationLink(): string {
-  const printed = readFileSync(".e2e-accounts/invitation.txt", "utf8");
+  const printed = readFileSync(".e2e/invitation.txt", "utf8");
   const link = printed.match(/https?:\/\/\S+\/invitation#\S+/)?.[0];
   if (!link) throw new Error(`No invitation link in: ${printed}`);
   return link;

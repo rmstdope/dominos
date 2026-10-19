@@ -1,18 +1,12 @@
 # Regression protection for every pull request and every push to main: lint, types, formatting,
-# unit tests, a production build and end-to-end tests against that build served statically.
-#
-# Skipped when the only change is config/menu.json: that is the baker's content, not code. Such a
-# push is published by the Deploy workflow directly, which validates the menu before building it.
+# unit and API tests, a production build and end-to-end tests of that build against the real API.
+# A green run on main is deployed by the Deploy to VPS workflow.
 name: CI
 
 on:
   pull_request:
-    paths-ignore:
-      - "config/menu.json"
   push:
     branches: [main]
-    paths-ignore:
-      - "config/menu.json"
 
 permissions:
   contents: read
@@ -68,22 +62,9 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: End-to-end tests against the static build
+      # The build against the real API on an embedded database.
+      - name: End-to-end tests
         run: pnpm run test:e2e
-
-      # The app with accounts (VITE_ACCOUNTS=true) against the real API on an embedded database.
-      # Not deployed yet; this keeps it working until it replaces the app above.
-      - name: End-to-end tests of the app with accounts
-        run: pnpm run test:e2e:accounts
-
-      # The Deploy workflow publishes these exact bytes rather than rebuilding them.
-      - name: Keep the tested build for Deploy
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: site
-          path: dist/
-          retention-days: 7
 
       - name: Upload Playwright report
         if: failure()

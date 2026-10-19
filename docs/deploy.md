@@ -1,12 +1,13 @@
-# Moving Dominos to the HostUp VPS
+# Running Dominos on the HostUp VPS
 
-The app with accounts runs on one VPS with Docker Compose: Caddy serves the app and gets the HTTPS
+Dominos runs on one VPS with Docker Compose: Caddy serves the app and gets the HTTPS
 certificate, the API sits behind it, Postgres keeps the data, and a backup job dumps the database
 every night. Everything is in [`deploy/`](../deploy), and the whole stack is tested on every push
 by the **Production stack** workflow (`deploy/smoke-test.sh`).
 
-The new home is `dominos.rmstdope.eu` on the VPS at `136.148.215.87`; its DNS (at HostUp) already
-points there. Until the switch, `dominos.kurelid.se` keeps serving the WhatsApp app from one.com.
+It lives at `dominos.rmstdope.eu`, on the VPS at `136.148.215.87`; the domain's DNS is at HostUp.
+Every green CI run on `main` is deployed by the **Deploy to VPS** workflow. The steps below set up
+a server from scratch, as was done for this one.
 
 ## 1. Prepare the VPS
 
@@ -104,13 +105,6 @@ receive mail`). Ours is `rmstdope.eu MX 10 mail.rmstdope.eu`, which is the VPS. 
 
    Then `docker compose up -d` and invite yourself to check it arrives (and not in spam).
 
-## 6. Retire one.com
-
-1. Tell people the new address. Optionally point `dominos.kurelid.se` at the new site with a
-   redirect in one.com's control panel.
-2. In the code: deploys on every green CI run go to the VPS, the one.com workflow and the WhatsApp
-   app go away, and the accounts app stops needing `VITE_ACCOUNTS`.
-
 ## Running it
 
 | To                   | On the server, in `/opt/dominos`                                                                                        |
@@ -118,7 +112,7 @@ receive mail`). Ours is `rmstdope.eu MX 10 mail.rmstdope.eu`, which is the VPS. 
 | See what is running  | `docker compose ps`                                                                                                     |
 | Read the logs        | `docker compose logs -f api` (or `web`, `db`, `backup`)                                                                 |
 | Restart after `.env` | `docker compose up -d`                                                                                                  |
-| Roll back            | run **Deploy to VPS** again from an older commit                                                                        |
+| Roll back            | revert the commit on `main`: CI tests the revert and deploys it                                                         |
 | Restore a backup     | `gunzip -c backups/dominos-<date>.sql.gz \| docker compose exec -T db psql -U dominos dominos` (into an empty database) |
 | Make someone staff   | `docker compose exec api node packages/api/src/cli/create-staff.ts --email … --name …`                                  |
 

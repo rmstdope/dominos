@@ -1,8 +1,9 @@
-# Publishes the app with accounts to the HostUp VPS: builds both images, pushes them to the GitHub
+# Publishes Dominos to the HostUp VPS: builds both images, pushes them to the GitHub
 # container registry, copies deploy/compose.yaml to the server and restarts what changed. The API
 # applies database migrations itself when it starts. See docs/deploy.md.
 #
-# Run by hand from the Actions tab until the switch-over; then it takes over from Deploy.
+# Runs after every green CI run on main, for exactly the commit CI tested. Running it by hand
+# deploys main as it is now.
 #
 # Required repository configuration:
 #   secrets:   VPS_HOST (address), VPS_SSH_KEY (private key of the deploy user),
@@ -12,6 +13,10 @@ name: Deploy to VPS
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -26,12 +31,19 @@ env:
 
 jobs:
   deploy:
+    # Only CI runs for pushes to main: a pull request from a fork's own "main" branch also matches.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Refuse to publish anything but main
         env:
-          REF: ${{ github.ref_name }}
+          REF: ${{ github.event.workflow_run.head_branch || github.ref_name }}
         run: |
           if [ "$REF" != "main" ]; then
             echo "::error::Refusing to deploy '$REF'. This workflow publishes the live site and runs only from main."
@@ -57,6 +69,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
 
       - name: Log in to the container registry
         env:
@@ -64,11 +78,9 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: printf '%s' "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
 
-      # Tagged with the commit, so a deploy can be traced and redone, and as latest, which is what
-      # the server runs. Deploying an older commit again is a rollback.
+      # Tagged with the commit, so a deploy can be traced, and as latest, which is what the server
+      # runs. To roll back, revert on main: CI tests the revert and this deploys it.
       - name: Build and push the images
-        env:
-          SHA: ${{ github.sha }}
         run: |
           for image in api web; do
             docker build -f "deploy/$image.Dockerfile" \

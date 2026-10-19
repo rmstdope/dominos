@@ -1,63 +1,42 @@
 # Dominos 🍕
 
-A tiny static web app: type your name, pick your toppings, send the order to the baker on
-WhatsApp. Live at [dominos.kurelid.se](https://dominos.kurelid.se).
+Pizza nights, ordered ahead. Staff plan an event, choose its menu from the pantry and invite
+people by email; guests sign in, build their pizza before orders close, and staff see the orders
+and a prep list on the night. Live at [dominos.rmstdope.eu](https://dominos.rmstdope.eu).
 
-## Configure the menu
-
-Everything a baker changes lives in **`config/menu.json`**:
-
-- `recipient.name` (in both languages) and `recipient.whatsappNumber` – who receives the order.
-  The number is in international format with digits only (no `+`, spaces or leading zeros), e.g.
-  `46701234567`.
-- `note` – optional text shown above the toppings, in both languages, e.g. that every pizza comes
-  with tomato sauce and cheese. Remove it to show nothing.
-- `toppings` – the list on offer. Each has an `id` (lowercase, dashes), an `emoji`, and a `name`
-  and `group` given in both languages: `{ "en": "Ham", "sv": "Skinka" }`. Groups appear in the
-  order they are first used.
-- `maxToppings` – optional cap per pizza. Remove it for no limit.
-
-The test suite validates the file, so a typo fails CI with a message naming the field.
+Everything is invite-only: nobody can register, an account is created by accepting an invitation,
+and guests only see the events they were invited to. One pizza per person per event. The design,
+data model and API are in [docs/backend-design.md](docs/backend-design.md).
 
 ## Languages
 
-The app is in English and Swedish. A toggle in the header switches between them, the choice is
-remembered in the browser, and the first visit follows the browser language. All UI strings live in
-`src/i18n/translations.ts`; topping and group names come from `config/menu.json`. The message to
-the baker is written in whichever language the customer is using.
+English and Swedish, emails included. A toggle in the header switches between them, the choice is
+remembered in the browser, and the first visit follows the browser language. Ingredient and group
+names are entered by staff in both languages.
 
-## How sending works
+## Layout
 
-The last screen is a [`wa.me`](https://faq.whatsapp.com/5913398998672934) link with the recipient
-and message pre-filled. On iOS and Android it opens the WhatsApp app; on a desktop it opens
-WhatsApp Web. The user just taps send. There is no backend and no data is stored anywhere except
-the customer's name in their own browser.
+| Path              | What                                                                  |
+| ----------------- | --------------------------------------------------------------------- |
+| `src/`            | The React app: `src/accounts/` has the screens, `src/i18n/` languages |
+| `packages/api`    | The API (Hono, Drizzle, Postgres), its migrations in `drizzle/`       |
+| `packages/shared` | zod schemas and types shared by the API and the app                   |
+| `deploy/`         | Images, the compose stack, the server setup script and a smoke test   |
+| `e2e/`            | Playwright tests of the build against the real API                    |
+
+Stack: Vite, React 19, TypeScript, Tailwind CSS 4, TanStack Query, React Router, Hono, Drizzle,
+Vitest + Testing Library, Playwright.
 
 ## Develop
 
 ```sh
 pnpm install
-pnpm dev            # Vite dev server with hot reload
-pnpm test:watch     # Vitest in watch mode
-pnpm check          # everything CI runs: lint, types, format, unit, build, e2e
-```
-
-Stack: Vite, React 19, TypeScript, Tailwind CSS 4, Vitest + Testing Library, Playwright.
-
-## The API (in progress)
-
-The app is getting accounts, events and orders; see [docs/backend-design.md](docs/backend-design.md).
-The API lives in `packages/api` (Hono, Drizzle, Postgres) and shares its request and response types
-with the frontend through `packages/shared`. Nothing uses it in production yet.
-
-The new frontend lives in `src/accounts/` and is only built when `VITE_ACCOUNTS=true`; a normal
-build is still the WhatsApp app, unchanged, so the live site cannot pick it up by accident.
-
-```sh
-pnpm dev:api        # the API on :3000; `pnpm dev` proxies /api to it
+pnpm dev:api        # the API on :3000
+pnpm dev            # the app on :5173, with /api proxied to the API
 pnpm --filter @dominos/api create-staff --email you@example.com --name "Your Name"
-VITE_ACCOUNTS=true pnpm dev    # the app with accounts, against that API
-pnpm test:e2e:accounts         # end to end: the real API and an accounts build
+pnpm --filter @dominos/api import-menu   # optional: fill the pantry from config/menu.json
+pnpm test:watch     # Vitest in watch mode
+pnpm check          # everything CI runs: lint, types, format, unit and API tests, build, e2e
 ```
 
 Locally the API needs no database server: without `DATABASE_URL` it keeps an embedded
@@ -69,21 +48,13 @@ the API applies migrations when it starts.
 
 ## Deploy
 
-`pnpm build` writes a plain static site to `dist/`, servable by any HTTP server.
-
-Every push to `main` runs CI, and a green CI run triggers the `Deploy` workflow, which uploads the
-exact build CI tested over SFTP to one.com and checks the live site serves it. A push that changes
-only `config/menu.json` skips CI and goes straight to `Deploy`, which validates the menu, builds
-and uploads. It can also be run by hand from the Actions tab (builds after the unit tests pass).
+Every push to `main` runs CI, and a green CI run triggers **Deploy to VPS**: it builds the web and
+API images for that commit, pushes them to the GitHub container registry and restarts the stack on
+the HostUp VPS, then checks the site answers. The **Production stack** workflow tests the images and
+the compose stack together whenever they could have changed. To roll back, revert on `main`.
 
 CI runs in Playwright's container image, whose tag in `.github/workflows/ci.yml` must match the
-`@playwright/test` version in the lockfile; CI fails with a pointer to it when they drift. The workflow needs these
-repository settings:
+`@playwright/test` version in the lockfile; CI fails with a pointer to it when they drift.
 
-| Kind     | Name                    | Meaning                                    |
-| -------- | ----------------------- | ------------------------------------------ |
-| secret   | `ONECOM_FTP_SERVER`     | SFTP host                                  |
-| secret   | `ONECOM_FTP_USERNAME`   | SFTP user                                  |
-| secret   | `ONECOM_FTP_PASSWORD`   | SFTP password                              |
-| variable | `ONECOM_FTP_SERVER_DIR` | Directory that `dominos.kurelid.se` serves |
-| variable | `ONECOM_SFTP_PORT`      | Optional, defaults to 22                   |
+Setting up the server, the repository secrets, email and backups, and running it day to day, are in
+[docs/deploy.md](docs/deploy.md).
