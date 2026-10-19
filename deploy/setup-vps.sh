@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Prepares a fresh Ubuntu 26.04 (or 24.04) VPS for Dominos. Run once, as root, with the public key the deploy
-# workflow will log in with:
+# Prepares a fresh Ubuntu 26.04 (or 24.04) VPS for Dominos. Run once, as root, with the public key
+# the deploy workflow will log in with on standard input:
 #
 #   scp deploy/setup-vps.sh root@<vps>:
-#   ssh root@<vps> bash setup-vps.sh "ssh-ed25519 AAAA… github-deploy"
+#   ssh root@<vps> bash setup-vps.sh < ~/.ssh/dominos-deploy.pub
+#
+# (Not as an argument: ssh hands the server one command line, which splits the key at its spaces.)
 #
 # It is safe to run again. Afterwards: a `deploy` user that may run Docker, /opt/dominos owned by
 # it, a firewall that lets in only SSH, HTTP and HTTPS, SSH without passwords, and automatic
@@ -14,11 +16,11 @@ if [ "$(id -u)" -ne 0 ]; then
   echo "Run this as root." >&2
   exit 1
 fi
-deploy_key="${1:-}"
+read -r deploy_key || true
 case "$deploy_key" in
-  ssh-*) ;;
+  ssh-*\ ?*) ;;
   *)
-    echo "Usage: bash setup-vps.sh \"ssh-ed25519 AAAA… github-deploy\"" >&2
+    echo "Usage: bash setup-vps.sh < ~/.ssh/dominos-deploy.pub" >&2
     exit 1
     ;;
 esac

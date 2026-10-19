@@ -29,7 +29,7 @@ You run these on your own machine, in this repository.
 
    ```sh
    scp deploy/setup-vps.sh root@136.148.215.87:
-   ssh root@136.148.215.87 bash setup-vps.sh "$(cat ~/.ssh/dominos-deploy.pub)"
+   ssh root@136.148.215.87 bash setup-vps.sh < ~/.ssh/dominos-deploy.pub
    ```
 
    If HostUp gave you a root password rather than taking your key, first run
