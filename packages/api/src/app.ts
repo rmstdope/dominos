@@ -15,7 +15,7 @@ function clientIp(trustProxy: boolean): MiddlewareHandler<AppEnv> {
   return async (c, next) => {
     let ip: string | undefined;
     if (trustProxy) {
-      // Caddy appends the address it saw, so the last hop is the one nobody can forge.
+      // Caddy hands over the visitor's address alone (deploy/Caddyfile), as the last hop.
       ip = c.req.header("x-forwarded-for")?.split(",").at(-1)?.trim();
     }
     if (!ip) {

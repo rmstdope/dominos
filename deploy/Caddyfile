@@ -4,7 +4,8 @@
 # Behind the VPS's shared edge Caddy, which serves the other sites on 80/443 and forwards
 # dominos.rmstdope.eu here over Docker's network. X-Forwarded-For is believed only from private
 # (Docker) addresses and read right to left, so {client_ip} is the visitor the edge saw and a
-# client cannot forge it. Reached directly, as in the smoke test, it is simply the remote address.
+# client cannot forge it. Reached directly, as in the smoke test, visitors arrive from Docker's
+# private gateway, which is trusted too: so in production the ports are published on loopback only.
 {
 	servers {
 		trusted_proxies static private_ranges

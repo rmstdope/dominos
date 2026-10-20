@@ -124,7 +124,22 @@ HTTPS_PORT=127.0.0.1:8443
 `APP_ORIGIN` stays `https://dominos.rmstdope.eu`: it is still the address visitors use, and it
 keeps the session cookie secure. The [`Caddyfile`](../deploy/Caddyfile) believes `X-Forwarded-For`
 only from private (Docker) addresses and hands the API the visitor's address alone, so the API's
-rate limits still count each visitor, not the edge. Without the edge the same file works as before.
+rate limits still count each visitor, not the edge.
+
+That trust covers Docker's own gateway address too, which is where a visitor reaching a published
+port appears from. So on the server these ports stay on loopback: published on the public address
+without the edge, a visitor could send their own `X-Forwarded-For` and slip the rate limits.
+
+Switching an existing server over, in this order:
+
+1. Change `/opt/dominos/.env` as above, then `cd /opt/dominos && docker compose up -d --wait`. The
+   ports are freed and Dominos is unreachable until the next step, a few seconds.
+2. Start the edge (`cd /opt/edge && docker compose up -d`, set up as the RetroQuest repository's
+   `docs/deploy.md` describes). It joins `dominos_default`, so Dominos must be up first, and it gets
+   a fresh certificate for `dominos.rmstdope.eu` on its first start.
+
+If the network is ever recreated (`docker compose down` in `/opt/dominos`), restart the edge too:
+`cd /opt/edge && docker compose restart`. The old `caddy-data` volume is no longer used.
 
 The deploy workflow's check of `VPS_SITE` goes through the edge, so it still proves the site
 answers.
