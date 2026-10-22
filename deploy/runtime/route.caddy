@@ -1,4 +1,5 @@
 dominos.rmstdope.eu {
+	encode zstd gzip
 	@api path /api /api/*
 	handle @api {
 		reverse_proxy dominos-api:3000

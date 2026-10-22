@@ -63,7 +63,7 @@ grep -qi 'set-cookie:.*Secure' deploy/.smoke/headers || fail "session cookie mus
 [ "$(curl -fsS -b "$jar" "$base/api/me" | jq -r .role)" = staff ] || fail "invitation sign-in"
 # Cross-origin requests must still be refused through the shared proxy.
 [ "$(curl -sS -o /dev/null -w '%{http_code}' -H 'Origin: https://evil.invalid' \
-  -H 'Content-Type: application/json' -d '{}' "$base/api/auth/sign-in")" = 403 ] || fail "CSRF"
+  -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=attacker' "$base/api/auth/sign-in")" = 403 ] || fail "CSRF"
 [ "$(compose exec -T db psql -U dominos -d dominos -Atc \
   "select count(*) from information_schema.columns where table_name='users' and column_name='remind_before_close'")" = 0 ] ||
   fail "baseline must predate the additive migration"

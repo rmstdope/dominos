@@ -73,7 +73,7 @@ test("rerunning publication preserves the current run's immutable manifest", (t)
     esac`,
   );
   executable(dir, "unzip", `printf '%s' '${JSON.stringify(manifest)}'`);
-  // The real jq validates immutable repositories/revision; only network/archive transport is fake.
+  // Real validation checks immutable repositories/revision; only network/archive transport is fake.
   const result = spawnSync("bash", [resolve("deploy/preserve-manifest.sh")], {
     cwd: dir,
     encoding: "utf8",

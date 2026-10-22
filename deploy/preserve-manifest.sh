@@ -11,11 +11,21 @@ for run in $runs; do
   [ -n "$artifact" ] || continue
   gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact/zip" > publication/existing.zip
   unzip -p publication/existing.zip deployment.json > publication/deployment.json
-  jq -e --arg revision "$REVISION" --arg owner "$GITHUB_REPOSITORY_OWNER" '
-    .revision == $revision and (.images | keys == ["api","web"]) and
-    (.images.web | test("^ghcr.io/" + $owner + "/dominos-web@sha256:[0-9a-f]{64}$")) and
-    (.images.api | test("^ghcr.io/" + $owner + "/dominos-api@sha256:[0-9a-f]{64}$"))
-  ' publication/deployment.json >/dev/null
+  node --input-type=module - "$REVISION" "$GITHUB_REPOSITORY_OWNER" <<'JS'
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const [revision, owner] = process.argv.slice(2);
+const manifest = JSON.parse(readFileSync("publication/deployment.json", "utf8"));
+assert.equal(Object.keys(manifest).sort().join(","), "images,revision");
+assert.equal(manifest.revision, revision);
+assert.equal(Object.keys(manifest.images).sort().join(","), "api,web");
+for (const service of ["api", "web"]) {
+  const prefix = `ghcr.io/${owner}/dominos-${service}@sha256:`;
+  const ref = manifest.images[service];
+  assert(typeof ref === "string" && ref.startsWith(prefix) &&
+    /^[a-f0-9]{64}$/.test(ref.slice(prefix.length)), "Invalid immutable image reference");
+}
+JS
   echo "preserved=true" >> "$GITHUB_OUTPUT"
   if [ "$run" = "$GITHUB_RUN_ID" ]; then echo "artifact_exists=true" >> "$GITHUB_OUTPUT"; fi
   echo "Preserving previously tested revision manifest from run $run"
