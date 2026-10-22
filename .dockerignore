@@ -9,3 +9,12 @@ test-results
 **/.data
 **/.env
 *.tsbuildinfo
+config/*
+!config/menu.json
+deploy/.smoke
+deploy/backups
+**/*.env
+**/*.env.*
+**/*secret*
+**/*.dump
+**/*.sql.gz

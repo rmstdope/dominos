@@ -16,13 +16,13 @@ names are entered by staff in both languages.
 
 ## Layout
 
-| Path              | What                                                                  |
-| ----------------- | --------------------------------------------------------------------- |
-| `src/`            | The React app: `src/accounts/` has the screens, `src/i18n/` languages |
-| `packages/api`    | The API (Hono, Drizzle, Postgres), its migrations in `drizzle/`       |
-| `packages/shared` | zod schemas and types shared by the API and the app                   |
-| `deploy/`         | Images, the compose stack, the server setup script and a smoke test   |
-| `e2e/`            | Playwright tests of the build against the real API                    |
+| Path              | What                                                                    |
+| ----------------- | ----------------------------------------------------------------------- |
+| `src/`            | The React app: `src/accounts/` has the screens, `src/i18n/` languages   |
+| `packages/api`    | The API (Hono, Drizzle, Postgres), its migrations in `drizzle/`         |
+| `packages/shared` | zod schemas and types shared by the API and the app                     |
+| `deploy/`         | Images, reviewed runtime bundle, dump helper and production smoke tests |
+| `e2e/`            | Playwright tests of the build against the real API                      |
 
 Stack: Vite, React 19, TypeScript, Tailwind CSS 4, TanStack Query, React Router, Hono, Drizzle,
 Vitest + Testing Library, Playwright.
@@ -48,13 +48,16 @@ the API applies migrations when it starts.
 
 ## Deploy
 
-Every push to `main` runs CI, and a green CI run triggers **Deploy to VPS**: it builds the web and
-API images for that commit, pushes them to the GitHub container registry and restarts the stack on
-the HostUp VPS, then checks the site answers. The **Production stack** workflow tests the images and
-the compose stack together whenever they could have changed. To roll back, revert on `main`.
+Every push to `main` runs application checks and an isolated production-image stack/browser test.
+Only after both succeed does a separate publication job push the exact tested web/API images and
+emit one immutable `deployment-manifest`. CI does not SSH to or modify the VPS.
+The shared host tooling imports the reviewed `deploy/runtime` bundle and, after explicit operator
+activation, polls approved main manifests. Database storage is stable across releases; application
+rollback never rolls back database contents. Only backward-compatible migrations are permitted.
 
 CI runs in Playwright's container image, whose tag in `.github/workflows/ci.yml` must match the
 `@playwright/test` version in the lockfile; CI fails with a pointer to it when they drift.
 
-Setting up the server, the repository secrets, email and backups, and running it day to day, are in
+Registration, the separately authorized fresh-database rollout, host settings, email, local
+dump/restore and the explicitly accepted lack of off-host backups are in
 [docs/deploy.md](docs/deploy.md).
