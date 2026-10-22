@@ -1,6 +1,6 @@
 # Regression protection for every pull request and every push to main: lint, types, formatting,
 # unit and API tests, a production build and end-to-end tests of that build against the real API.
-# A green run on main is deployed by the Deploy to VPS workflow.
+# Main publishes only after application checks AND smoke of the exact production images.
 name: CI
 
 on:
@@ -59,6 +59,9 @@ jobs:
       - name: Unit and component tests
         run: pnpm run test:coverage
 
+      - name: Deployment helper tests
+        run: node --test deploy/*.test.mjs
+
       - name: Build
         run: pnpm run build
 
@@ -73,3 +76,110 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  production-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    env:
+      REVISION: ${{ github.sha }}
+      WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/dominos-web:${{ github.sha }}
+      API_IMAGE: ghcr.io/${{ github.repository_owner }}/dominos-api:${{ github.sha }}
+      SMOKE_ID: ci-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+      - uses: pnpm/action-setup@v5
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Authenticate read-only registry access
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build production images (reuse published revision on reruns)
+        run: |
+          for service in web api; do
+            image="ghcr.io/${GITHUB_REPOSITORY_OWNER}/dominos-$service:$REVISION"
+            if [ "$GITHUB_EVENT_NAME" = push ] && docker manifest inspect "$image" >/dev/null 2>&1; then
+              docker pull "$image"
+            else
+              docker build --build-arg "REVISION=$REVISION" -f "deploy/$service.Dockerfile" -t "$image" .
+            fi
+          done
+      - name: Test actual production images and isolated persistent runtime
+        env:
+          SKIP_BUILD: "true"
+        run: deploy/smoke-test.sh
+      - name: Export the tested images
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p publication
+          docker save "$WEB_IMAGE" "$API_IMAGE" -o publication/images.tar
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          name: tested-images
+          path: publication/images.tar
+          retention-days: 2
+          compression-level: 0
+          overwrite: true
+
+  publish:
+    needs: [checks, production-images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REVISION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Preserve a manifest already published for this revision
+        id: existing
+        run: deploy/preserve-manifest.sh
+      - uses: actions/download-artifact@v4
+        if: steps.existing.outputs.preserved != 'true'
+        with:
+          name: tested-images
+          path: publication
+      - name: Publish the tested images, without rebuilding
+        if: steps.existing.outputs.preserved != 'true'
+        run: |
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker load -i publication/images.tar
+          for service in web api; do
+            repository="ghcr.io/${GITHUB_REPOSITORY_OWNER}/dominos-$service"
+            image="$repository:$REVISION"
+            # Never repoint a revision tag after a partially completed publication.
+            if docker manifest inspect "$image" > publication/remote.json 2>/dev/null; then
+              local_id="$(docker image inspect "$image" --format '{{.Id}}')"
+              [ "$(jq -r .config.digest publication/remote.json)" = "$local_id" ] || {
+                echo "::error::Revision tag already identifies a different image; refusing mutation"
+                exit 1
+              }
+            fi
+            docker push "$image"
+            docker image inspect "$image" --format '{{json .RepoDigests}}' |
+              jq -er --arg prefix "$repository@" '.[] | select(startswith($prefix))' > "publication/$service"
+          done
+          jq -n --arg revision "$REVISION" --arg web "$(cat publication/web)" --arg api "$(cat publication/api)" \
+            '{revision:$revision,images:{web:$web,api:$api}}' > publication/deployment.json
+      - name: Publish deployment manifest
+        if: steps.existing.outputs.artifact_exists != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-manifest
+          path: publication/deployment.json
+          retention-days: 90
+          if-no-files-found: error

@@ -1,0 +1,72 @@
+{
+  "services": {
+    "web": {
+      "image": "${WEB_IMAGE:?Set WEB_IMAGE}",
+      "restart": "unless-stopped",
+      "mem_limit": "128m",
+      "cpus": 0.5,
+      "pids_limit": 128,
+      "networks": { "proxy": { "aliases": ["dominos-web"] } },
+      "depends_on": { "api": { "condition": "service_healthy" } },
+      "logging": {
+        "driver": "json-file",
+        "options": { "max-size": "10m", "max-file": "3" }
+      }
+    },
+    "api": {
+      "image": "${API_IMAGE:?Set API_IMAGE}",
+      "init": true,
+      "restart": "unless-stopped",
+      "mem_limit": "384m",
+      "cpus": 0.75,
+      "pids_limit": 128,
+      "env_file": ["${SECRETS_DIR}/api.env"],
+      "environment": {
+        "APP_ORIGIN": "https://dominos.rmstdope.eu",
+        "TRUST_PROXY": "true",
+        "COOKIE_SECURE": "true",
+        "PORT": "3000"
+      },
+      "networks": {
+        "proxy": { "aliases": ["dominos-api"] },
+        "private": {}
+      },
+      "depends_on": { "db": { "condition": "service_healthy" } },
+      "logging": {
+        "driver": "json-file",
+        "options": { "max-size": "10m", "max-file": "3" }
+      }
+    },
+    "db": {
+      "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "restart": "unless-stopped",
+      "mem_limit": "512m",
+      "cpus": 0.75,
+      "pids_limit": 256,
+      "env_file": ["${SECRETS_DIR}/db.env"],
+      "networks": { "private": {} },
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "db-data",
+          "target": "/var/lib/postgresql/data"
+        }
+      ],
+      "healthcheck": {
+        "test": ["CMD", "pg_isready", "-U", "dominos", "-d", "dominos"],
+        "interval": "5s",
+        "timeout": "5s",
+        "retries": 12
+      },
+      "logging": {
+        "driver": "json-file",
+        "options": { "max-size": "10m", "max-file": "3" }
+      }
+    }
+  },
+  "networks": {
+    "proxy": { "external": true, "name": "rmstdope-proxy" },
+    "private": { "internal": true }
+  },
+  "volumes": { "db-data": { "name": "rmstdope-dominos-db-v1" } }
+}

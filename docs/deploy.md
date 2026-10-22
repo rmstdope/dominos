@@ -1,121 +1,198 @@
-# Running Dominos on the HostUp VPS
+# Shared-host deployment
 
-Dominos runs on one VPS with Docker Compose: Caddy serves the app and gets the HTTPS
-certificate, the API sits behind it, Postgres keeps the data, and a backup job dumps the database
-every night. Everything is in [`deploy/`](../deploy), and the whole stack is tested on every push
-by the **Production stack** workflow (`deploy/smoke-test.sh`).
+Dominos uses the reusable deployment tooling in
+[`rmstdope/rmstdope-infra`](https://github.com/rmstdope/rmstdope-infra).
+CI publishes images; it never SSHes to a host or changes a live installation.
+The shared Caddy ingress owns ports 80/443 and HTTPS. The web image serves static
+HTTP on 8080; `/api` and `/api/*` go directly to the API on 3000, preserving the
+prefix. Only these HTTP services join `rmstdope-proxy`. Postgres stays on an
+internal private network, with no published ports.
 
-It lives at `dominos.rmstdope.eu`, on the VPS at `136.148.215.87`; the domain's DNS is at HostUp.
-Every green CI run on `main` is deployed by the **Deploy to VPS** workflow. The steps below set up
-a server from scratch, as was done for this one.
+## Merge and rollout are separate
 
-## 1. Prepare the VPS
+This change does **not** authorize installation, initial deployment, resuming
+automation, or removal of old resources.
 
-You run these on your own machine, in this repository.
+Before merging publication changes, an operator must ensure the old **Deploy to
+VPS** workflow cannot run: a `workflow_run` listener from the old default branch
+can observe CI completion during a cutover. This PR deletes that workflow, but
+does not disable it through GitHub's API or revoke credentials. Separately
+authorize a sequenced cutover (for example, remove the legacy workflow first,
+wait for any old run to finish, then merge publication). Revoke only its obsolete
+CI SSH key, preserving unrelated operator access. Do not start two Caddy stacks
+on public ports 80/443.
 
-1. Make an SSH key pair that only the GitHub deploy workflow will use. It is separate from your own
-   key so it can be revoked on its own, and it has no passphrase because nobody is there to type one:
+Inspect the existing VPS state first. The shared installation starts a **fresh
+database**, not the retired Dominos data. Do not delete, rename, import, or reuse
+old volumes, `/opt/dominos`, dumps, or settings implicitly.
 
-   ```sh
-   ssh-keygen -t ed25519 -N "" -C github-deploy -f ~/.ssh/dominos-deploy
-   ```
+## What CI publishes
 
-   This writes `~/.ssh/dominos-deploy` (private, goes into a GitHub secret in step 3) and
-   `~/.ssh/dominos-deploy.pub` (public, goes onto the server next).
+`.github/workflows/ci.yml` runs formatting, lint, types, unit/API tests, production
+build, and end-to-end tests. A second job builds the production images and runs
+`deploy/smoke-test.sh` in disposable Docker networks/storage. It tests HTTP
+behavior, real invitation/session flows, secure cookies, migration compatibility,
+persistence, a failed candidate, dump/restore, and a browser sign-in.
 
-2. Prepare the server with [`deploy/setup-vps.sh`](../deploy/setup-vps.sh). It installs Docker and
-   a firewall, creates the `deploy` user that logs in with the key above, turns off password logins
-   and turns on security updates. Copy it up and run it as root, which uses your own key from the
-   order:
+Only a successful **push to main**, after both jobs succeed, gets package-write
+permission in a separate job. It downloads the exact tested Docker archives;
+it does not rebuild. Its one `deployment-manifest` artifact contains
+`deployment.json`:
 
-   ```sh
-   scp deploy/setup-vps.sh root@136.148.215.87:
-   ssh root@136.148.215.87 bash setup-vps.sh < ~/.ssh/dominos-deploy.pub
-   ```
-
-   If HostUp gave you a root password rather than taking your key, first run
-   `ssh-copy-id root@136.148.215.87`: after the script, root can only log in with a key.
-
-## 2. Settings on the server
-
-Make `/opt/dominos/.env` from [`deploy/.env.example`](../deploy/.env.example):
-
-```sh
-ssh -i ~/.ssh/dominos-deploy deploy@136.148.215.87
-cd /opt/dominos && nano .env   # paste deploy/.env.example and fill in POSTGRES_PASSWORD
-chmod 600 .env
+```json
+{
+  "revision": "<full 40-character Git revision>",
+  "images": {
+    "web": "ghcr.io/rmstdope/dominos-web@sha256:<digest>",
+    "api": "ghcr.io/rmstdope/dominos-api@sha256:<digest>"
+  }
+}
 ```
 
-`SITE` and `APP_ORIGIN` in the example are already `dominos.rmstdope.eu`. `SMTP_URL` can stay
-empty to begin with: emails, invitation links included, then go to the API's log
-(`docker compose logs api`).
+No deployment is triggered by a pull request or `workflow_run`. Reruns preserve an
+existing manifest for the revision. Existing revision tags are reused and tested;
+publication refuses to repoint a tag at different contents after a partial run.
+Manifests are retained for 90 days, image archives for two days (a later
+publish-only rerun needs a new image-test job if its archive has expired).
+Do not delete released GHCR digests; an artifact alone does not retain images.
 
-## 3. Settings in GitHub
+## Reviewed runtime bundle
 
-Repository → Settings → Secrets and variables → Actions:
+`deploy/runtime/` contains exactly `app.json`, `compose.json`, and `route.caddy`.
+Review all three together. The host imports and freezes these files; routine
+releases change only the web/API digests, never the database image or storage.
+The database image is an immutable Postgres 17 Alpine index digest. Its named
+volume is **`rmstdope-dominos-db-v1`**, independent of release directories.
+No build directives, host mounts, public ports or Docker socket are in the bundle.
+Web/API retain their image-native healthchecks; API health queries the database.
+Runtime memory limits are web 128 MiB, API 384 MiB and Postgres 512 MiB, with
+bounded CPU, process counts and logs. Check real usage during authorized rollout;
+these limits are not a substitute for shared-host capacity planning.
 
-| Kind     | Name              | Value                                      |
-| -------- | ----------------- | ------------------------------------------ |
-| secret   | `VPS_HOST`        | `136.148.215.87`                           |
-| secret   | `VPS_SSH_KEY`     | the contents of `~/.ssh/dominos-deploy`    |
-| secret   | `VPS_KNOWN_HOSTS` | the output of `ssh-keyscan 136.148.215.87` |
-| variable | `VPS_SITE`        | `https://dominos.rmstdope.eu`              |
+Provision protected host settings **before registration**: root-owned directory
+`/srv/rmstdope/secrets/dominos`, mode 0700, files mode 0600, never committed.
+The release environment supplies `SECRETS_DIR=/srv/rmstdope/secrets/dominos`.
+The reviewed bundle references:
 
-## 4. Deploy and try it
+| File      | Required contents                                                                                          |
+| --------- | ---------------------------------------------------------------------------------------------------------- |
+| `db.env`  | `POSTGRES_USER=dominos`, `POSTGRES_DB=dominos`, `POSTGRES_PASSWORD=<new strong password>`                  |
+| `api.env` | `DATABASE_URL=postgres://dominos:<URL-encoded same password>@db:5432/dominos`, `SMTP_URL`, and `MAIL_FROM` |
 
-1. Actions → **Deploy to VPS** → Run workflow (from `main`). It builds the images, starts the stack
-   (Caddy gets the HTTPS certificate on the first start) and checks the site answers.
-2. Create the first staff account and fill the pantry from the old menu:
+These are **setting names and examples**, not real credentials. Do not expose
+actual values in terminal logs or PRs. Compose fixes `APP_ORIGIN` to
+`https://dominos.rmstdope.eu`, `TRUST_PROXY=true`, `COOKIE_SECURE=true`, and port 3000. The API receives the original host/HTTPS/client address directly from
+shared Caddy, not from a second web proxy. Only trusted services may join the
+shared proxy network; do not expose API port 3000 separately.
 
-   ```sh
-   ssh -i ~/.ssh/dominos-deploy deploy@136.148.215.87
-   cd /opt/dominos
-   docker compose exec api node packages/api/src/cli/create-staff.ts --email you@example.com --name "Your Name"
-   docker compose exec api node packages/api/src/cli/import-menu.ts
-   ```
+With the reviewed infrastructure version installed, use an explicitly reviewed
+checkout (not a mutable remote URL):
 
-3. Open the printed invitation link, choose a password, and try the whole night: an event, an
-   invitation, an order.
+```sh
+sudo rmstdope-deploy app register dominos --bundle /path/to/reviewed/dominos/deploy/runtime
+```
 
-## 5. Email
+Registration validates Compose/Caddy and freezes the approved bundle. It is not a
+live rollout. Use the infrastructure runbook to provision GHCR read access,
+deploy an explicitly approved digest pair, verify health/revision/mail, enroll
+at a **paused baseline**, and only then explicitly resume main polling.
+The dedicated read-only GitHub token needs access to `rmstdope/dominos`.
 
-Mail goes out through HostUp's relay, which needs no login: it trusts the VPS's address.
+## Initial staff and mail
 
-1. In HostUp's DNS for `rmstdope.eu`, add three TXT records:
+For maintenance, identify the active release's generated Compose file and
+environment file from the infrastructure installation. Use its project name
+and exact files, not a separate checkout/project (which could create a second
+database network). Below, `COMPOSE_FILE`, `RELEASE_ENV` and `PROJECT` mean those
+reviewed active paths/name; they are not application secrets.
 
-   | Name                  | Value                                            |
-   | --------------------- | ------------------------------------------------ |
-   | `_hostup.rmstdope.eu` | `v=mc1 auth=h_MTM2LjE0OC4yMTUuODc=_29b82ae43920` |
-   | `rmstdope.eu`         | `v=spf1 include:spf.hostup.se ~all`              |
-   | `_dmarc.rmstdope.eu`  | `v=DMARC1; p=none`                               |
+```sh
+docker compose -p "$PROJECT" --env-file "$RELEASE_ENV" -f "$COMPOSE_FILE" \
+  exec api node packages/api/src/cli/create-staff.ts --email you@example.com --name "Your Name"
+docker compose -p "$PROJECT" --env-file "$RELEASE_ENV" -f "$COMPOSE_FILE" \
+  exec api node packages/api/src/cli/import-menu.ts
+```
 
-   The first lets the relay send for the domain, the SPF record tells receivers to trust it, and
-   Gmail and Outlook want a DMARC record too.
+Keep the staff invitation link private; open it and choose a password. Menu
+import is optional and uses only the committed `config/menu.json`. Other local
+configuration files are excluded from Docker build contexts.
 
-   The relay also refuses a sender domain without an MX record (`554 5.7.27 Sender domain cannot
-receive mail`). Ours is `rmstdope.eu MX 10 mail.rmstdope.eu`, which is the VPS. Nothing there
-   receives mail, so replies and bounces are lost.
+For HostUp relay mail, set `SMTP_URL=smtp://relay.hostup.se:587?requireTLS=true`
+and `MAIL_FROM=Dominos <dominos@rmstdope.eu>`. Verify current relay authorization,
+SPF, DMARC and an MX record for the sender domain with the provider; the relay
+rejects a domain without MX. A sender without a receiving mailbox loses replies
+and bounces. Verify real invitation delivery during the authorized rollout.
+Without SMTP, the API logs invitation links rather than sending them: treat logs
+as sensitive and do not use that mode unintentionally in production.
 
-2. In `/opt/dominos/.env`:
+## Data, migrations and application rollback
 
-   ```sh
-   SMTP_URL=smtp://relay.hostup.se:587?requireTLS=true
-   MAIL_FROM=Dominos <dominos@rmstdope.eu>
-   ```
+The API applies Drizzle migrations on startup. Only **backward-compatible**
+migrations may ship in ordinary releases: additive nullable/defaulted columns,
+new tables, and old-app-compatible read/write behavior. Do not drop/rename
+columns, tighten constraints incompatibly, or change existing data semantics.
+Review migrations and update the compatibility fixture to the actual previous
+release before introducing schema changes. Destructive changes require a
+separate approved maintenance plan, not a generic migration engine.
 
-   Then `docker compose up -d` and invite yourself to check it arrives (and not in spam).
+The smoke test currently starts real historical API revision
+`7019b744a1c15e68112624407217e8bf4f4cd161` (schema through `0002`), seeds a
+staff account/session, starts the current image to apply `0003`, then starts
+that old application again against the migrated schema and verifies old writes.
+This tests the existing additive migration; it is not a blanket proof for future
+migrations. The test also restores the current image after an unhealthy candidate
+without deleting data.
 
-## Running it
+Application rollback restores image digests, **not database contents or schema**.
+Never use `docker compose down -v` on production. Runtime bundle, Postgres version,
+secret and storage changes require explicit reviewed maintenance; this increment
+does not update frozen bundles automatically.
 
-| To                   | On the server, in `/opt/dominos`                                                                                        |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| See what is running  | `docker compose ps`                                                                                                     |
-| Read the logs        | `docker compose logs -f api` (or `web`, `db`, `backup`)                                                                 |
-| Restart after `.env` | `docker compose up -d`                                                                                                  |
-| Roll back            | revert the commit on `main`: CI tests the revert and deploys it                                                         |
-| Restore a backup     | `gunzip -c backups/dominos-<date>.sql.gz \| docker compose exec -T db psql -U dominos dominos` (into an empty database) |
-| Make someone staff   | `docker compose exec api node packages/api/src/cli/create-staff.ts --email … --name …`                                  |
+## Local dumps and isolated restore
 
-Backups are in `/opt/dominos/backups`, one per night (02:00 UTC), kept for 30 days;
-`docker compose run --rm backup once` takes one right away, e.g. before a risky change. Copy them off the server
-now and then; HostUp's own snapshots cover the whole machine.
+**There are no off-VPS backups. Host/disk loss can lose all application data.**
+This risk is explicitly accepted for now; local dumps are useful for operator
+mistakes, not disaster recovery. No offsite-backup gate blocks activation.
+No automatic backup service is included.
+
+Create an operator-owned mode-0700 local backup directory on stable host storage
+outside release directories. Take a dump before maintenance, and periodically
+as an explicitly scheduled operator task if desired:
+
+```sh
+deploy/database-dump.sh "/srv/rmstdope/backups/dominos/dominos-$(date -u +%Y%m%dT%H%M%SZ).sql.gz" \
+  -p "$PROJECT" --env-file "$RELEASE_ENV" -f "$COMPOSE_FILE"
+```
+
+The helper checks `pg_dump` and gzip separately, cleans failed partial files,
+uses mode-0600 files, and atomically publishes without overwriting an existing
+dump. It does not silently accept the success of gzip after `pg_dump` failed.
+Retain dumps intentionally; no automatic retention/deletion is enabled.
+
+Test restore into an **isolated empty database**, never over production. Example
+using an already provisioned isolated Compose project:
+
+```sh
+gzip -dc /path/to/dump.sql.gz > ./restore.sql
+docker compose -p "$ISOLATED_PROJECT" -f "$ISOLATED_COMPOSE" exec -T db \
+  psql -U dominos -d dominos_restore -v ON_ERROR_STOP=1 < ./restore.sql
+rm ./restore.sql
+```
+
+Check users, sessions and expected business data in the restored database.
+The CI smoke actually creates `dominos_restore`, restores the dump with
+`ON_ERROR_STOP`, and checks persisted users/sessions. Recovering production
+contents requires a separately approved downtime/restore plan.
+
+## Local verification
+
+```sh
+pnpm check
+node --test deploy/*.test.mjs
+deploy/smoke-test.sh
+```
+
+The last command needs Docker Compose, curl, jq, pnpm and installed Playwright
+Chromium. It builds current images, uses only generated `dominos-smoke-*`
+networks/volumes and localhost:18080, then removes its isolated data. It never
+uses the production volume or reads actual host settings.

@@ -9,3 +9,6 @@ test-results/
 .env
 .e2e/
 deploy/backups/
+deploy/.smoke/
+deploy/.test-*/
+publication/

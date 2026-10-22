@@ -1,0 +1,25 @@
+{
+  "name": "dominos",
+  "domain": "dominos.rmstdope.eu",
+  "profile": "frontend-api",
+  "api_prefix": "preserve",
+  "stateful": true,
+  "migration_policy": "backward-compatible",
+  "services": {
+    "web": {
+      "repository": "ghcr.io/rmstdope/dominos-web",
+      "port": 8080,
+      "health_path": "/healthz"
+    },
+    "api": {
+      "repository": "ghcr.io/rmstdope/dominos-api",
+      "port": 3000,
+      "health_path": "/api/health"
+    }
+  },
+  "deployment": {
+    "repository": "rmstdope/dominos",
+    "workflow": "ci.yml",
+    "branch": "main"
+  }
+}
