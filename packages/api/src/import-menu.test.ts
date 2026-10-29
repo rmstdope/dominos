@@ -7,7 +7,9 @@ import { Harness } from "./test/harness.ts";
 const t = new Harness();
 const menu = JSON.parse(
   readFileSync(new URL("../../../config/menu.json", import.meta.url), "utf8"),
-) as { toppings: { name: { en: string; sv: string }; group: { en: string } }[] };
+) as {
+  toppings: { name: { en: string; sv: string }; emoji: string; group: { en: string } }[];
+};
 
 beforeAll(() => t.start());
 afterAll(() => t.database.close());
@@ -25,7 +27,12 @@ describe("importing the WhatsApp app's menu", () => {
     const pantry = await browser.json<Ingredient[]>("GET", "/api/staff/ingredients");
     const first = menu.toppings[0]!;
     expect(pantry).toContainEqual(
-      expect.objectContaining({ name: first.name, inStock: true, archived: false }),
+      expect.objectContaining({
+        name: first.name,
+        emoji: first.emoji,
+        inStock: true,
+        archived: false,
+      }),
     );
     for (const group of groups) {
       const inMenu = menu.toppings

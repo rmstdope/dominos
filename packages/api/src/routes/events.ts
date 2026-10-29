@@ -155,6 +155,7 @@ export function guestEventRoutes(deps: AppDeps) {
         id: i.id,
         groupId: i.groupId,
         name: { en: i.nameEn, sv: i.nameSv },
+        emoji: i.emoji,
         inStock: i.inStock,
       })),
     };

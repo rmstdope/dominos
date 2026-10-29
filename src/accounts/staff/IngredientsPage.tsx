@@ -65,17 +65,39 @@ function AddIngredient({ groups }: { groups: IngredientGroup[] }) {
   const a = useAccountsText();
   const { language } = useLanguage();
   const [name, setName] = useState<Localized>({ en: "", sv: "" });
+  const [emoji, setEmoji] = useState("");
   const [groupId, setGroupId] = useState(groups[0]?.id ?? "");
   const add = useStaffMutation(staffApi.createIngredient, changesIngredients);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    add.mutate({ groupId, name }, { onSuccess: () => setName({ en: "", sv: "" }) });
+    add.mutate(
+      { groupId, name, emoji: emoji.trim() || null },
+      {
+        onSuccess: () => {
+          setName({ en: "", sv: "" });
+          setEmoji("");
+        },
+      },
+    );
   };
 
   return (
     <form onSubmit={submit} className={`${cardClass} space-y-3`}>
-      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_10rem_auto] sm:items-end">
+      <div className="grid gap-3 sm:grid-cols-[4.5rem_1fr_1fr_10rem_auto] sm:items-end">
+        <div className="space-y-1.5">
+          <label htmlFor="new-emoji" className={labelClass}>
+            {t.emoji}
+          </label>
+          <input
+            id="new-emoji"
+            maxLength={16}
+            placeholder="🍄"
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value)}
+            className={`${inputClass} text-center`}
+          />
+        </div>
         <div className="space-y-1.5">
           <label htmlFor="new-en" className={labelClass}>
             {t.nameEn}
@@ -175,6 +197,7 @@ function IngredientRow({
   const { language } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(ingredient.name);
+  const [emoji, setEmoji] = useState(ingredient.emoji ?? "");
   const [groupId, setGroupId] = useState(ingredient.groupId);
   const update = useStaffMutation(
     (body: Parameters<typeof staffApi.updateIngredient>[1]) =>
@@ -186,11 +209,21 @@ function IngredientRow({
   if (editing) {
     const save = (e: FormEvent) => {
       e.preventDefault();
-      update.mutate({ name, groupId }, { onSuccess: () => setEditing(false) });
+      update.mutate(
+        { name, emoji: emoji.trim() || null, groupId },
+        { onSuccess: () => setEditing(false) },
+      );
     };
     return (
       <li className="px-4 py-3">
         <form onSubmit={save} className="flex flex-wrap items-end gap-2">
+          <input
+            aria-label={t.emoji}
+            maxLength={16}
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value)}
+            className={`${inputClass} w-16 text-center`}
+          />
           <input
             aria-label={t.nameEn}
             required
@@ -227,6 +260,7 @@ function IngredientRow({
             className={textButtonClass}
             onClick={() => {
               setName(ingredient.name);
+              setEmoji(ingredient.emoji ?? "");
               setGroupId(ingredient.groupId);
               setEditing(false);
             }}
@@ -242,6 +276,11 @@ function IngredientRow({
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2">
       <div className="min-w-0 flex-1">
+        {ingredient.emoji && (
+          <span className="mr-2" aria-hidden="true">
+            {ingredient.emoji}
+          </span>
+        )}
         <span className={`font-semibold ${ingredient.archived ? "text-cream-300/60" : ""}`}>
           {ingredient.name.en}
         </span>

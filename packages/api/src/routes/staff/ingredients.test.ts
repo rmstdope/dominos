@@ -128,6 +128,27 @@ describe("ingredients", () => {
     expect(moved.groupId).toBe(extras.id);
   });
 
+  it("can have an emoji, which can be changed and taken away", async () => {
+    const veg = await group("Veg", "Grönt");
+    const res = await staff.post("/api/staff/ingredients", {
+      groupId: veg.id,
+      name: { en: "Mushrooms", sv: "Champinjoner" },
+      emoji: "🍄",
+    });
+    expect(res.status).toBe(201);
+    const mushrooms = (await res.json()) as Ingredient;
+    expect(mushrooms.emoji).toBe("🍄");
+
+    const path = `/api/staff/ingredients/${mushrooms.id}`;
+    expect((await staff.json<Ingredient>("PATCH", path, { emoji: "🟤" })).emoji).toBe("🟤");
+    expect((await staff.json<Ingredient>("PATCH", path, { emoji: null })).emoji).toBeNull();
+  });
+
+  it("start without an emoji", async () => {
+    const veg = await group("Veg", "Grönt");
+    expect((await ingredient(veg.id, "Basil")).emoji).toBeNull();
+  });
+
   it("are returned unchanged by an empty PATCH", async () => {
     const veg = await group("Veg", "Grönt");
     const basil = await ingredient(veg.id, "Basil");

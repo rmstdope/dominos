@@ -329,6 +329,11 @@ function Builder({
                               : "bg-white/5 text-cream-100 ring-1 ring-white/10 hover:bg-white/10"
                         }`}
                       >
+                        {item.emoji && (
+                          <span className="text-xl" aria-hidden="true">
+                            {item.emoji}
+                          </span>
+                        )}
                         <span className="flex-1">{item.name[language]}</span>
                         {unavailable && !on && (
                           <span className="text-xs font-bold text-cream-300/60">

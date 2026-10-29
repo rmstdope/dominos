@@ -25,6 +25,7 @@ const ham: Ingredient = {
   id: "c56a4180-65aa-42ec-a945-5fd21dec0538",
   groupId: meat.id,
   name: { en: "Ham", sv: "Skinka" },
+  emoji: "🍖",
   inStock: true,
   sort: 0,
   archived: false,
@@ -228,6 +229,31 @@ describe("the ingredients page", () => {
     renderAccounts("/staff/ingredients");
     await userEvent.setup().click(await screen.findByRole("checkbox", { name: "Ham in stock" }));
     await waitFor(() => expect(calls.at(-2)?.body).toEqual({ inStock: false }));
+  });
+
+  it("adds an ingredient with an emoji", async () => {
+    const calls = staffApi({
+      "POST /api/staff/ingredients": ok({
+        ...ham,
+        id: "m",
+        name: { en: "Mushrooms", sv: "Svamp" },
+      }),
+    });
+    renderAccounts("/staff/ingredients");
+    const user = userEvent.setup();
+    const emoji = await screen.findByLabelText("Emoji");
+    const form = within(emoji.closest("form")!);
+    await user.type(emoji, "🍄");
+    await user.type(form.getByLabelText("Name · English"), "Mushrooms");
+    await user.type(form.getByLabelText("Name · Svenska"), "Svamp");
+    await user.click(screen.getByRole("button", { name: "Add ingredient" }));
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "POST")?.body).toEqual({
+        groupId: meat.id,
+        name: { en: "Mushrooms", sv: "Svamp" },
+        emoji: "🍄",
+      }),
+    );
   });
 
   it("explains why a group with ingredients cannot be deleted", async () => {

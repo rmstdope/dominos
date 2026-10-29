@@ -7,7 +7,9 @@ const localized = z.object({ en: z.string().trim().min(1), sv: z.string().trim()
 
 /** The parts of the old config/menu.json the pantry needs. */
 const menuSchema = z.object({
-  toppings: z.array(z.object({ name: localized, group: localized })),
+  toppings: z.array(
+    z.object({ name: localized, emoji: z.string().trim().min(1).optional(), group: localized }),
+  ),
 });
 
 /**
@@ -24,7 +26,7 @@ export async function importMenu(
   let addedIngredients = 0;
   await db.transaction(async (tx) => {
     const groupIds = new Map<string, string>();
-    for (const { name, group } of menu.toppings) {
+    for (const { name, emoji, group } of menu.toppings) {
       let groupId = groupIds.get(group.en);
       if (!groupId) {
         const [existing] = await tx
@@ -56,9 +58,13 @@ export async function importMenu(
         .select({ last: max(ingredients.sort) })
         .from(ingredients)
         .where(eq(ingredients.groupId, groupId));
-      await tx
-        .insert(ingredients)
-        .values({ groupId, nameEn: name.en, nameSv: name.sv, sort: (last ?? -1) + 1 });
+      await tx.insert(ingredients).values({
+        groupId,
+        nameEn: name.en,
+        nameSv: name.sv,
+        emoji: emoji ?? null,
+        sort: (last ?? -1) + 1,
+      });
       addedIngredients += 1;
     }
   });

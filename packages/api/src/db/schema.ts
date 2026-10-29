@@ -92,6 +92,8 @@ export const ingredients = pgTable(
       .references(() => ingredientGroups.id, { onDelete: "restrict" }),
     nameEn: text("name_en").notNull(),
     nameSv: text("name_sv").notNull(),
+    /** Shown beside the name, like 🍄; optional. */
+    emoji: text("emoji"),
     inStock: boolean("in_stock").notNull().default(true),
     sort: integer("sort").notNull().default(0),
     archivedAt: timestamp("archived_at", { withTimezone: true }),

@@ -15,6 +15,8 @@ export type Ingredient = {
   id: string;
   groupId: string;
   name: Localized;
+  /** Shown beside the name, like 🍄. */
+  emoji: string | null;
   inStock: boolean;
   sort: number;
   archived: boolean;
@@ -29,9 +31,13 @@ export const updateIngredientGroupSchema = z.object({
 });
 export type UpdateIngredientGroup = z.infer<typeof updateIngredientGroupSchema>;
 
+/** One emoji, or null for none; a little room for the longer joined ones like 🧑‍🍳. */
+const emoji = z.string().trim().min(1).max(16).nullable();
+
 export const createIngredientSchema = z.object({
   groupId: z.uuid(),
   name: localized(40),
+  emoji: emoji.optional(),
   inStock: z.boolean().optional(),
 });
 export type CreateIngredient = z.infer<typeof createIngredientSchema>;
@@ -39,6 +45,7 @@ export type CreateIngredient = z.infer<typeof createIngredientSchema>;
 export const updateIngredientSchema = z.object({
   groupId: z.uuid().optional(),
   name: localized(40).optional(),
+  emoji: emoji.optional(),
   inStock: z.boolean().optional(),
   sort: z.int().min(0).max(10_000).optional(),
   /** Archived ingredients leave the pantry but stay on old orders. */

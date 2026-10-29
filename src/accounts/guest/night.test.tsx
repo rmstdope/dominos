@@ -176,9 +176,9 @@ describe("the favourite in the pizza builder", () => {
     askMakeOwn: false,
     groups: [{ id: "g1", name: { en: "All", sv: "Alla" }, sort: 0 }],
     menu: [
-      { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, inStock: true },
-      { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, inStock: false },
-      { id: onion, groupId: "g1", name: { en: "Onion", sv: "Lök" }, inStock: true },
+      { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖", inStock: true },
+      { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, emoji: null, inStock: false },
+      { id: onion, groupId: "g1", name: { en: "Onion", sv: "Lök" }, emoji: null, inStock: true },
     ],
   };
 

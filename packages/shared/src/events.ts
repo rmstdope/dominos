@@ -30,7 +30,13 @@ export type GuestEvent = {
 };
 
 /** A topping a guest can pick. Out-of-stock ones are shown but cannot be picked. */
-export type MenuItem = { id: string; groupId: string; name: Localized; inStock: boolean };
+export type MenuItem = {
+  id: string;
+  groupId: string;
+  name: Localized;
+  emoji: string | null;
+  inStock: boolean;
+};
 
 /** One event with everything the pizza builder needs. */
 export type GuestEventDetail = GuestEvent & {

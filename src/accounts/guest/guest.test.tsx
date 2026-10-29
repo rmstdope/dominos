@@ -35,9 +35,9 @@ const detail = (over: Partial<GuestEventDetail> = {}): GuestEventDetail => ({
     { id: "g2", name: { en: "Veg", sv: "Grönt" }, sort: 1 },
   ],
   menu: [
-    { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, inStock: true },
-    { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, inStock: false },
-    { id: onion, groupId: "g2", name: { en: "Onion", sv: "Lök" }, inStock: true },
+    { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖", inStock: true },
+    { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, emoji: null, inStock: false },
+    { id: onion, groupId: "g2", name: { en: "Onion", sv: "Lök" }, emoji: null, inStock: true },
   ],
   ...over,
 });
