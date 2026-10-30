@@ -43,6 +43,13 @@
       "when": 1793360008991,
       "tag": "0005_smaller_thicker",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793362547367,
+      "tag": "0006_bilingual_event_name",
+      "breakpoints": true
     }
   ]
 }

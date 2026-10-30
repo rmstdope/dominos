@@ -53,9 +53,9 @@ beforeEach(async () => {
     "POST",
     "/api/staff/events",
     {
-      name: "Friday Pizza Night",
+      name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
       startsAt: "2026-11-06T17:30:00Z",
-      location: "At the Kurelids'",
+      location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
       ordersCloseAt: "2026-11-04T19:00:00Z",
       maxToppings: null,
       note: null,
@@ -178,7 +178,7 @@ describe("automatic reminders", () => {
     expect(await remind()).toBe(1);
     expect(t.sent[0]).toMatchObject({
       to: "erik@example.com",
-      subject: "Välj dina toppings: Friday Pizza Night",
+      subject: "Välj dina toppings: Fredagspizza",
     });
     expect(await remind()).toBe(0);
   });
@@ -192,8 +192,9 @@ describe("automatic reminders", () => {
 
     expect(await remind()).toBe(1);
     expect(t.sent[0]?.to).toBe("anna@example.com");
-    expect(t.sent[0]?.subject).toBe("Imorgon: Friday Pizza Night");
+    expect(t.sent[0]?.subject).toBe("Imorgon: Fredagspizza");
     expect(t.sent[0]?.text).toContain("Din pizza: Skinka, Lök.");
+    expect(t.sent[0]?.text).toContain("Hos Kurelids");
     expect(await remind()).toBe(0);
   });
 

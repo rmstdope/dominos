@@ -86,8 +86,8 @@ function NeedsOrderCard({ event }: { event: GuestEvent }) {
           <p className="text-sm font-bold tracking-wide uppercase">
             {formatWhen(event.startsAt, language)}
           </p>
-          <h3 className="mt-1 text-2xl leading-tight font-extrabold">{event.name}</h3>
-          <p className="mt-1">{event.location}</p>
+          <h3 className="mt-1 text-2xl leading-tight font-extrabold">{event.name[language]}</h3>
+          <p className="mt-1">{event.location[language]}</p>
         </div>
         <div className="shrink-0 rounded-2xl bg-crust-950 px-3 py-2 text-center text-cheese-300">
           <div className="text-xl leading-none font-extrabold">{t.daysLeft(days)}</div>
@@ -118,7 +118,7 @@ function EventCard({ event }: { event: GuestEvent }) {
           <p className="text-sm font-semibold text-cream-300/70">
             {formatWhen(event.startsAt, language)}
           </p>
-          <h3 className="mt-0.5 text-lg font-bold">{event.name}</h3>
+          <h3 className="mt-0.5 text-lg font-bold">{event.name[language]}</h3>
         </div>
         {event.order && (
           <span className="shrink-0 rounded-full bg-basil-400 px-2.5 py-1 text-xs font-bold text-crust-950">
@@ -159,7 +159,7 @@ function PastRow({ event }: { event: GuestEvent }) {
       className="flex items-center justify-between gap-3 border-t border-white/10 py-3 hover:text-cream-100"
     >
       <div className="min-w-0">
-        <p className="font-semibold text-cream-300">{event.name}</p>
+        <p className="font-semibold text-cream-300">{event.name[language]}</p>
         <p className="text-sm text-cream-300/60">
           {formatWhen(event.startsAt, language)}
           {event.phase === "cancelled" && ` · ${t.cancelled}`}

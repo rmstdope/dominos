@@ -1,5 +1,7 @@
 import type { CreateEvent, Ingredient, IngredientGroup, StaffEvent } from "@dominos/shared";
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { events } from "../../db/schema.ts";
 import { Harness, type Browser } from "../../test/harness.ts";
 
 const HOUR = 60 * 60 * 1000;
@@ -32,9 +34,9 @@ beforeEach(async () => {
 
 // The harness clock is 2 Nov 2026, 12:00 UTC.
 const friday: CreateEvent = {
-  name: "Friday Pizza Night",
+  name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
   startsAt: "2026-11-06T17:30:00Z",
-  location: "At the Kurelids'",
+  location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
   ordersCloseAt: "2026-11-04T19:00:00Z",
   maxToppings: 6,
   note: { en: "Every pizza comes with tomato sauce.", sv: "Alla pizzor har tomatsås." },
@@ -53,7 +55,7 @@ describe("creating events", () => {
   it("saves a draft with its menu", async () => {
     const event = await create();
     expect(event).toMatchObject({
-      name: "Friday Pizza Night",
+      name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
       startsAt: "2026-11-06T17:30:00.000Z",
       ordersCloseAt: "2026-11-04T19:00:00.000Z",
       maxToppings: 6,
@@ -62,6 +64,26 @@ describe("creating events", () => {
       ingredientIds: [ham.id, onion.id],
     });
     expect(await staff.json<StaffEvent>("GET", `/api/staff/events/${event.id}`)).toEqual(event);
+  });
+
+  it("needs the name and the place in both languages", async () => {
+    const res = await staff.post("/api/staff/events", {
+      ...friday,
+      name: { en: "Friday Pizza Night", sv: " " },
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("uses the English name and place in Swedish on an event an older version saved", async () => {
+    const event = await create();
+    await t.db
+      .update(events)
+      .set({ nameSv: null, locationSv: null })
+      .where(eq(events.id, event.id));
+    expect(await staff.json<StaffEvent>("GET", `/api/staff/events/${event.id}`)).toMatchObject({
+      name: { en: "Friday Pizza Night", sv: "Friday Pizza Night" },
+      location: { en: "At the Kurelids'", sv: "At the Kurelids'" },
+    });
   });
 
   it("allows no topping limit and no note", async () => {
@@ -90,10 +112,10 @@ describe("creating events", () => {
   });
 
   it("lists events soonest first", async () => {
-    await create({ name: "Later", startsAt: "2026-12-01T17:00:00Z" });
-    await create({ name: "Sooner" });
+    await create({ name: { en: "Later", sv: "Senare" }, startsAt: "2026-12-01T17:00:00Z" });
+    await create({ name: { en: "Sooner", sv: "Tidigare" } });
     const events = await staff.json<StaffEvent[]>("GET", "/api/staff/events");
-    expect(events.map((e) => e.name)).toEqual(["Sooner", "Later"]);
+    expect(events.map((e) => e.name.en)).toEqual(["Sooner", "Later"]);
   });
 });
 
@@ -101,9 +123,9 @@ describe("editing events", () => {
   it("changes only the fields sent", async () => {
     const event = await create();
     const edited = await staff.json<StaffEvent>("PATCH", `/api/staff/events/${event.id}`, {
-      location: "In the garden",
+      location: { en: "In the garden", sv: "I trädgården" },
     });
-    expect(edited).toEqual({ ...event, location: "In the garden" });
+    expect(edited).toEqual({ ...event, location: { en: "In the garden", sv: "I trädgården" } });
   });
 
   it("checks the times against what is already saved", async () => {
@@ -161,9 +183,10 @@ describe("the life of an event", () => {
     await staff.json("POST", `/api/staff/events/${event.id}/publish`);
     const cancelled = await staff.json<StaffEvent>("POST", `/api/staff/events/${event.id}/cancel`);
     expect(cancelled).toMatchObject({ status: "cancelled", phase: "cancelled" });
-    expect((await staff.patch(`/api/staff/events/${event.id}`, { name: "Again" })).status).toBe(
-      409,
-    );
+    expect(
+      (await staff.patch(`/api/staff/events/${event.id}`, { name: { en: "Again", sv: "Igen" } }))
+        .status,
+    ).toBe(409);
     expect(
       (await staff.put(`/api/staff/events/${event.id}/menu`, { ingredientIds: [] })).status,
     ).toBe(409);

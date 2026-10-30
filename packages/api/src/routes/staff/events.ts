@@ -18,7 +18,7 @@ import {
   orders,
   type EventRow,
 } from "../../db/schema.ts";
-import { definedOnly } from "../../db/util.ts";
+import { bothLanguages, definedOnly } from "../../db/util.ts";
 import type { AppDeps, AppEnv } from "../../http/env.ts";
 import { ApiHttpError, readJson } from "../../http/errors.ts";
 import { conflict, idParam, notFound } from "../../http/params.ts";
@@ -35,9 +35,9 @@ function toStaffEvent(
 ): StaffEvent {
   return {
     id: row.id,
-    name: row.name,
+    name: bothLanguages(row.name, row.nameSv),
     startsAt: row.startsAt.toISOString(),
-    location: row.location,
+    location: bothLanguages(row.location, row.locationSv),
     ordersCloseAt: row.ordersCloseAt.toISOString(),
     maxToppings: row.maxToppings,
     note: row.noteEn !== null && row.noteSv !== null ? { en: row.noteEn, sv: row.noteSv } : null,
@@ -53,9 +53,11 @@ function toStaffEvent(
 /** The columns an UpdateEvent (or CreateEvent) sets; undefined fields are left alone. */
 function eventColumns(fields: UpdateEvent) {
   return definedOnly({
-    name: fields.name,
+    name: fields.name?.en,
+    nameSv: fields.name?.sv,
     startsAt: fields.startsAt === undefined ? undefined : new Date(fields.startsAt),
-    location: fields.location,
+    location: fields.location?.en,
+    locationSv: fields.location?.sv,
     ordersCloseAt: fields.ordersCloseAt === undefined ? undefined : new Date(fields.ordersCloseAt),
     maxToppings: fields.maxToppings,
     noteEn: fields.note === undefined ? undefined : (fields.note?.en ?? null),
@@ -166,9 +168,11 @@ export function eventRoutes(deps: AppDeps) {
       const [created] = await tx
         .insert(events)
         .values({
-          name: fields.name,
+          name: fields.name.en,
+          nameSv: fields.name.sv,
           startsAt: new Date(fields.startsAt),
-          location: fields.location,
+          location: fields.location.en,
+          locationSv: fields.location.sv,
           ordersCloseAt: new Date(fields.ordersCloseAt),
           maxToppings: fields.maxToppings,
           noteEn: fields.note?.en ?? null,

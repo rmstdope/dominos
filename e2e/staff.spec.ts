@@ -49,10 +49,12 @@ test("staff set up the pantry, plan an event and invite a guest", async ({ page 
     .click();
   await page.getByRole("link", { name: "New event" }).click();
   await expect(heading).toHaveText("New event");
-  await page.getByLabel("Name", { exact: true }).fill("Friday Pizza Night");
+  await page.getByLabel("Name · English").fill("Friday Pizza Night");
+  await page.getByLabel("Name · Svenska").fill("Fredagspizza");
   await page.getByLabel("Date", { exact: true }).fill(inDays(10));
   await page.getByLabel("Starts").fill("18:30");
-  await page.getByLabel("Where").fill("At the Kurelids'");
+  await page.getByLabel("Where · English").fill("At the Kurelids'");
+  await page.getByLabel("Where · Svenska").fill("Hos Kurelids");
   await page.getByLabel("Orders close on").fill(inDays(8));
   await page.getByLabel("at", { exact: true }).fill("20:00");
   await page.getByLabel("Max toppings").fill("6");
@@ -116,12 +118,12 @@ test("someone new is invited to the event, sets up an account and orders", async
   await expect(guests.getByRole("status")).toHaveText("1 invitation sent.");
   await expect(guests.getByText("sven@example.com · Account not set up yet")).toBeVisible();
 
-  // Sven, on his own phone, in Swedish: the invitation was written in Swedish.
+  // Sven, on his own phone, in Swedish: the invitation and the event name are in Swedish.
   const phone = await browser.newContext({ locale: "sv-SE", timezoneId: "Europe/Stockholm" });
   const sven = await phone.newPage();
   const svenHeading = sven.getByRole("heading", { level: 1 });
   await sven.goto(lastLinkTo("sven@example.com"));
-  await expect(sven.getByRole("region", { name: "Friday Pizza Night" })).toBeVisible();
+  await expect(sven.getByRole("region", { name: "Fredagspizza" })).toBeVisible();
   await sven.getByLabel("Välj ett lösenord").fill("pizzapizza");
   await sven.getByRole("button", { name: /gå med/i }).click();
 
@@ -134,7 +136,7 @@ test("someone new is invited to the event, sets up an account and orders", async
 
   await sven.getByRole("link", { name: /kvällar/i }).click();
   const orderedSection = sven.getByRole("region", { name: "Beställt" });
-  await expect(orderedSection).toContainText("Friday Pizza Night");
+  await expect(orderedSection).toContainText("Fredagspizza");
   await expect(orderedSection).toContainText("Skinka");
   await phone.close();
 

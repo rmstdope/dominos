@@ -1,4 +1,5 @@
 import type { Language } from "@dominos/shared";
+import { bothLanguages } from "../db/util.ts";
 import type { Email } from "./mailer.ts";
 
 type Recipient = { email: string; name: string; language: Language };
@@ -67,10 +68,17 @@ export const passwordResetLink = (appOrigin: string, token: string) =>
 /** What an event invitation says about the event. */
 export type EventDetails = {
   name: string;
+  nameSv: string | null;
   startsAt: Date;
   location: string;
+  locationSv: string | null;
   ordersCloseAt: Date;
 };
+
+const nameIn = (event: EventDetails, language: Language) =>
+  bothLanguages(event.name, event.nameSv)[language];
+const placeIn = (event: EventDetails, language: Language) =>
+  bothLanguages(event.location, event.locationSv)[language];
 
 const locales: Record<Language, string> = { en: "en-GB", sv: "sv-SE" };
 
@@ -89,13 +97,13 @@ function when(date: Date, language: Language): string {
 function eventLines(event: EventDetails, language: Language, message?: string): string[] {
   const lines = {
     en: [
-      `${event.name}`,
-      `${when(event.startsAt, "en")}, ${event.location}`,
+      nameIn(event, "en"),
+      `${when(event.startsAt, "en")}, ${placeIn(event, "en")}`,
       `Order before ${when(event.ordersCloseAt, "en")}.`,
     ],
     sv: [
-      `${event.name}`,
-      `${when(event.startsAt, "sv")}, ${event.location}`,
+      nameIn(event, "sv"),
+      `${when(event.startsAt, "sv")}, ${placeIn(event, "sv")}`,
       `Beställ senast ${when(event.ordersCloseAt, "sv")}.`,
     ],
   }[language];
@@ -132,8 +140,8 @@ export function eventInvitationEmail(
     ],
   };
   const subject = {
-    en: `You're invited: ${event.name}`,
-    sv: `Du är bjuden: ${event.name}`,
+    en: `You're invited: ${nameIn(event, "en")}`,
+    sv: `Du är bjuden: ${nameIn(event, "sv")}`,
   };
   return { to: to.email, subject: subject[to.language], text: text[to.language].join("\n") };
 }
@@ -172,8 +180,8 @@ export function welcomeToEventEmail(
     ],
   };
   const subject = {
-    en: `You're invited: ${event.name}`,
-    sv: `Du är bjuden: ${event.name}`,
+    en: `You're invited: ${nameIn(event, "en")}`,
+    sv: `Du är bjuden: ${nameIn(event, "sv")}`,
   };
   return { to: to.email, subject: subject[to.language], text: text[to.language].join("\n") };
 }
@@ -186,7 +194,7 @@ export function orderReminderEmail(to: Recipient, event: EventDetails, link: str
     en: [
       `Hi ${to.name},`,
       "",
-      `Orders for ${event.name} close ${when(event.ordersCloseAt, "en")}, and we don't have yours yet.`,
+      `Orders for ${nameIn(event, "en")} close ${when(event.ordersCloseAt, "en")}, and we don't have yours yet.`,
       "",
       "Pick your toppings here:",
       link,
@@ -196,7 +204,7 @@ export function orderReminderEmail(to: Recipient, event: EventDetails, link: str
     sv: [
       `Hej ${to.name}!`,
       "",
-      `Beställningen till ${event.name} stänger ${when(event.ordersCloseAt, "sv")}, och vi har inte fått din än.`,
+      `Beställningen till ${nameIn(event, "sv")} stänger ${when(event.ordersCloseAt, "sv")}, och vi har inte fått din än.`,
       "",
       "Välj dina toppings här:",
       link,
@@ -205,8 +213,8 @@ export function orderReminderEmail(to: Recipient, event: EventDetails, link: str
     ],
   };
   const subject = {
-    en: `Pick your toppings: ${event.name}`,
-    sv: `Välj dina toppings: ${event.name}`,
+    en: `Pick your toppings: ${nameIn(event, "en")}`,
+    sv: `Välj dina toppings: ${nameIn(event, "sv")}`,
   };
   return { to: to.email, subject: subject[to.language], text: text[to.language].join("\n") };
 }
@@ -226,7 +234,7 @@ export function dayBeforeEmail(
     en: [
       `Hi ${to.name},`,
       "",
-      `See you at ${event.name}: ${when(event.startsAt, "en")}, ${event.location}.`,
+      `See you at ${nameIn(event, "en")}: ${when(event.startsAt, "en")}, ${placeIn(event, "en")}.`,
       "",
       `Your pizza: ${pizza.en}.`,
       link,
@@ -234,12 +242,15 @@ export function dayBeforeEmail(
     sv: [
       `Hej ${to.name}!`,
       "",
-      `Vi ses på ${event.name}: ${when(event.startsAt, "sv")}, ${event.location}.`,
+      `Vi ses på ${nameIn(event, "sv")}: ${when(event.startsAt, "sv")}, ${placeIn(event, "sv")}.`,
       "",
       `Din pizza: ${pizza.sv}.`,
       link,
     ],
   };
-  const subject = { en: `Tomorrow: ${event.name}`, sv: `Imorgon: ${event.name}` };
+  const subject = {
+    en: `Tomorrow: ${nameIn(event, "en")}`,
+    sv: `Imorgon: ${nameIn(event, "sv")}`,
+  };
   return { to: to.email, subject: subject[to.language], text: text[to.language].join("\n") };
 }

@@ -84,9 +84,9 @@ function Header({ event }: { event: StaffEvent }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.name[language]}</h1>
           <p className="mt-1 text-cream-300/80">
-            {formatWhen(event.startsAt, language)} · {event.location}
+            {formatWhen(event.startsAt, language)} · {event.location[language]}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 print:hidden">

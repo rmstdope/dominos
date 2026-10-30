@@ -111,9 +111,9 @@ export function eventPhase(
 /** An event as staff see it. Times are ISO 8601 strings. */
 export type StaffEvent = {
   id: string;
-  name: string;
+  name: Localized;
   startsAt: string;
-  location: string;
+  location: Localized;
   ordersCloseAt: string;
   maxToppings: number | null;
   note: Localized | null;
@@ -129,9 +129,9 @@ export type StaffEvent = {
 const dateTime = z.iso.datetime({ offset: true });
 
 const eventFields = {
-  name: text(80),
+  name: localized(80),
   startsAt: dateTime,
-  location: text(120),
+  location: localized(120),
   ordersCloseAt: dateTime,
   maxToppings: z.int().min(1).max(30).nullable(),
   note: localized(500).nullable(),

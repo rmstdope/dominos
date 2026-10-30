@@ -20,9 +20,9 @@ export type Order = {
 /** An event in a guest's list. Times are ISO 8601 strings. */
 export type GuestEvent = {
   id: string;
-  name: string;
+  name: Localized;
   startsAt: string;
-  location: string;
+  location: Localized;
   ordersCloseAt: string;
   phase: EventPhase;
   invitation: InvitationStatus;

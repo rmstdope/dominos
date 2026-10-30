@@ -17,9 +17,9 @@ describe("the orders view (staff)", () => {
   const baker: Me = { ...anna, role: "staff" };
   const event: StaffEvent = {
     id,
-    name: "Friday Pizza Night",
+    name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
     startsAt: "2099-11-06T17:30:00.000Z",
-    location: "At the Kurelids'",
+    location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
     ordersCloseAt: "2099-11-04T19:00:00.000Z",
     maxToppings: null,
     note: null,
@@ -167,9 +167,9 @@ describe("the profile", () => {
 describe("the favourite in the pizza builder", () => {
   const detail: GuestEventDetail = {
     id,
-    name: "Friday Pizza Night",
+    name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
     startsAt: "2099-11-06T17:30:00.000Z",
-    location: "At the Kurelids'",
+    location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
     ordersCloseAt: "2099-11-04T19:00:00.000Z",
     phase: "open",
     invitation: "invited",

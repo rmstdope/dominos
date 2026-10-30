@@ -52,9 +52,9 @@ async function createEvent(fields: Record<string, unknown> = {}, publish = true)
     "POST",
     "/api/staff/events",
     {
-      name: "Friday Pizza Night",
+      name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
       startsAt: "2026-11-06T17:30:00Z",
-      location: "At the Kurelids'",
+      location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
       ordersCloseAt: "2026-11-04T19:00:00Z",
       maxToppings: 2,
       note: null,
@@ -109,13 +109,16 @@ describe("inviting people to an event", () => {
       newPeople: [{ name: "Sven", email: "Sven@Example.com", language: "sv" }],
     });
     expect(guests).toMatchObject([{ email: "sven@example.com", personStatus: "invited" }]);
-    expect(t.sent[0]?.subject).toBe("Du är bjuden: Friday Pizza Night");
+    expect(t.sent[0]?.subject).toBe("Du är bjuden: Fredagspizza");
     expect(t.sent[0]?.text).toMatch(/fredag 6 november\D+18:30/);
     expect(t.sent[0]?.text).toContain("https://dominos.test/invitation#");
 
     const token = tokenFromEmail(t.sent[0]);
     const info = await t.browser().json<InvitationInfo>("GET", `/api/auth/invitations/${token}`);
-    expect(info.event).toMatchObject({ id: event.id, name: "Friday Pizza Night" });
+    expect(info.event).toMatchObject({
+      id: event.id,
+      name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
+    });
 
     const sven = t.browser();
     await sven.json("POST", `/api/auth/invitations/${token}`, {
@@ -129,7 +132,9 @@ describe("inviting people to an event", () => {
   it("keeps the first link working when someone new is invited to a second event", async () => {
     await invite({ newPeople: [{ name: "Sven", email: "sven@example.com", language: "en" }] });
     const first = tokenFromEmail(t.sent[0]);
-    const second = await createEvent({ name: "Birthday slice-off" });
+    const second = await createEvent({
+      name: { en: "Birthday slice-off", sv: "Födelsedagspizza" },
+    });
     const guests = await staff.json<EventGuest[]>("GET", `/api/staff/events/${event.id}/guests`);
     await invite({ userIds: [guests[0]!.userId] }, second.id);
     expect(t.sent).toHaveLength(2);
@@ -142,7 +147,7 @@ describe("inviting people to an event", () => {
       password: "pizzapizza",
     });
     const events = await sven.json<GuestEvent[]>("GET", "/api/events");
-    expect(events.map((e) => e.name)).toEqual(["Friday Pizza Night", "Birthday slice-off"]);
+    expect(events.map((e) => e.name.en)).toEqual(["Friday Pizza Night", "Birthday slice-off"]);
   });
 
   it("emails only people not invited before", async () => {
@@ -192,14 +197,14 @@ describe("inviting people to an event", () => {
 describe("a guest's events", () => {
   it("are only the ones they are invited to, never drafts", async () => {
     const anna = await guest();
-    await createEvent({ name: "Not for Anna" });
+    await createEvent({ name: { en: "Not for Anna", sv: "Inte för Anna" } });
     const events = await anna.json<GuestEvent[]>("GET", "/api/events");
-    expect(events.map((e) => e.name)).toEqual(["Friday Pizza Night"]);
+    expect(events.map((e) => e.name.en)).toEqual(["Friday Pizza Night"]);
   });
 
   it("hide an event they are not invited to", async () => {
     const anna = await guest();
-    const other = await createEvent({ name: "Not for Anna" });
+    const other = await createEvent({ name: { en: "Not for Anna", sv: "Inte för Anna" } });
     expect((await anna.get(`/api/events/${other.id}`)).status).toBe(404);
   });
 

@@ -168,11 +168,14 @@ function InvitedTo({ event }: { event: NonNullable<InvitationInfo["event"]> }) {
   const t = useAccountsText();
   const { language } = useLanguage();
   return (
-    <section aria-label={event.name} className="mb-6 rounded-3xl bg-cheese-400 p-5 text-crust-950">
+    <section
+      aria-label={event.name[language]}
+      className="mb-6 rounded-3xl bg-cheese-400 p-5 text-crust-950"
+    >
       <p className="text-sm font-bold tracking-wide uppercase">{t.invitedTo}</p>
-      <h2 className="mt-1 text-2xl leading-tight font-extrabold">{event.name}</h2>
+      <h2 className="mt-1 text-2xl leading-tight font-extrabold">{event.name[language]}</h2>
       <p className="mt-1">
-        {formatWhen(event.startsAt, language)} · {event.location}
+        {formatWhen(event.startsAt, language)} · {event.location[language]}
       </p>
     </section>
   );

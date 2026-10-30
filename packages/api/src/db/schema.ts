@@ -108,9 +108,13 @@ export const ingredients = pgTable(
  */
 export const events = pgTable("events", {
   id: uuid("id").primaryKey().defaultRandom(),
+  /** The English name; nameSv is the Swedish one (null only on events an older version made). */
   name: text("name").notNull(),
+  nameSv: text("name_sv"),
   startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  /** The English place; locationSv is the Swedish one, like nameSv. */
   location: text("location").notNull(),
+  locationSv: text("location_sv"),
   ordersCloseAt: timestamp("orders_close_at", { withTimezone: true }).notNull(),
   /** Null means no limit. */
   maxToppings: integer("max_toppings"),

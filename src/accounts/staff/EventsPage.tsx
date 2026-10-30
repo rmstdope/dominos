@@ -99,12 +99,15 @@ function NextUp({ event }: { event: StaffEvent }) {
   const t = useStaffText();
   const { language } = useLanguage();
   return (
-    <section aria-label={event.name} className={`${cardClass} flex flex-wrap items-center gap-6`}>
+    <section
+      aria-label={event.name[language]}
+      className={`${cardClass} flex flex-wrap items-center gap-6`}
+    >
       <div className="min-w-0 flex-1">
         <PhasePill phase={event.phase} />
-        <h2 className="mt-2 text-2xl font-bold">{event.name}</h2>
+        <h2 className="mt-2 text-2xl font-bold">{event.name[language]}</h2>
         <p className="mt-1 text-cream-300/80">
-          {formatWhen(event.startsAt, language)} · {event.location}
+          {formatWhen(event.startsAt, language)} · {event.location[language]}
         </p>
         <p className="mt-1 text-sm text-cream-300/70">
           {t.ordersClose(formatWhen(event.ordersCloseAt, language))}
@@ -156,7 +159,7 @@ function EventTable({ events }: { events: StaffEvent[] }) {
                   to={`/staff/events/${event.id}`}
                   className="text-cream-100 underline-offset-2 hover:text-cheese-300 hover:underline"
                 >
-                  {event.name}
+                  {event.name[language]}
                 </Link>
               </td>
               <td className="px-4 py-3 text-cream-300/80">

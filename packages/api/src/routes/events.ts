@@ -9,6 +9,7 @@ import {
 import { and, asc, eq, inArray, isNull, max, ne } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Db } from "../db/client.ts";
+import { bothLanguages } from "../db/util.ts";
 import {
   eventIngredients,
   eventInvitations,
@@ -101,9 +102,9 @@ function toGuestEvent(
   const { event } = invited;
   return {
     id: event.id,
-    name: event.name,
+    name: bothLanguages(event.name, event.nameSv),
     startsAt: event.startsAt.toISOString(),
-    location: event.location,
+    location: bothLanguages(event.location, event.locationSv),
     ordersCloseAt: event.ordersCloseAt.toISOString(),
     phase: eventPhase(event, now),
     invitation: invited.status,

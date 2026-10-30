@@ -13,10 +13,12 @@ import { useStaffText, type StaffText } from "./text";
 import { Feedback, Loaded, Pill, cardClass, inputClass, labelClass, smallButtonClass } from "./ui";
 
 type Form = {
-  name: string;
+  nameEn: string;
+  nameSv: string;
   date: string;
   startTime: string;
-  location: string;
+  locationEn: string;
+  locationSv: string;
   closeDate: string;
   closeTime: string;
   maxToppings: string;
@@ -30,10 +32,12 @@ type Form = {
 function formFrom(event: StaffEvent | undefined, ingredients: Ingredient[]): Form {
   if (!event) {
     return {
-      name: "",
+      nameEn: "",
+      nameSv: "",
       date: "",
       startTime: "18:00",
-      location: "",
+      locationEn: "",
+      locationSv: "",
       closeDate: "",
       closeTime: "20:00",
       maxToppings: "",
@@ -46,10 +50,12 @@ function formFrom(event: StaffEvent | undefined, ingredients: Ingredient[]): For
     };
   }
   return {
-    name: event.name,
+    nameEn: event.name.en,
+    nameSv: event.name.sv,
     date: toDateInput(event.startsAt),
     startTime: toTimeInput(event.startsAt),
-    location: event.location,
+    locationEn: event.location.en,
+    locationSv: event.location.sv,
     closeDate: toDateInput(event.ordersCloseAt),
     closeTime: toTimeInput(event.ordersCloseAt),
     maxToppings: event.maxToppings === null ? "" : String(event.maxToppings),
@@ -78,9 +84,9 @@ function toFields(form: Form, t: StaffText): { fields: Required<UpdateEvent> } |
   if (Boolean(noteEn) !== Boolean(noteSv)) return { error: t.errorNoteBoth };
   return {
     fields: {
-      name: form.name.trim(),
+      name: { en: form.nameEn.trim(), sv: form.nameSv.trim() },
       startsAt,
-      location: form.location.trim(),
+      location: { en: form.locationEn.trim(), sv: form.locationSv.trim() },
       ordersCloseAt,
       maxToppings: form.maxToppings === "" ? null : Number(form.maxToppings),
       note: noteEn ? { en: noteEn, sv: noteSv } : null,
@@ -141,6 +147,7 @@ function EventForm({
   ingredients: Ingredient[];
 }) {
   const t = useStaffText();
+  const { language } = useLanguage();
   const a = useAccountsText();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -206,7 +213,7 @@ function EventForm({
       <form onSubmit={submit} className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {event ? event.name : t.newEventTitle}
+            {event ? event.name[language] : t.newEventTitle}
           </h1>
           {event && (
             <div className="flex flex-wrap items-center gap-3">
@@ -231,17 +238,30 @@ function EventForm({
             <h2 id="details" className="text-lg font-bold">
               {t.details}
             </h2>
-            <Labeled id="name" label={t.eventName}>
-              <input
-                id="name"
-                required
-                maxLength={80}
-                placeholder={t.eventNamePlaceholder}
-                value={form.name}
-                onChange={(e) => set("name", e.target.value)}
-                className={inputClass}
-              />
-            </Labeled>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Labeled id="name-en" label={t.eventNameEn}>
+                <input
+                  id="name-en"
+                  required
+                  maxLength={80}
+                  placeholder="Friday Pizza Night"
+                  value={form.nameEn}
+                  onChange={(e) => set("nameEn", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+              <Labeled id="name-sv" label={t.eventNameSv}>
+                <input
+                  id="name-sv"
+                  required
+                  maxLength={80}
+                  placeholder="Fredagspizza"
+                  value={form.nameSv}
+                  onChange={(e) => set("nameSv", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Labeled id="date" label={t.date}>
                 <input
@@ -264,16 +284,30 @@ function EventForm({
                 />
               </Labeled>
             </div>
-            <Labeled id="location" label={t.location}>
-              <input
-                id="location"
-                required
-                maxLength={120}
-                value={form.location}
-                onChange={(e) => set("location", e.target.value)}
-                className={inputClass}
-              />
-            </Labeled>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Labeled id="location-en" label={t.locationEn}>
+                <input
+                  id="location-en"
+                  required
+                  maxLength={120}
+                  placeholder="Living room"
+                  value={form.locationEn}
+                  onChange={(e) => set("locationEn", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+              <Labeled id="location-sv" label={t.locationSv}>
+                <input
+                  id="location-sv"
+                  required
+                  maxLength={120}
+                  placeholder="Vardagsrummet"
+                  value={form.locationSv}
+                  onChange={(e) => set("locationSv", e.target.value)}
+                  className={inputClass}
+                />
+              </Labeled>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Labeled id="close-date" label={t.ordersCloseDate}>
                 <input

@@ -15,9 +15,9 @@ const bacon = "6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b";
 
 const base: GuestEvent = {
   id,
-  name: "Friday Pizza Night",
+  name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
   startsAt: "2099-11-06T17:30:00.000Z",
-  location: "At the Kurelids'",
+  location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
   ordersCloseAt: "2099-11-04T19:00:00.000Z",
   phase: "open",
   invitation: "invited",
@@ -55,6 +55,14 @@ const ordered = (toppingIds: string[], extra: Partial<GuestEventDetail> = {}) =>
 const heading = (name: RegExp | string) => screen.findByRole("heading", { level: 1, name });
 
 describe("a guest's events", () => {
+  it("are named in the guest's own language", async () => {
+    fakeApi({ "GET /api/me": ok(anna), "GET /api/events": ok([base]) });
+    renderAccounts("/", "sv");
+    const needs = await screen.findByRole("region", { name: "Väntar på din beställning" });
+    expect(within(needs).getByText("Fredagspizza")).toBeInTheDocument();
+    expect(within(needs).getByText("Hos Kurelids")).toBeInTheDocument();
+  });
+
   it("say which need an order, which are ordered and which they said no to", async () => {
     fakeApi({
       "GET /api/me": ok(anna),
@@ -63,12 +71,17 @@ describe("a guest's events", () => {
         {
           ...base,
           id: "e2",
-          name: "Birthday slice-off",
+          name: { en: "Birthday slice-off", sv: "Födelsedagspizza" },
           order: ordered([ham]).order,
           orderToppings: [{ en: "Ham", sv: "Skinka" }],
         },
-        { ...base, id: "e3", name: "Advent pizza", invitation: "declined" },
-        { ...base, id: "e4", name: "Midsummer pizza", phase: "past" },
+        {
+          ...base,
+          id: "e3",
+          name: { en: "Advent pizza", sv: "Adventspizza" },
+          invitation: "declined",
+        },
+        { ...base, id: "e4", name: { en: "Midsummer pizza", sv: "Midsommarpizza" }, phase: "past" },
       ]),
     });
     renderAccounts("/");
@@ -243,9 +256,9 @@ describe("inviting guests to an event (staff)", () => {
   const baker = { ...anna, id: "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed", role: "staff" as const };
   const event: StaffEvent = {
     id,
-    name: "Friday Pizza Night",
+    name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
     startsAt: "2099-11-06T17:30:00.000Z",
-    location: "At the Kurelids'",
+    location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
     ordersCloseAt: "2099-11-04T19:00:00.000Z",
     maxToppings: 2,
     note: null,

@@ -62,7 +62,7 @@ function EventView({
   const header = (
     <div>
       <p className="text-sm font-bold tracking-wide text-cheese-400 uppercase">
-        {event.name} · {formatWhen(event.startsAt, language)}
+        {event.name[language]} · {formatWhen(event.startsAt, language)}
       </p>
     </div>
   );
@@ -143,9 +143,11 @@ function Ticket({ event }: { event: GuestEventDetail }) {
     >
       <div className="flex items-start justify-between gap-3 p-5 pb-4">
         <div>
-          <p className="text-xs font-bold tracking-widest text-crust-700 uppercase">{event.name}</p>
+          <p className="text-xs font-bold tracking-widest text-crust-700 uppercase">
+            {event.name[language]}
+          </p>
           <p className="mt-1 font-bold">{formatWhen(event.startsAt, language)}</p>
-          <p className="text-sm text-crust-700">{event.location}</p>
+          <p className="text-sm text-crust-700">{event.location[language]}</p>
         </div>
         <p className="text-3xl font-extrabold text-sauce-500">
           #{String(order.number).padStart(2, "0")}

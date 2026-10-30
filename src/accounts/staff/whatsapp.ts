@@ -11,9 +11,9 @@ export function shareMessage(
   t: StaffText,
 ): string {
   return t.whatsAppMessage({
-    name: event.name,
+    name: event.name[language],
     when: formatWhen(event.startsAt, language),
-    location: event.location,
+    location: event.location[language],
     ordersClose: formatWhen(event.ordersCloseAt, language),
     link: `${origin}/events/${event.id}`,
   });

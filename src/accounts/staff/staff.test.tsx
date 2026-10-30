@@ -40,9 +40,9 @@ const bacon: Ingredient = {
 
 const friday: StaffEvent = {
   id: "16fd2706-8baf-433b-82eb-8c7fada847da",
-  name: "Friday Pizza Night",
+  name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
   startsAt: "2099-11-06T17:30:00.000Z",
-  location: "At the Kurelids'",
+  location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
   ordersCloseAt: "2099-11-04T19:00:00.000Z",
   maxToppings: 6,
   note: null,
@@ -87,11 +87,17 @@ describe("the events list", () => {
     const past = {
       ...friday,
       id: "a2",
-      name: "Midsummer pizza",
+      name: { en: "Midsummer pizza", sv: "Midsommarpizza" },
       status: "published",
       phase: "past",
     } as const;
-    staffApi({ "GET /api/staff/events": ok([open, { ...friday, name: "Advent pizza" }, past]) });
+    staffApi({
+      "GET /api/staff/events": ok([
+        open,
+        { ...friday, name: { en: "Advent pizza", sv: "Adventspizza" } },
+        past,
+      ]),
+    });
     renderAccounts("/staff/events");
 
     const table = await screen.findByRole("table");
@@ -114,11 +120,13 @@ describe("the event editor", () => {
     renderAccounts("/staff/events/new");
     const user = userEvent.setup();
 
-    await user.type(await screen.findByLabelText("Name"), "Friday Pizza Night");
+    await user.type(await screen.findByLabelText("Name · English"), "Friday Pizza Night");
+    await user.type(screen.getByLabelText("Name · Svenska"), "Fredagspizza");
     await user.type(screen.getByLabelText("Date"), "2026-11-06");
     await user.clear(screen.getByLabelText("Starts"));
     await user.type(screen.getByLabelText("Starts"), "18:30");
-    await user.type(screen.getByLabelText("Where"), "At the Kurelids'");
+    await user.type(screen.getByLabelText("Where · English"), "At the Kurelids'");
+    await user.type(screen.getByLabelText("Where · Svenska"), "Hos Kurelids");
     await user.type(screen.getByLabelText("Orders close on"), "2026-11-04");
     await user.type(screen.getByLabelText("Max toppings"), "6");
     // Bacon is out of stock, so it starts unticked.
@@ -129,9 +137,9 @@ describe("the event editor", () => {
     expect(await heading("Friday Pizza Night")).toBeInTheDocument();
     const created = calls.find((c) => c.method === "POST");
     expect(created?.body).toEqual({
-      name: "Friday Pizza Night",
+      name: { en: "Friday Pizza Night", sv: "Fredagspizza" },
       startsAt: "2026-11-06T17:30:00.000Z",
-      location: "At the Kurelids'",
+      location: { en: "At the Kurelids'", sv: "Hos Kurelids" },
       ordersCloseAt: "2026-11-04T19:00:00.000Z",
       maxToppings: 6,
       note: null,
@@ -163,10 +171,17 @@ describe("the event editor", () => {
   });
 
   it("saves changed details and the menu, then publishes", async () => {
-    const withBacon = { ...friday, location: "In the garden", ingredientIds: [ham.id, bacon.id] };
+    const withBacon = {
+      ...friday,
+      location: { en: "In the garden", sv: "I trädgården" },
+      ingredientIds: [ham.id, bacon.id],
+    };
     const calls = staffApi({
       [`GET /api/staff/events/${friday.id}`]: ok(friday),
-      [`PATCH /api/staff/events/${friday.id}`]: ok({ ...friday, location: "In the garden" }),
+      [`PATCH /api/staff/events/${friday.id}`]: ok({
+        ...friday,
+        location: { en: "In the garden", sv: "I trädgården" },
+      }),
       [`PUT /api/staff/events/${friday.id}/menu`]: ok(withBacon),
       [`POST /api/staff/events/${friday.id}/publish`]: ok({
         ...withBacon,
@@ -178,10 +193,12 @@ describe("the event editor", () => {
     renderAccounts(`/staff/events/${friday.id}`);
     const user = userEvent.setup();
 
-    const where = await screen.findByLabelText("Where");
+    const where = await screen.findByLabelText("Where · English");
     expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
     await user.clear(where);
     await user.type(where, "In the garden");
+    await user.clear(screen.getByLabelText("Where · Svenska"));
+    await user.type(screen.getByLabelText("Where · Svenska"), "I trädgården");
     await user.click(screen.getByRole("checkbox", { name: /bacon/i }));
     // Publishing waits for the changes to be saved.
     expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();
@@ -189,7 +206,7 @@ describe("the event editor", () => {
 
     expect(await screen.findByRole("status")).toHaveTextContent("Saved");
     expect(calls.find((c) => c.method === "PATCH")?.body).toMatchObject({
-      location: "In the garden",
+      location: { en: "In the garden", sv: "I trädgården" },
     });
     expect(calls.find((c) => c.method === "PUT")?.body).toEqual({
       ingredientIds: [ham.id, bacon.id],
@@ -219,7 +236,7 @@ describe("the event editor", () => {
     await user.click(screen.getByRole("button", { name: "Cancel event" }));
     await user.click(screen.getByRole("button", { name: "Yes, cancel it" }));
     expect(await screen.findByText(/can no longer be changed/i)).toBeInTheDocument();
-    expect(screen.getByLabelText("Where")).toBeDisabled();
+    expect(screen.getByLabelText("Where · English")).toBeDisabled();
   });
 });
 

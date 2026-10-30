@@ -17,6 +17,7 @@ import {
 import { hashPassword, verifyPassword } from "../auth/crypto.ts";
 import { deleteUserSessions } from "../auth/sessions.ts";
 import { authTokens, eventInvitations, events, users } from "../db/schema.ts";
+import { bothLanguages } from "../db/util.ts";
 import type { AppDeps, AppEnv } from "../http/env.ts";
 import { ApiHttpError, readJson } from "../http/errors.ts";
 import { RateLimiter, rateLimit } from "../http/rate-limit.ts";
@@ -81,8 +82,10 @@ export function authRoutes(deps: AppDeps) {
         .select({
           id: events.id,
           name: events.name,
+          nameSv: events.nameSv,
           startsAt: events.startsAt,
           location: events.location,
+          locationSv: events.locationSv,
         })
         .from(eventInvitations)
         .innerJoin(events, eq(events.id, eventInvitations.eventId))
@@ -98,7 +101,14 @@ export function authRoutes(deps: AppDeps) {
       const info: InvitationInfo = {
         email: found.user.email,
         name: found.user.name,
-        event: next ? { ...next, startsAt: next.startsAt.toISOString() } : null,
+        event: next
+          ? {
+              id: next.id,
+              name: bothLanguages(next.name, next.nameSv),
+              startsAt: next.startsAt.toISOString(),
+              location: bothLanguages(next.location, next.locationSv),
+            }
+          : null,
       };
       return c.json(info);
     },
