@@ -275,6 +275,35 @@ describe("inviting guests to an event (staff)", () => {
     ordered: true,
   };
 
+  const staffPage = (shown: StaffEvent) =>
+    fakeApi({
+      "GET /api/me": ok(baker),
+      "GET /api/staff/ingredient-groups": ok([]),
+      "GET /api/staff/ingredients": ok([]),
+      [`GET /api/staff/events/${id}`]: ok(shown),
+      [`GET /api/staff/events/${id}/guests`]: ok([erik]),
+      "GET /api/staff/people": ok([maja]),
+    });
+
+  it("shares the event on WhatsApp while orders are open", async () => {
+    staffPage(event);
+    renderAccounts(`/staff/events/${id}`);
+    const share = await screen.findByRole("link", { name: "Share on WhatsApp" });
+    const url = new URL(share.getAttribute("href")!);
+    expect(url.origin + url.pathname).toBe("https://wa.me/");
+    const text = url.searchParams.get("text")!;
+    expect(text).toMatch(/^🍕 Friday Pizza Night\n.+ · At the Kurelids'\n\nOrder your pizza by /);
+    expect(text.endsWith(`\n${window.location.origin}/events/${id}`)).toBe(true);
+    expect(share).toHaveAttribute("target", "_blank");
+  });
+
+  it("offers no WhatsApp message once orders have closed", async () => {
+    staffPage({ ...event, phase: "closed" });
+    renderAccounts(`/staff/events/${id}`);
+    expect(await screen.findByRole("region", { name: "Guests" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Share on WhatsApp" })).not.toBeInTheDocument();
+  });
+
   it("lists the guests and invites people with an account and someone new", async () => {
     const calls = fakeApi({
       "GET /api/me": ok(baker),

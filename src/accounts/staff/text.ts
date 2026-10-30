@@ -142,6 +142,11 @@ const en = {
   noGuests: "No one is invited yet.",
   invitePeople: "Invite people",
   invitesWhenOpen: "You can invite people once the event is published, until orders close.",
+  shareOnWhatsApp: "Share on WhatsApp",
+  shareHint:
+    "Opens WhatsApp with a message about the event to send to a chat. The link works for people invited here.",
+  whatsAppMessage: (e: WhatsAppDetails) =>
+    `🍕 ${e.name}\n${e.when} · ${e.location}\n\nOrder your pizza by ${e.ordersClose}:\n${e.link}`,
   everyoneInvited: "Everyone with an account is invited.",
   someoneNew: "Someone new",
   someoneNewHint: "They get one email that sets up their account and shows the event.",
@@ -171,6 +176,15 @@ const en = {
     n === 1 ? "Remind the 1 who hasn't ordered" : `Remind the ${n} who haven't ordered`,
   reminded: (n: number) =>
     n === 1 ? "Reminder sent to 1 person." : `Reminders sent to ${n} people.`,
+};
+
+/** What goes into the WhatsApp message about an event. */
+type WhatsAppDetails = {
+  name: string;
+  when: string;
+  location: string;
+  ordersClose: string;
+  link: string;
 };
 
 export type StaffText = typeof en;
@@ -320,6 +334,11 @@ const sv: StaffText = {
   noGuests: "Ingen är inbjuden än.",
   invitePeople: "Bjud in",
   invitesWhenOpen: "Du kan bjuda in när kvällen är publicerad, tills beställningen stänger.",
+  shareOnWhatsApp: "Dela på WhatsApp",
+  shareHint:
+    "Öppnar WhatsApp med ett meddelande om kvällen att skicka i en chatt. Länken fungerar för de som är inbjudna här.",
+  whatsAppMessage: (e) =>
+    `🍕 ${e.name}\n${e.when} · ${e.location}\n\nBeställ din pizza senast ${e.ordersClose}:\n${e.link}`,
   everyoneInvited: "Alla med konto är inbjudna.",
   someoneNew: "Någon ny",
   someoneNewHint: "De får ett mejl som skapar kontot och visar kvällen.",

@@ -2,11 +2,13 @@ import { LANGUAGES, type EventGuest, type Language, type StaffEvent } from "@dom
 import { useState, type FormEvent } from "react";
 import { Button } from "../../components/Button";
 import { LANGUAGE_LABELS } from "../../i18n/translations";
+import { useLanguage } from "../../i18n/useLanguage";
 import { ApiRequestError } from "../api";
 import { errorMessage, useAccountsText } from "../text";
 import { keys, staffApi, useGuests, usePeople, useStaffMutation } from "./api";
 import { useStaffText, type StaffText } from "./text";
-import { Feedback, Loaded, Pill, cardClass, inputClass, labelClass } from "./ui";
+import { Feedback, Loaded, Pill, cardClass, inputClass, labelClass, smallButtonClass } from "./ui";
+import { shareMessage, whatsAppShareUrl } from "./whatsapp";
 
 function guestPill(guest: EventGuest, t: StaffText) {
   if (guest.invitation === "declined") return <Pill tone="muted">{t.guestStatus.declined}</Pill>;
@@ -18,15 +20,31 @@ function guestPill(guest: EventGuest, t: StaffText) {
 /** Who is invited to the event, and the form to invite more while orders are open. */
 export function GuestsSection({ event }: { event: StaffEvent }) {
   const t = useStaffText();
+  const { language } = useLanguage();
   const guests = useGuests(event.id);
   const { invited, ordered, declined } = event.guests;
   return (
     <section aria-labelledby="guests" className={`${cardClass} space-y-5`}>
-      <div>
-        <h2 id="guests" className="text-lg font-bold">
-          {t.guestsTitle}
-        </h2>
-        <p className="text-sm text-cream-300/70">{t.guestCounts(invited, ordered, declined)}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="guests" className="text-lg font-bold">
+            {t.guestsTitle}
+          </h2>
+          <p className="text-sm text-cream-300/70">{t.guestCounts(invited, ordered, declined)}</p>
+        </div>
+        {event.phase === "open" && (
+          <div className="max-w-xs space-y-1 sm:text-right">
+            <a
+              href={whatsAppShareUrl(shareMessage(event, window.location.origin, language, t))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={smallButtonClass}
+            >
+              {t.shareOnWhatsApp}
+            </a>
+            <p className="text-xs text-cream-300/60">{t.shareHint}</p>
+          </div>
+        )}
       </div>
       <Loaded query={guests}>
         {(list) => (
