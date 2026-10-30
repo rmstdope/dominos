@@ -44,6 +44,10 @@ export function OrdersPage() {
                   <p className="text-3xl font-extrabold text-cheese-300">{night.makeOwn}</p>
                   <p className="text-sm text-cream-300/70">{t.makingOwn}</p>
                 </div>
+                <div className="rounded-2xl bg-crust-950/60 p-3">
+                  <p className="text-3xl font-extrabold text-cheese-300">{night.smallerThicker}</p>
+                  <p className="text-sm text-cream-300/70">{t.smallerThickerCount}</p>
+                </div>
               </div>
               <PrepList prep={night.prep} />
             </section>
@@ -161,6 +165,11 @@ function OrderTicket({ eventId, order }: { eventId: string; order: StaffOrder })
           {order.makeOwn && (
             <span className="rounded-full bg-cheese-300 px-2 py-0.5 text-xs font-bold text-crust-950">
               {t.makesOwn}
+            </span>
+          )}
+          {order.smallerThicker && (
+            <span className="rounded-full bg-cheese-300 px-2 py-0.5 text-xs font-bold text-crust-950">
+              {t.smallerThicker}
             </span>
           )}
         </div>

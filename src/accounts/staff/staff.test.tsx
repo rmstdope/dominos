@@ -47,6 +47,7 @@ const friday: StaffEvent = {
   maxToppings: 6,
   note: null,
   askMakeOwn: true,
+  askSmallerThicker: false,
   status: "draft",
   phase: "draft",
   ingredientIds: [ham.id],
@@ -135,6 +136,7 @@ describe("the event editor", () => {
       maxToppings: 6,
       note: null,
       askMakeOwn: true,
+      askSmallerThicker: true,
       ingredientIds: [ham.id],
     });
   });

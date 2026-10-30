@@ -163,9 +163,13 @@ function Ticket({ event }: { event: GuestEventDetail }) {
         ) : (
           <p className="text-sm font-semibold">{t.plainPizza}</p>
         )}
-        {(order.makeOwn || order.comment) && (
+        {(order.makeOwn || order.smallerThicker || order.comment) && (
           <p className="text-sm text-crust-700">
-            {[order.makeOwn && t.makeOwn, order.comment && `“${order.comment}”`]
+            {[
+              order.makeOwn && t.makeOwn,
+              order.smallerThicker && t.smallerThicker,
+              order.comment && `“${order.comment}”`,
+            ]
               .filter(Boolean)
               .join(" · ")}
           </p>
@@ -262,6 +266,7 @@ function Builder({
   );
   const [asFavourite, setAsFavourite] = useState(false);
   const [makeOwn, setMakeOwn] = useState(event.order?.makeOwn ?? false);
+  const [smallerThicker, setSmallerThicker] = useState(event.order?.smallerThicker ?? false);
   const [comment, setComment] = useState(event.order?.comment ?? "");
   const atLimit = event.maxToppings !== null && picked.length >= event.maxToppings;
   const had = new Set(event.order?.toppingIds ?? []);
@@ -272,7 +277,7 @@ function Builder({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     place.mutate(
-      { toppingIds: picked, makeOwn, comment: comment.trim() || null },
+      { toppingIds: picked, makeOwn, smallerThicker, comment: comment.trim() || null },
       {
         onSuccess: () => {
           if (asFavourite) saveFavourite.mutate(picked);
@@ -361,6 +366,22 @@ function Builder({
             role="switch"
             checked={makeOwn}
             onChange={(e) => setMakeOwn(e.target.checked)}
+            className="size-6 shrink-0 accent-cheese-400"
+          />
+        </label>
+      )}
+
+      {event.askSmallerThicker && (
+        <label className="mt-3 flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-4 py-3 ring-1 ring-white/10">
+          <span>
+            <span className="block font-semibold">{t.smallerThicker}</span>
+            <span className="block text-sm text-cream-300/70">{t.smallerThickerHint}</span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={smallerThicker}
+            onChange={(e) => setSmallerThicker(e.target.checked)}
             className="size-6 shrink-0 accent-cheese-400"
           />
         </label>

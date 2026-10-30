@@ -117,6 +117,8 @@ export const events = pgTable("events", {
   noteEn: text("note_en"),
   noteSv: text("note_sv"),
   askMakeOwn: boolean("ask_make_own").notNull().default(true),
+  /** Off for events made before guests could ask for one. */
+  askSmallerThicker: boolean("ask_smaller_thicker").notNull().default(false),
   status: eventStatus("status").notNull().default("draft"),
   createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
@@ -172,6 +174,7 @@ export const orders = pgTable(
     /** Counts up from 1 within the event: the "#07" on the ticket. */
     number: integer("number").notNull(),
     makeOwn: boolean("make_own").notNull().default(false),
+    smallerThicker: boolean("smaller_thicker").notNull().default(false),
     comment: text("comment"),
     bakedAt: timestamp("baked_at", { withTimezone: true }),
     createdAt: createdAt(),

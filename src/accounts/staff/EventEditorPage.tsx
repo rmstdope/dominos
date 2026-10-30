@@ -23,6 +23,7 @@ type Form = {
   noteEn: string;
   noteSv: string;
   askMakeOwn: boolean;
+  askSmallerThicker: boolean;
   menu: string[];
 };
 
@@ -39,6 +40,7 @@ function formFrom(event: StaffEvent | undefined, ingredients: Ingredient[]): For
       noteEn: "",
       noteSv: "",
       askMakeOwn: true,
+      askSmallerThicker: true,
       // A new menu starts with everything in stock; staff untick what is not on offer.
       menu: ingredients.filter((i) => i.inStock).map((i) => i.id),
     };
@@ -54,6 +56,7 @@ function formFrom(event: StaffEvent | undefined, ingredients: Ingredient[]): For
     noteEn: event.note?.en ?? "",
     noteSv: event.note?.sv ?? "",
     askMakeOwn: event.askMakeOwn,
+    askSmallerThicker: event.askSmallerThicker,
     menu: event.ingredientIds,
   };
 }
@@ -82,6 +85,7 @@ function toFields(form: Form, t: StaffText): { fields: Required<UpdateEvent> } |
       maxToppings: form.maxToppings === "" ? null : Number(form.maxToppings),
       note: noteEn ? { en: noteEn, sv: noteSv } : null,
       askMakeOwn: form.askMakeOwn,
+      askSmallerThicker: form.askSmallerThicker,
     },
   };
 }
@@ -332,6 +336,15 @@ function EventForm({
                 className="size-5 accent-cheese-400"
               />
               {t.askMakeOwn}
+            </label>
+            <label className="flex min-h-11 items-center gap-3">
+              <input
+                type="checkbox"
+                checked={form.askSmallerThicker}
+                onChange={(e) => set("askSmallerThicker", e.target.checked)}
+                className="size-5 accent-cheese-400"
+              />
+              {t.askSmallerThicker}
             </label>
           </section>
 

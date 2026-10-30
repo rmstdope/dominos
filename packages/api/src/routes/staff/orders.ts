@@ -73,12 +73,14 @@ export function orderRoutes(deps: AppDeps) {
       email,
       toppings: toppings.filter((t) => t.orderId === order.id).map((t) => ({ en: t.en, sv: t.sv })),
       makeOwn: order.makeOwn,
+      smallerThicker: order.smallerThicker,
       comment: order.comment,
       baked: order.bakedAt !== null,
     }));
     const body: EventOrders = {
       pizzas: list.length,
       makeOwn: list.filter((o) => o.makeOwn).length,
+      smallerThicker: list.filter((o) => o.smallerThicker).length,
       prep: [...prep.values()],
       orders: list,
     };

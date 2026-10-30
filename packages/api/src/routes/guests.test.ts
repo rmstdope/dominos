@@ -229,6 +229,7 @@ describe("ordering", () => {
       number: 1,
       toppingIds: [ham.id, onion.id],
       makeOwn: true,
+      smallerThicker: false,
       comment: "Extra crispy",
     });
 
@@ -294,6 +295,22 @@ describe("ordering", () => {
     const anna = await guest();
     const detail = (await (await order(anna, [], { makeOwn: true })).json()) as GuestEventDetail;
     expect(detail.order?.makeOwn).toBe(false);
+  });
+
+  it("takes a smaller, but thicker pizza when the event asks", async () => {
+    event = await createEvent({ askSmallerThicker: true });
+    const anna = await guest();
+    const res = await order(anna, [ham.id], { smallerThicker: true });
+    const detail = (await res.json()) as GuestEventDetail;
+    expect(detail.askSmallerThicker).toBe(true);
+    expect(detail.order?.smallerThicker).toBe(true);
+  });
+
+  it("ignores a smaller, but thicker pizza when the event does not ask", async () => {
+    expect(event.askSmallerThicker).toBe(false);
+    const anna = await guest();
+    const res = await order(anna, [], { smallerThicker: true });
+    expect(((await res.json()) as GuestEventDetail).order?.smallerThicker).toBe(false);
   });
 
   it("is closed after the deadline, for changes and withdrawals too", async () => {

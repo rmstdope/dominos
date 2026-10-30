@@ -84,6 +84,7 @@ async function ordersOf(
         number: row.number,
         toppingIds: mine.map((t) => t.id),
         makeOwn: row.makeOwn,
+        smallerThicker: row.smallerThicker,
         comment: row.comment,
       },
       names: mine.map((t) => ({ en: t.nameEn, sv: t.nameSv })),
@@ -150,6 +151,7 @@ export function guestEventRoutes(deps: AppDeps) {
           ? { en: event.noteEn, sv: event.noteSv }
           : null,
       askMakeOwn: event.askMakeOwn,
+      askSmallerThicker: event.askSmallerThicker,
       groups: groups.map(toIngredientGroup),
       menu: menu.map(({ ingredient: i }) => ({
         id: i.id,
@@ -201,7 +203,7 @@ export function guestEventRoutes(deps: AppDeps) {
   routes.put("/:id/order", async (c) => {
     const user = currentUser(c);
     const eventId = idParam(c);
-    const { toppingIds, makeOwn, comment } = await readJson(c, placeOrderSchema);
+    const { toppingIds, makeOwn, smallerThicker, comment } = await readJson(c, placeOrderSchema);
     const invited = await loadInvited(user.id, eventId);
     requireOpen(invited);
     const { event } = invited;
@@ -241,6 +243,7 @@ export function guestEventRoutes(deps: AppDeps) {
 
     const values = {
       makeOwn: event.askMakeOwn && makeOwn,
+      smallerThicker: event.askSmallerThicker && smallerThicker,
       comment: comment || null,
       updatedAt: deps.now(),
     };

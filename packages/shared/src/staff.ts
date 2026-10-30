@@ -118,6 +118,7 @@ export type StaffEvent = {
   maxToppings: number | null;
   note: Localized | null;
   askMakeOwn: boolean;
+  askSmallerThicker: boolean;
   status: EventStatus;
   phase: EventPhase;
   ingredientIds: string[];
@@ -135,6 +136,8 @@ const eventFields = {
   maxToppings: z.int().min(1).max(30).nullable(),
   note: localized(500).nullable(),
   askMakeOwn: z.boolean(),
+  /** Optional, so an editor loaded before the option existed can still save; off if left out. */
+  askSmallerThicker: z.boolean().optional(),
 };
 
 export const ordersCloseBeforeStart = (e: { startsAt: string; ordersCloseAt: string }) =>

@@ -24,6 +24,7 @@ describe("the orders view (staff)", () => {
     maxToppings: null,
     note: null,
     askMakeOwn: true,
+    askSmallerThicker: false,
     status: "published",
     phase: "open",
     ingredientIds: [ham, onion],
@@ -32,6 +33,7 @@ describe("the orders view (staff)", () => {
   const night: EventOrders = {
     pizzas: 2,
     makeOwn: 1,
+    smallerThicker: 0,
     prep: [
       { ingredientId: ham, name: { en: "Ham", sv: "Skinka" }, count: 2 },
       { ingredientId: onion, name: { en: "Onion", sv: "Lök" }, count: 1 },
@@ -47,6 +49,7 @@ describe("the orders view (staff)", () => {
           { en: "Onion", sv: "Lök" },
         ],
         makeOwn: true,
+        smallerThicker: false,
         comment: "Extra crispy",
         baked: false,
       },
@@ -57,6 +60,7 @@ describe("the orders view (staff)", () => {
         email: "erik@example.com",
         toppings: [],
         makeOwn: false,
+        smallerThicker: false,
         comment: null,
         baked: true,
       },
@@ -174,6 +178,7 @@ describe("the favourite in the pizza builder", () => {
     maxToppings: 4,
     note: null,
     askMakeOwn: false,
+    askSmallerThicker: false,
     groups: [{ id: "g1", name: { en: "All", sv: "Alla" }, sort: 0 }],
     menu: [
       { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖", inStock: true },
@@ -208,7 +213,13 @@ describe("the favourite in the pizza builder", () => {
       [`GET /api/events/${id}`]: ok(detail),
       [`PUT /api/events/${id}/order`]: ok({
         ...detail,
-        order: { number: 1, toppingIds: [onion], makeOwn: false, comment: null },
+        order: {
+          number: 1,
+          toppingIds: [onion],
+          makeOwn: false,
+          smallerThicker: false,
+          comment: null,
+        },
       }),
       "PUT /api/me/favourite": ok({
         ingredients: [{ id: onion, name: { en: "Onion", sv: "Lök" } }],

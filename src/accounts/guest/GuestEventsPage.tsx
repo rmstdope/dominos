@@ -130,6 +130,7 @@ function EventCard({ event }: { event: GuestEvent }) {
         <p className="mt-2 text-sm text-cream-300/80">
           {toppings || t.plainPizza}
           {event.order.makeOwn && ` · ${t.makingOwn}`}
+          {event.order.smallerThicker && ` · ${t.smallerThickerShort}`}
         </p>
       )}
       {!event.order && event.phase === "closed" && (

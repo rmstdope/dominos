@@ -1,5 +1,5 @@
 import type { EventGuest, GuestEvent, GuestEventDetail, Person, StaffEvent } from "@dominos/shared";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { anna, fail, fakeApi, ok, renderAccounts } from "../test/fakeApi";
@@ -30,6 +30,7 @@ const detail = (over: Partial<GuestEventDetail> = {}): GuestEventDetail => ({
   maxToppings: 2,
   note: { en: "Every pizza comes with tomato sauce.", sv: "Alla pizzor har tomatsås." },
   askMakeOwn: true,
+  askSmallerThicker: false,
   groups: [
     { id: "g1", name: { en: "Meat", sv: "Kött" }, sort: 0 },
     { id: "g2", name: { en: "Veg", sv: "Grönt" }, sort: 1 },
@@ -44,7 +45,7 @@ const detail = (over: Partial<GuestEventDetail> = {}): GuestEventDetail => ({
 
 const ordered = (toppingIds: string[], extra: Partial<GuestEventDetail> = {}) =>
   detail({
-    order: { number: 7, toppingIds, makeOwn: true, comment: "Extra crispy" },
+    order: { number: 7, toppingIds, makeOwn: true, smallerThicker: false, comment: "Extra crispy" },
     orderToppings: toppingIds.map((t) =>
       t === ham ? { en: "Ham", sv: "Skinka" } : { en: "Onion", sv: "Lök" },
     ),
@@ -133,8 +134,32 @@ describe("building a pizza", () => {
     expect(calls.find((c) => c.method === "PUT")?.body).toEqual({
       toppingIds: [ham, onion],
       makeOwn: true,
+      smallerThicker: false,
       comment: "Extra crispy",
     });
+  });
+
+  it("asks for a smaller, but thicker pizza only when the event does", async () => {
+    const calls = fakeApi({
+      "GET /api/me": ok(anna),
+      [`GET /api/events/${id}`]: ok(detail({ askSmallerThicker: true })),
+      [`PUT /api/events/${id}/order`]: ok(ordered([ham])),
+    });
+    renderAccounts(`/events/${id}`);
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("switch", { name: /smaller, but thicker/i }));
+    await user.click(screen.getByRole("button", { name: "Place order" }));
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ smallerThicker: true }),
+    );
+  });
+
+  it("leaves out the smaller, but thicker question when the event does not ask", async () => {
+    fakeApi({ "GET /api/me": ok(anna), [`GET /api/events/${id}`]: ok(detail()) });
+    renderAccounts(`/events/${id}`);
+    expect(await heading("Build your pizza")).toBeInTheDocument();
+    expect(screen.queryByRole("switch", { name: /smaller, but thicker/i })).not.toBeInTheDocument();
   });
 
   it("changes an order, starting from what was ordered", async () => {
@@ -225,6 +250,7 @@ describe("inviting guests to an event (staff)", () => {
     maxToppings: 2,
     note: null,
     askMakeOwn: true,
+    askSmallerThicker: false,
     status: "published",
     phase: "open",
     ingredientIds: [ham],

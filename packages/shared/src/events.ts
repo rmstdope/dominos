@@ -12,6 +12,8 @@ export type Order = {
   number: number;
   toppingIds: string[];
   makeOwn: boolean;
+  /** A smaller pizza with a thicker crust. */
+  smallerThicker: boolean;
   comment: string | null;
 };
 
@@ -43,6 +45,7 @@ export type GuestEventDetail = GuestEvent & {
   maxToppings: number | null;
   note: Localized | null;
   askMakeOwn: boolean;
+  askSmallerThicker: boolean;
   groups: IngredientGroup[];
   menu: MenuItem[];
 };
@@ -50,6 +53,8 @@ export type GuestEventDetail = GuestEvent & {
 export const placeOrderSchema = z.object({
   toppingIds: z.array(z.uuid()).max(30),
   makeOwn: z.boolean(),
+  // Optional, so an order from a page loaded before guests could ask still goes through.
+  smallerThicker: z.boolean().default(false),
   comment: z.string().trim().max(500).nullable(),
 });
 export type PlaceOrder = z.infer<typeof placeOrderSchema>;
@@ -102,6 +107,7 @@ export type StaffOrder = {
   email: string;
   toppings: Localized[];
   makeOwn: boolean;
+  smallerThicker: boolean;
   comment: string | null;
   baked: boolean;
 };
@@ -110,6 +116,7 @@ export type StaffOrder = {
 export type EventOrders = {
   pizzas: number;
   makeOwn: number;
+  smallerThicker: number;
   prep: { ingredientId: string; name: Localized; count: number }[];
   orders: StaffOrder[];
 };

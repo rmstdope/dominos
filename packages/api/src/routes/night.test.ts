@@ -60,6 +60,7 @@ beforeEach(async () => {
       maxToppings: null,
       note: null,
       askMakeOwn: true,
+      askSmallerThicker: true,
       ingredientIds: [ham.id, onion.id],
     },
     201,
@@ -97,11 +98,17 @@ describe("the orders view", () => {
     const erik = await guest("erik@example.com");
     await guest("sara@example.com");
     await order(anna, [onion.id, ham.id], true, "Extra crispy");
-    await order(erik, [ham.id]);
+    await erik.json("PUT", `/api/events/${event.id}/order`, {
+      toppingIds: [ham.id],
+      makeOwn: false,
+      smallerThicker: true,
+      comment: null,
+    });
 
     const night = await staff.json<EventOrders>("GET", `/api/staff/events/${event.id}/orders`);
     expect(night.pizzas).toBe(2);
     expect(night.makeOwn).toBe(1);
+    expect(night.smallerThicker).toBe(1);
     expect(night.prep).toEqual([
       { ingredientId: ham.id, name: { en: "Ham", sv: "Skinka" }, count: 2 },
       { ingredientId: onion.id, name: { en: "Onion", sv: "Lök" }, count: 1 },
@@ -111,6 +118,7 @@ describe("the orders view", () => {
       [2, "erik@example.com", ["Ham"]],
     ]);
     expect(night.orders[0]).toMatchObject({ makeOwn: true, comment: "Extra crispy", baked: false });
+    expect(night.orders[1]).toMatchObject({ makeOwn: false, smallerThicker: true });
   });
 
   it("ticks pizzas off as baked, and back", async () => {

@@ -42,6 +42,7 @@ function toStaffEvent(
     maxToppings: row.maxToppings,
     note: row.noteEn !== null && row.noteSv !== null ? { en: row.noteEn, sv: row.noteSv } : null,
     askMakeOwn: row.askMakeOwn,
+    askSmallerThicker: row.askSmallerThicker,
     status: row.status,
     phase: eventPhase(row, now),
     ingredientIds,
@@ -60,6 +61,7 @@ function eventColumns(fields: UpdateEvent) {
     noteEn: fields.note === undefined ? undefined : (fields.note?.en ?? null),
     noteSv: fields.note === undefined ? undefined : (fields.note?.sv ?? null),
     askMakeOwn: fields.askMakeOwn,
+    askSmallerThicker: fields.askSmallerThicker,
   });
 }
 
@@ -172,6 +174,7 @@ export function eventRoutes(deps: AppDeps) {
           noteEn: fields.note?.en ?? null,
           noteSv: fields.note?.sv ?? null,
           askMakeOwn: fields.askMakeOwn,
+          askSmallerThicker: fields.askSmallerThicker,
           createdBy: currentUser(c).id,
         })
         .returning();
