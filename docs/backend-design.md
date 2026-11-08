@@ -51,7 +51,7 @@ needs Docker. Production uses a real Postgres with the same schema and queries.
 | `events`             | name, starts_at, location, orders_close_at, max_toppings (null = no limit), note_en/sv, ask_make_own, status `draft`/`published`/`cancelled` | ✅ Built. "Open", "closed" and "past" follow from the times  |
 | `event_ingredients`  | event_id, ingredient_id                                                                                                                      | ✅ Built. The event's menu                                   |
 | `event_invitations`  | event_id, user_id, status `invited`/`declined`, invited_at, last_reminded_at, first_seen_at                                                  | "Opened" means seen in the app                               |
-| `orders`             | event_id, user_id, **unique (event_id, user_id)**, number, make_own, comment, baked_at                                                       | `number` is per event (#07)                                  |
+| `orders`             | event_id, user_id, **unique (event_id, user_id)**, number, make_own, comment, late, baked_at                                                 | `number` is per event (#07)                                  |
 | `order_toppings`     | order_id, ingredient_id                                                                                                                      |                                                              |
 | `favourite_toppings` | user_id, ingredient_id                                                                                                                       | Pre-fills the pizza builder                                  |
 | `reminders_sent`     | event_id, user_id, kind                                                                                                                      | Keeps the reminder job from sending twice                    |
@@ -80,7 +80,7 @@ JSON under `/api`. Errors are `{ "error": { "code", "message" } }`, with the cod
 | `GET /health`                   | Checks the database answers                                        |
 
 **Guests** ✅ built: `GET /events` (only invited ones, never drafts), `GET /events/:id` (menu and my
-order; marks it seen), `PUT`/`DELETE /events/:id/order`, `POST /events/:id/decline`. Also built:
+order; marks it seen), `PUT`/`DELETE /events/:id/order` (after the deadline, until the event starts, a first order is still taken and marked late; placed orders can no longer change), `POST /events/:id/decline`. Also built:
 `PATCH /me` (name, language, reminders; not the email), `POST /me/password` (needs the current one,
 signs out other devices), `GET`/`PUT /me/favourite`.
 

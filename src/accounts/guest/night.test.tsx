@@ -51,6 +51,7 @@ describe("the orders view (staff)", () => {
         makeOwn: true,
         smallerThicker: false,
         comment: "Extra crispy",
+        late: false,
         baked: false,
       },
       {
@@ -62,6 +63,7 @@ describe("the orders view (staff)", () => {
         makeOwn: false,
         smallerThicker: false,
         comment: null,
+        late: true,
         baked: true,
       },
     ],
@@ -83,9 +85,10 @@ describe("the orders view (staff)", () => {
     expect(within(maja).getByText("Ham, Onion")).toBeInTheDocument();
     expect(within(maja).getByText("Makes own")).toBeInTheDocument();
     expect(within(maja).getByText("“Extra crispy”")).toBeInTheDocument();
-    expect(
-      within(screen.getByRole("article", { name: "#02 Erik" })).getByText(/plain/i),
-    ).toBeInTheDocument();
+    expect(within(maja).queryByText("Came in late")).not.toBeInTheDocument();
+    const erik = screen.getByRole("article", { name: "#02 Erik" });
+    expect(within(erik).getByText(/plain/i)).toBeInTheDocument();
+    expect(within(erik).getByText("Came in late")).toBeInTheDocument();
 
     await user.click(within(maja).getByRole("checkbox", { name: "Order #01 baked" }));
     await waitFor(() =>

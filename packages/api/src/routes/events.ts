@@ -87,6 +87,7 @@ async function ordersOf(
         makeOwn: row.makeOwn,
         smallerThicker: row.smallerThicker,
         comment: row.comment,
+        late: row.late,
       },
       names: mine.map((t) => ({ en: t.nameEn, sv: t.nameSv })),
     });
@@ -204,9 +205,12 @@ export function guestEventRoutes(deps: AppDeps) {
     const user = currentUser(c);
     const eventId = idParam(c);
     const { toppingIds, makeOwn, smallerThicker, comment } = await readJson(c, placeOrderSchema);
-    const invited = await loadInvited(user.id, eventId);
-    requireOpen(invited);
-    const { event } = invited;
+    const { event } = await loadInvited(user.id, eventId);
+    const phase = eventPhase(event, deps.now());
+    const current = (await ordersOf(db, user.id, [eventId])).get(eventId);
+    // After the deadline a first order still gets in, marked late; placed orders stay as they are.
+    const late = phase === "closed" && !current;
+    if (phase !== "open" && !late) throw conflict("Orders for this event are closed.");
 
     const picked = [...new Set(toppingIds)];
     if (event.maxToppings !== null && picked.length > event.maxToppings) {
@@ -261,7 +265,7 @@ export function guestEventRoutes(deps: AppDeps) {
             .where(eq(orders.eventId, eventId));
           const [created] = await tx
             .insert(orders)
-            .values({ eventId, userId: user.id, number: (last ?? 0) + 1, ...values })
+            .values({ eventId, userId: user.id, number: (last ?? 0) + 1, late, ...values })
             .returning({ id: orders.id });
           orderId = created!.id;
         }

@@ -42,7 +42,7 @@ export function GuestEventPage({ me }: { me: Me }) {
   );
 }
 
-/** Builder while ordering is open and there is no order (or it is being changed); else the ticket. */
+/** Builder while an order can be placed or changed; else the ticket. */
 function EventView({
   me,
   event,
@@ -58,6 +58,8 @@ function EventView({
   const [justPlaced, setJustPlaced] = useState(false);
   const open = event.phase === "open";
   const declined = event.invitation === "declined";
+  // Past the deadline a first order can still come in, marked late.
+  const orderable = open || (event.phase === "closed" && !event.order);
 
   const header = (
     <div>
@@ -75,7 +77,7 @@ function EventView({
       </>
     );
   }
-  if (open && (editing || (!event.order && !declined))) {
+  if (orderable && (editing || (!event.order && !declined))) {
     return (
       <>
         {header}
@@ -91,12 +93,12 @@ function EventView({
       </>
     );
   }
-  if (declined && open) {
+  if (declined && orderable) {
     return (
       <>
         {header}
         <h1 className="mt-1 text-3xl font-bold tracking-tight">{t.declinedTitle}</h1>
-        <p className="mt-2 text-cream-300/80">{t.declinedBody}</p>
+        <p className="mt-2 text-cream-300/80">{open ? t.declinedBody : t.declinedBodyLate}</p>
         <Button className="mt-6 w-full" onClick={() => setEditing(true)}>
           {t.comeAfterAll}
         </Button>
@@ -141,6 +143,9 @@ function Ticket({ event }: { event: GuestEventDetail }) {
       aria-label={t.yourOrder}
       className="mt-6 overflow-hidden rounded-3xl bg-cream-100 text-crust-950"
     >
+      {order.late && (
+        <p className="bg-sauce-500 px-5 py-2 text-sm font-bold text-cream-100">{t.lateTicket}</p>
+      )}
       <div className="flex items-start justify-between gap-3 p-5 pb-4">
         <div>
           <p className="text-xs font-bold tracking-widest text-crust-700 uppercase">
@@ -271,6 +276,7 @@ function Builder({
   const [smallerThicker, setSmallerThicker] = useState(event.order?.smallerThicker ?? false);
   const [comment, setComment] = useState(event.order?.comment ?? "");
   const atLimit = event.maxToppings !== null && picked.length >= event.maxToppings;
+  const late = event.phase === "closed";
 
   const toggle = (id: string) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -291,6 +297,11 @@ function Builder({
   return (
     <form onSubmit={submit} className="flex flex-1 flex-col">
       <h1 className="mt-1 text-3xl font-bold tracking-tight">{t.builderTitle}</h1>
+      {late && (
+        <p className="mt-3 rounded-xl bg-sauce-500 px-3 py-2 text-sm font-semibold text-cream-100">
+          {t.lateNotice(formatWhen(event.ordersCloseAt, language))}
+        </p>
+      )}
       <p className="mt-2 text-cream-300/80">
         {event.maxToppings === null ? t.pickAny : t.pickUpTo(event.maxToppings)}
         {event.note && ` ${event.note[language]}`}
@@ -419,7 +430,7 @@ function Builder({
               {t.countOf(picked.length, event.maxToppings)}
             </p>
             <p className="text-sm text-cream-300/70">
-              {t.editableUntil(formatWhen(event.ordersCloseAt, language))}
+              {late ? t.lateOrder : t.editableUntil(formatWhen(event.ordersCloseAt, language))}
             </p>
           </div>
           {onCancel && (
@@ -432,7 +443,7 @@ function Builder({
             </button>
           )}
           <Button type="submit" className="shrink-0" disabled={place.isPending}>
-            {event.order ? t.saveOrder : t.placeOrder}
+            {event.order ? t.saveOrder : late ? t.placeLateOrder : t.placeOrder}
           </Button>
         </div>
       </div>

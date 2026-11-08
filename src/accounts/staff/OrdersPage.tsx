@@ -162,6 +162,11 @@ function OrderTicket({ eventId, order }: { eventId: string; order: StaffOrder })
       <div className="min-w-0 flex-1 basis-60">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-bold">{order.name}</h3>
+          {order.late && (
+            <span className="rounded-full bg-sauce-500 px-2 py-0.5 text-xs font-bold text-cream-100">
+              {t.cameInLate}
+            </span>
+          )}
           {order.makeOwn && (
             <span className="rounded-full bg-cheese-300 px-2 py-0.5 text-xs font-bold text-crust-950">
               {t.makesOwn}

@@ -15,6 +15,8 @@ export type Order = {
   /** A smaller pizza with a thicker crust. */
   smallerThicker: boolean;
   comment: string | null;
+  /** Placed after orders closed. */
+  late: boolean;
 };
 
 /** An event in a guest's list. Times are ISO 8601 strings. */
@@ -108,6 +110,8 @@ export type StaffOrder = {
   makeOwn: boolean;
   smallerThicker: boolean;
   comment: string | null;
+  /** Placed after orders closed. */
+  late: boolean;
   baked: boolean;
 };
 

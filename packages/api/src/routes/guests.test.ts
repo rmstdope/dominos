@@ -1,5 +1,6 @@
 import type {
   EventGuest,
+  EventOrders,
   GuestEvent,
   GuestEventDetail,
   Ingredient,
@@ -236,6 +237,7 @@ describe("ordering", () => {
       makeOwn: true,
       smallerThicker: false,
       comment: "Extra crispy",
+      late: false,
     });
 
     const [listed] = await anna.json<GuestEvent[]>("GET", "/api/events");
@@ -314,6 +316,44 @@ describe("ordering", () => {
     expect((await anna.post(`/api/events/${event.id}/decline`)).status).toBe(409);
     const detail = await anna.json<GuestEventDetail>("GET", `/api/events/${event.id}`);
     expect(detail).toMatchObject({ phase: "closed", order: { toppingIds: [ham.id] } });
+  });
+
+  it("takes a first order after the deadline, marked late, and then locks it", async () => {
+    const anna = await guest();
+    await order(anna, [ham.id]);
+    const erik = await guest("erik@example.com");
+    t.now = new Date("2026-11-04T19:00:00Z");
+
+    const res = await order(erik, [onion.id]);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as GuestEventDetail).order).toMatchObject({ number: 2, late: true });
+    expect((await order(erik, [ham.id])).status).toBe(409);
+
+    const night = await staff.json<EventOrders>("GET", `/api/staff/events/${event.id}/orders`);
+    expect(night.orders.map((o) => [o.name, o.late])).toEqual([
+      [expect.any(String), false],
+      [expect.any(String), true],
+    ]);
+  });
+
+  it("takes a late order from someone who said no earlier", async () => {
+    const anna = await guest();
+    await anna.post(`/api/events/${event.id}/decline`);
+    t.now = new Date("2026-11-04T19:00:00Z");
+    const detail = (await (await order(anna, [ham.id])).json()) as GuestEventDetail;
+    expect(detail).toMatchObject({ invitation: "invited", order: { late: true } });
+  });
+
+  it("takes no orders at all once the event has started", async () => {
+    const anna = await guest();
+    t.now = new Date("2026-11-06T17:30:00Z");
+    expect((await order(anna, [ham.id])).status).toBe(409);
+  });
+
+  it("is not late while orders are open", async () => {
+    const anna = await guest();
+    const detail = (await (await order(anna, [ham.id])).json()) as GuestEventDetail;
+    expect(detail.order?.late).toBe(false);
   });
 
   it("can be withdrawn while orders are open", async () => {

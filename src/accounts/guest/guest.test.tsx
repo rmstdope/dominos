@@ -45,7 +45,14 @@ const detail = (over: Partial<GuestEventDetail> = {}): GuestEventDetail => ({
 
 const ordered = (toppingIds: string[], extra: Partial<GuestEventDetail> = {}) =>
   detail({
-    order: { number: 7, toppingIds, makeOwn: true, smallerThicker: false, comment: "Extra crispy" },
+    order: {
+      number: 7,
+      toppingIds,
+      makeOwn: true,
+      smallerThicker: false,
+      comment: "Extra crispy",
+      late: false,
+    },
     orderToppings: toppingIds.map((t) =>
       t === ham ? { en: "Ham", sv: "Skinka" } : { en: "Onion", sv: "Lök" },
     ),
@@ -244,10 +251,52 @@ describe("after orders close", () => {
   it("says when no order was placed", async () => {
     fakeApi({
       "GET /api/me": ok(anna),
-      [`GET /api/events/${id}`]: ok(detail({ phase: "closed" })),
+      [`GET /api/events/${id}`]: ok(detail({ phase: "past" })),
     });
     renderAccounts(`/events/${id}`);
     expect(await heading("Orders are closed")).toBeInTheDocument();
+  });
+
+  it("still takes a first order, and says it will be late", async () => {
+    const calls = fakeApi({
+      "GET /api/me": ok(anna),
+      [`GET /api/events/${id}`]: ok(detail({ phase: "closed" })),
+      [`PUT /api/events/${id}/order`]: ok({
+        ...ordered([ham], { phase: "closed" }),
+        order: { ...ordered([ham]).order!, late: true },
+      }),
+    });
+    renderAccounts(`/events/${id}`);
+    const user = userEvent.setup();
+    expect(await heading("Build your pizza")).toBeInTheDocument();
+    expect(screen.getByText(/orders closed .* late order/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Ham" }));
+    await user.click(screen.getByRole("button", { name: "Place late order" }));
+
+    const ticket = await screen.findByRole("article", { name: "Your order" });
+    expect(within(ticket).getByText(/came in after orders closed/i)).toBeInTheDocument();
+    expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ toppingIds: [ham] });
+    expect(screen.queryByRole("button", { name: "Change order" })).not.toBeInTheDocument();
+  });
+
+  it("lets someone who said no come after all, late", async () => {
+    fakeApi({
+      "GET /api/me": ok(anna),
+      [`GET /api/events/${id}`]: ok(detail({ phase: "closed", invitation: "declined" })),
+    });
+    renderAccounts(`/events/${id}`);
+    expect(await screen.findByText(/marked as late/i)).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: /come after all/i }));
+    expect(await heading("Build your pizza")).toBeInTheDocument();
+  });
+
+  it("offers a late order from the list", async () => {
+    fakeApi({ "GET /api/me": ok(anna), "GET /api/events": ok([{ ...base, phase: "closed" }]) });
+    renderAccounts("/");
+    const needs = await screen.findByRole("region", { name: "Needs your order" });
+    expect(within(needs).getByText(/you can still order late/i)).toBeInTheDocument();
+    expect(within(needs).getByRole("link", { name: /order late/i })).toBeInTheDocument();
   });
 });
 

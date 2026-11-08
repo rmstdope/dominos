@@ -179,6 +179,8 @@ export const orders = pgTable(
     makeOwn: boolean("make_own").notNull().default(false),
     smallerThicker: boolean("smaller_thicker").notNull().default(false),
     comment: text("comment"),
+    /** Placed after orders closed. Stays true even if staff later move the deadline. */
+    late: boolean("late").notNull().default(false),
     bakedAt: timestamp("baked_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

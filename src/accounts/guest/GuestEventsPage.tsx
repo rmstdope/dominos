@@ -11,11 +11,10 @@ import { useGuestText, type GuestText } from "./text";
 const DAY = 24 * 60 * 60 * 1000;
 
 /** What the guest is asked to do about each event, in the order the sections appear. */
-function sectionOf(e: GuestEvent): "needs" | "ordered" | "closed" | "declined" | "over" {
+function sectionOf(e: GuestEvent): "needs" | "ordered" | "declined" | "over" {
   if (e.phase === "past" || e.phase === "cancelled") return "over";
-  if (e.invitation === "declined") return e.phase === "open" ? "declined" : "over";
-  if (e.order) return "ordered";
-  return e.phase === "open" ? "needs" : "closed";
+  if (e.invitation === "declined") return "declined";
+  return e.order ? "ordered" : "needs";
 }
 
 export function GuestEventsPage({ me }: { me: Me }) {
@@ -34,7 +33,7 @@ export function GuestEventsPage({ me }: { me: Me }) {
               <Section title={t.needsOrder} events={by("needs")}>
                 {(e) => <NeedsOrderCard event={e} />}
               </Section>
-              <Section title={t.ordered} events={[...by("ordered"), ...by("closed")]}>
+              <Section title={t.ordered} events={by("ordered")}>
                 {(e) => <EventCard event={e} />}
               </Section>
               <Section title={t.notGoing} events={by("declined")}>
@@ -79,6 +78,8 @@ function NeedsOrderCard({ event }: { event: GuestEvent }) {
   // Read the clock once; the count only needs to be right to the day.
   const [now] = useState(() => Date.now());
   const days = Math.floor((new Date(event.ordersCloseAt).getTime() - now) / DAY);
+  const late = event.phase === "closed";
+  const closes = formatWhen(event.ordersCloseAt, language);
   return (
     <article className="rounded-3xl bg-cheese-400 p-5 text-crust-950">
       <div className="flex items-start justify-between gap-3">
@@ -90,18 +91,24 @@ function NeedsOrderCard({ event }: { event: GuestEvent }) {
           <p className="mt-1">{event.location[language]}</p>
         </div>
         <div className="shrink-0 rounded-2xl bg-crust-950 px-3 py-2 text-center text-cheese-300">
-          <div className="text-xl leading-none font-extrabold">{t.daysLeft(days)}</div>
-          <div className="mt-1 text-xs font-semibold">{t.toOrder}</div>
+          {late ? (
+            <div className="text-xl leading-none font-extrabold">{t.lateBadge}</div>
+          ) : (
+            <>
+              <div className="text-xl leading-none font-extrabold">{t.daysLeft(days)}</div>
+              <div className="mt-1 text-xs font-semibold">{t.toOrder}</div>
+            </>
+          )}
         </div>
       </div>
       <p className="mt-3 text-sm font-semibold">
-        {t.ordersClose(formatWhen(event.ordersCloseAt, language))}
+        {late ? t.lateCard(closes) : t.ordersClose(closes)}
       </p>
       <Link
         to={`/events/${event.id}`}
         className="mt-4 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-crust-950 font-bold text-cream-100 hover:bg-crust-900"
       >
-        {t.buildPizza} <span aria-hidden="true">→</span>
+        {late ? t.orderLate : t.buildPizza} <span aria-hidden="true">→</span>
       </Link>
     </article>
   );
@@ -121,9 +128,16 @@ function EventCard({ event }: { event: GuestEvent }) {
           <h3 className="mt-0.5 text-lg font-bold">{event.name[language]}</h3>
         </div>
         {event.order && (
-          <span className="shrink-0 rounded-full bg-basil-400 px-2.5 py-1 text-xs font-bold text-crust-950">
-            {t.orderedBadge} #{String(event.order.number).padStart(2, "0")}
-          </span>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <span className="rounded-full bg-basil-400 px-2.5 py-1 text-xs font-bold text-crust-950">
+              {t.orderedBadge} #{String(event.order.number).padStart(2, "0")}
+            </span>
+            {event.order.late && (
+              <span className="rounded-full bg-sauce-500 px-2.5 py-1 text-xs font-bold text-cream-100">
+                {t.lateOrder}
+              </span>
+            )}
+          </div>
         )}
       </div>
       {event.order && (
@@ -132,9 +146,6 @@ function EventCard({ event }: { event: GuestEvent }) {
           {event.order.makeOwn && ` · ${t.makingOwn}`}
           {event.order.smallerThicker && ` · ${t.smallerThickerShort}`}
         </p>
-      )}
-      {!event.order && event.phase === "closed" && (
-        <p className="mt-2 text-sm text-cream-300/70">{t.comingUp}</p>
       )}
       <Link
         to={`/events/${event.id}`}

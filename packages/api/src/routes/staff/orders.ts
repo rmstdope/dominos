@@ -75,6 +75,7 @@ export function orderRoutes(deps: AppDeps) {
       makeOwn: order.makeOwn,
       smallerThicker: order.smallerThicker,
       comment: order.comment,
+      late: order.late,
       baked: order.bakedAt !== null,
     }));
     const body: EventOrders = {
