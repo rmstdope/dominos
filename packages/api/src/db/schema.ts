@@ -218,6 +218,29 @@ export const favouriteToppings = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.ingredientId] })],
 );
 
+/** A pizza someone named and saved, to start an order from later. */
+export const savedPizzas = pgTable("saved_pizzas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdAt: createdAt(),
+});
+
+export const savedPizzaToppings = pgTable(
+  "saved_pizza_toppings",
+  {
+    pizzaId: uuid("pizza_id")
+      .notNull()
+      .references(() => savedPizzas.id, { onDelete: "cascade" }),
+    ingredientId: uuid("ingredient_id")
+      .notNull()
+      .references(() => ingredients.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.pizzaId, t.ingredientId] })],
+);
+
 /** Automatic reminders already sent, so the job never sends the same one twice. */
 export const remindersSent = pgTable(
   "reminders_sent",

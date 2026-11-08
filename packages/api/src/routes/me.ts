@@ -14,6 +14,7 @@ import { favouriteToppings, ingredientGroups, ingredients, sessions, users } fro
 import type { AppDeps, AppEnv } from "../http/env.ts";
 import { ApiHttpError, readJson } from "../http/errors.ts";
 import { currentUser, requireUser } from "../http/session.ts";
+import { pizzaRoutes } from "./pizzas.ts";
 
 async function favouriteOf(db: Db, userId: string): Promise<Favourite> {
   const rows = await db
@@ -30,6 +31,7 @@ export function meRoutes(deps: AppDeps) {
   const { db } = deps;
   const routes = new Hono<AppEnv>();
   routes.use("*", requireUser);
+  routes.route("/pizzas", pizzaRoutes(deps));
 
   routes.get("/", (c) => c.json(toMe(currentUser(c))));
 

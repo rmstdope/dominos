@@ -99,6 +99,30 @@ export type Favourite = { ingredients: { id: string; name: Localized }[] };
 export const setFavouriteSchema = z.object({ ingredientIds: z.array(z.uuid()).max(30) });
 export type SetFavourite = z.infer<typeof setFavouriteSchema>;
 
+// --- Saved pizzas --------------------------------------------------------------------------------
+
+/** A pizza someone named and saved; an order can start from it and change it before sending. */
+export type SavedPizza = {
+  id: string;
+  name: string;
+  ingredients: { id: string; name: Localized }[];
+};
+
+/** Everything in the pantry, for putting a saved pizza together outside any event. */
+export type Toppings = { groups: IngredientGroup[]; items: MenuItem[] };
+
+const pizzaName = z.string().trim().min(1).max(40);
+const pizzaToppings = z.array(z.uuid()).max(30);
+
+export const createSavedPizzaSchema = z.object({ name: pizzaName, ingredientIds: pizzaToppings });
+export type CreateSavedPizza = z.infer<typeof createSavedPizzaSchema>;
+
+export const updateSavedPizzaSchema = z.object({
+  name: pizzaName.optional(),
+  ingredientIds: pizzaToppings.optional(),
+});
+export type UpdateSavedPizza = z.infer<typeof updateSavedPizzaSchema>;
+
 // --- The night itself (staff) --------------------------------------------------------------------
 
 export type StaffOrder = {

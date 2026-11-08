@@ -1,15 +1,24 @@
-import type { GuestEventDetail, Me } from "@dominos/shared";
+import type { GuestEventDetail, Me, SavedPizza } from "@dominos/shared";
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router";
 import { Button } from "../../components/Button";
 import { useLanguage } from "../../i18n/useLanguage";
 import { ApiRequestError } from "../api";
 import { formatWhen } from "../dates";
-import { Loaded } from "../staff/ui";
+import { Feedback, Loaded, inputClass } from "../staff/ui";
 import { errorMessage, useAccountsText } from "../text";
-import { useDecline, useFavourite, useGuestEvent, usePlaceOrder, useSetFavourite } from "./api";
+import {
+  useCreatePizza,
+  useDecline,
+  useFavourite,
+  useGuestEvent,
+  usePizzas,
+  usePlaceOrder,
+  useSetFavourite,
+} from "./api";
 import { GuestLayout } from "./GuestLayout";
 import { useGuestText, type GuestText } from "./text";
+import { ToppingGrid } from "./ToppingGrid";
 
 export function GuestEventPage({ me }: { me: Me }) {
   const { id = "" } = useParams();
@@ -186,6 +195,59 @@ function Ticket({ event }: { event: GuestEventDetail }) {
   );
 }
 
+/** Names and saves the pizza as it stands, whether or not the order goes through. */
+function SavePizza({ toppingIds }: { toppingIds: string[] }) {
+  const t = useGuestText();
+  const a = useAccountsText();
+  const create = useCreatePizza();
+  const [name, setName] = useState("");
+  const save = () => {
+    if (name.trim() && !create.isPending) {
+      create.mutate(
+        { name: name.trim(), ingredientIds: toppingIds },
+        { onSuccess: () => setName("") },
+      );
+    }
+  };
+  return (
+    <div className="mt-2 space-y-2">
+      <label htmlFor="save-pizza" className="block text-sm text-cream-300/80">
+        {t.savePizzaLabel}
+      </label>
+      <div className="flex gap-2">
+        <input
+          id="save-pizza"
+          maxLength={40}
+          placeholder={t.savePizzaPlaceholder}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          // Enter saves the pizza here; it must not send the order around it.
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              save();
+            }
+          }}
+          className={`${inputClass} min-w-0 flex-1`}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          className="shrink-0"
+          disabled={!name.trim() || create.isPending}
+          onClick={save}
+        >
+          {t.savePizza}
+        </Button>
+      </div>
+      <Feedback
+        error={create.isError ? errorMessage(create.error, a) : null}
+        success={create.data ? t.savedAs(create.data.name) : null}
+      />
+    </div>
+  );
+}
+
 function OrderActions({ event, onChange }: { event: GuestEventDetail; onChange: () => void }) {
   const t = useGuestText();
   const a = useAccountsText();
@@ -245,10 +307,10 @@ function orderError(err: unknown, t: GuestText, a: ReturnType<typeof useAccounts
   return errorMessage(err, a);
 }
 
-/** Where a new order starts: the favourite, minus what this menu lacks, up to the limit. */
-function startingToppings(event: GuestEventDetail, favourite: string[]): string[] {
+/** Toppings to start from, minus what this menu lacks, up to the limit. */
+function startingToppings(event: GuestEventDetail, wanted: string[]): string[] {
   const available = new Set(event.menu.map((m) => m.id));
-  const picked = favourite.filter((id) => available.has(id));
+  const picked = wanted.filter((id) => available.has(id));
   return event.maxToppings === null ? picked : picked.slice(0, event.maxToppings);
 }
 
@@ -277,6 +339,19 @@ function Builder({
   const [comment, setComment] = useState(event.order?.comment ?? "");
   const atLimit = event.maxToppings !== null && picked.length >= event.maxToppings;
   const late = event.phase === "closed";
+  const pizzas = usePizzas();
+  const [template, setTemplate] = useState<string | null>(null);
+  const [leftOut, setLeftOut] = useState<string[]>([]);
+
+  const startFrom = (pizza: SavedPizza) => {
+    const fits = startingToppings(
+      event,
+      pizza.ingredients.map((i) => i.id),
+    );
+    setPicked(fits);
+    setTemplate(pizza.id);
+    setLeftOut(pizza.ingredients.filter((i) => !fits.includes(i.id)).map((i) => i.name[language]));
+  };
 
   const toggle = (id: string) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -314,50 +389,47 @@ function Builder({
           {t.atLimit}
         </p>
       )}
-      <div className="mt-5 space-y-5">
-        {event.groups.map((group) => (
-          <section key={group.id} aria-labelledby={`group-${group.id}`}>
-            <h2
-              id={`group-${group.id}`}
-              className="mb-2 text-xs font-semibold tracking-widest text-cream-300/70 uppercase"
-            >
-              {group.name[language]}
-            </h2>
-            <ul className="grid grid-cols-2 gap-2">
-              {event.menu
-                .filter((m) => m.groupId === group.id)
-                .map((item) => {
-                  const on = picked.includes(item.id);
-                  const disabled = !on && atLimit;
-                  return (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        aria-pressed={on}
-                        disabled={disabled}
-                        onClick={() => toggle(item.id)}
-                        className={`flex min-h-12 w-full items-center gap-2 rounded-2xl px-3 text-left text-[15px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cheese-300 ${
-                          on
-                            ? "bg-cheese-400/15 text-cream-100 ring-2 ring-cheese-400"
-                            : disabled
-                              ? "cursor-not-allowed text-cream-300/40 ring-1 ring-white/10 ring-dashed"
-                              : "bg-white/5 text-cream-100 ring-1 ring-white/10 hover:bg-white/10"
-                        }`}
-                      >
-                        {item.emoji && (
-                          <span className="text-xl" aria-hidden="true">
-                            {item.emoji}
-                          </span>
-                        )}
-                        <span className="flex-1">{item.name[language]}</span>
-                        {on && <span aria-hidden="true">✓</span>}
-                      </button>
-                    </li>
-                  );
-                })}
-            </ul>
-          </section>
-        ))}
+      {pizzas.data && pizzas.data.length > 0 && (
+        <section aria-labelledby="start-from" className="mt-5">
+          <h2
+            id="start-from"
+            className="mb-2 text-xs font-semibold tracking-widest text-cream-300/70 uppercase"
+          >
+            {t.startFrom}
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {pizzas.data.map((pizza) => (
+              <li key={pizza.id}>
+                <button
+                  type="button"
+                  aria-pressed={template === pizza.id}
+                  onClick={() => startFrom(pizza)}
+                  className={`min-h-11 rounded-full px-4 text-sm font-semibold ring-1 ${
+                    template === pizza.id
+                      ? "bg-cheese-400/15 ring-cheese-400"
+                      : "bg-white/5 ring-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {pizza.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          {leftOut.length > 0 && (
+            <p role="status" className="mt-2 text-sm text-cheese-300">
+              {t.leftOut(leftOut.join(", "))}
+            </p>
+          )}
+        </section>
+      )}
+      <div className="mt-5">
+        <ToppingGrid
+          groups={event.groups}
+          items={event.menu}
+          picked={picked}
+          atLimit={atLimit}
+          onToggle={toggle}
+        />
       </div>
 
       {event.askMakeOwn && (
@@ -401,6 +473,7 @@ function Builder({
         />
         {t.saveFavourite}
       </label>
+      <SavePizza toppingIds={picked} />
 
       <label
         htmlFor="comment"

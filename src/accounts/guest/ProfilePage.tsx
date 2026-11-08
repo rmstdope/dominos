@@ -10,6 +10,7 @@ import { errorMessage, useAccountsText } from "../text";
 import { useSession } from "../useSession";
 import { changePassword, updateMe, useFavourite, useSetFavourite } from "./api";
 import { GuestLayout } from "./GuestLayout";
+import { SavedPizzasCard } from "./SavedPizzas";
 import { useGuestText } from "./text";
 
 const card = "rounded-3xl bg-crust-900/70 p-5 ring-1 ring-white/10 space-y-4";
@@ -34,6 +35,7 @@ export function ProfilePage({ me }: { me: Me }) {
       </div>
       <div className="mt-6 space-y-5">
         <FavouriteCard />
+        <SavedPizzasCard className={card} />
         <AccountCard me={me} />
         <RemindersCard me={me} />
         <PasswordCard />

@@ -37,6 +37,7 @@ export function fakeApi(routes: Record<string, Handler>) {
     "GET /api/me": fail(401, "unauthorized"),
     "GET /api/events": ok([]),
     "GET /api/me/favourite": ok({ ingredients: [] }),
+    "GET /api/me/pizzas": ok([]),
     ...routes,
   };
   vi.stubGlobal(
