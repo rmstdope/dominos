@@ -10,7 +10,7 @@ import { fromInputs, toDateInput, toTimeInput } from "../dates";
 import { PhasePill } from "./EventsPage";
 import { GuestsSection } from "./GuestsSection";
 import { useStaffText, type StaffText } from "./text";
-import { Feedback, Loaded, Pill, cardClass, inputClass, labelClass, smallButtonClass } from "./ui";
+import { Feedback, Loaded, cardClass, inputClass, labelClass, smallButtonClass } from "./ui";
 
 type Form = {
   nameEn: string;
@@ -45,8 +45,8 @@ function formFrom(event: StaffEvent | undefined, ingredients: Ingredient[]): For
       noteSv: "",
       askMakeOwn: true,
       askSmallerThicker: true,
-      // A new menu starts with everything in stock; staff untick what is not on offer.
-      menu: ingredients.filter((i) => i.inStock).map((i) => i.id),
+      // A new menu starts with everything; staff untick what is not in stock.
+      menu: ingredients.map((i) => i.id),
     };
   }
   return {
@@ -549,7 +549,6 @@ function MenuPicker({
                         className="size-5 accent-cheese-400"
                       />
                       <span className="flex-1">{ingredient.name[language]}</span>
-                      {!ingredient.inStock && <Pill tone="warn">{t.outOfStock}</Pill>}
                     </label>
                   </li>
                 ))}

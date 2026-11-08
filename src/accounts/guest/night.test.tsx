@@ -181,13 +181,12 @@ describe("the favourite in the pizza builder", () => {
     askSmallerThicker: false,
     groups: [{ id: "g1", name: { en: "All", sv: "Alla" }, sort: 0 }],
     menu: [
-      { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖", inStock: true },
-      { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, emoji: null, inStock: false },
-      { id: onion, groupId: "g1", name: { en: "Onion", sv: "Lök" }, emoji: null, inStock: true },
+      { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖" },
+      { id: onion, groupId: "g1", name: { en: "Onion", sv: "Lök" }, emoji: null },
     ],
   };
 
-  it("starts a new order from it, skipping what is out", async () => {
+  it("starts a new order from it, skipping what this menu lacks", async () => {
     fakeApi({
       "GET /api/me": ok(anna),
       [`GET /api/events/${id}`]: ok(detail),
@@ -203,7 +202,7 @@ describe("the favourite in the pizza builder", () => {
       "aria-pressed",
       "true",
     );
-    expect(screen.getByRole("button", { name: /bacon/i })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByRole("button", { name: /bacon/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /onion/i })).toHaveAttribute("aria-pressed", "false");
   });
 

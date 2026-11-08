@@ -31,13 +31,12 @@ export type GuestEvent = {
   orderToppings: Localized[];
 };
 
-/** A topping a guest can pick. Out-of-stock ones are shown but cannot be picked. */
+/** A topping a guest can pick. */
 export type MenuItem = {
   id: string;
   groupId: string;
   name: Localized;
   emoji: string | null;
-  inStock: boolean;
 };
 
 /** One event with everything the pizza builder needs. */

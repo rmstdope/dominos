@@ -94,7 +94,6 @@ export const ingredients = pgTable(
     nameSv: text("name_sv").notNull(),
     /** Shown beside the name, like 🍄; optional. */
     emoji: text("emoji"),
-    inStock: boolean("in_stock").notNull().default(true),
     sort: integer("sort").notNull().default(0),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: createdAt(),

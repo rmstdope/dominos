@@ -26,7 +26,6 @@ const ham: Ingredient = {
   groupId: meat.id,
   name: { en: "Ham", sv: "Skinka" },
   emoji: "🍖",
-  inStock: true,
   sort: 0,
   archived: false,
 };
@@ -34,7 +33,6 @@ const bacon: Ingredient = {
   ...ham,
   id: "9c858901-8a57-4791-81fe-4c455b099bc9",
   name: { en: "Bacon", sv: "Bacon" },
-  inStock: false,
   sort: 1,
 };
 
@@ -129,9 +127,9 @@ describe("the event editor", () => {
     await user.type(screen.getByLabelText("Where · Svenska"), "Hos Kurelids");
     await user.type(screen.getByLabelText("Orders close on"), "2026-11-04");
     await user.type(screen.getByLabelText("Max toppings"), "6");
-    // Bacon is out of stock, so it starts unticked.
+    // Everything starts ticked; what is not in stock gets unticked here.
     expect(screen.getByRole("checkbox", { name: /ham/i })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: /bacon/i })).not.toBeChecked();
+    await user.click(screen.getByRole("checkbox", { name: /bacon/i }));
     await user.click(screen.getByRole("button", { name: "Create draft" }));
 
     expect(await heading("Friday Pizza Night")).toBeInTheDocument();
@@ -241,15 +239,6 @@ describe("the event editor", () => {
 });
 
 describe("the ingredients page", () => {
-  it("marks an ingredient out of stock", async () => {
-    const calls = staffApi({
-      [`PATCH /api/staff/ingredients/${ham.id}`]: ok({ ...ham, inStock: false }),
-    });
-    renderAccounts("/staff/ingredients");
-    await userEvent.setup().click(await screen.findByRole("checkbox", { name: "Ham in stock" }));
-    await waitFor(() => expect(calls.at(-2)?.body).toEqual({ inStock: false }));
-  });
-
   it("adds an ingredient with an emoji", async () => {
     const calls = staffApi({
       "POST /api/staff/ingredients": ok({

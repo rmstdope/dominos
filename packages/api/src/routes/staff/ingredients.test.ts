@@ -75,13 +75,12 @@ describe("ingredient groups", () => {
 });
 
 describe("ingredients", () => {
-  it("are added in stock, in their group", async () => {
+  it("are added to their group", async () => {
     const meat = await group("Meat", "Kött");
     const ham = await ingredient(meat.id, "Ham", "Skinka");
     expect(ham).toMatchObject({
       groupId: meat.id,
       name: { en: "Ham", sv: "Skinka" },
-      inStock: true,
       archived: false,
     });
   });
@@ -92,15 +91,6 @@ describe("ingredients", () => {
       name: { en: "Ham", sv: "Skinka" },
     });
     expect(res.status).toBe(400);
-  });
-
-  it("can run out of stock and come back", async () => {
-    const veg = await group("Veg", "Grönt");
-    const olives = await ingredient(veg.id, "Green olives", "Gröna oliver");
-    const out = await staff.json<Ingredient>("PATCH", `/api/staff/ingredients/${olives.id}`, {
-      inStock: false,
-    });
-    expect(out.inStock).toBe(false);
   });
 
   it("leave the pantry when archived, but can be listed and restored", async () => {

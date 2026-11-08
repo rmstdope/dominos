@@ -204,7 +204,6 @@ function IngredientRow({
       staffApi.updateIngredient(ingredient.id, body),
     changesIngredients,
   );
-  const label = ingredient.name[language];
 
   if (editing) {
     const save = (e: FormEvent) => {
@@ -300,21 +299,6 @@ function IngredientRow({
         </>
       ) : (
         <>
-          <label className="flex min-h-10 items-center gap-2 text-sm text-cream-300/80">
-            <input
-              type="checkbox"
-              checked={
-                update.isPending && update.variables.inStock !== undefined
-                  ? update.variables.inStock
-                  : ingredient.inStock
-              }
-              aria-label={t.inStockFor(label)}
-              disabled={update.isPending}
-              onChange={(e) => update.mutate({ inStock: e.target.checked })}
-              className="size-5 accent-basil-400"
-            />
-            <span aria-hidden="true">{t.inStock}</span>
-          </label>
           <button type="button" className={textButtonClass} onClick={() => setEditing(true)}>
             {t.rename}
           </button>

@@ -30,7 +30,6 @@ describe("importing the WhatsApp app's menu", () => {
       expect.objectContaining({
         name: first.name,
         emoji: first.emoji,
-        inStock: true,
         archived: false,
       }),
     );

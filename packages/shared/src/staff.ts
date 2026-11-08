@@ -17,7 +17,6 @@ export type Ingredient = {
   name: Localized;
   /** Shown beside the name, like 🍄. */
   emoji: string | null;
-  inStock: boolean;
   sort: number;
   archived: boolean;
 };
@@ -38,7 +37,6 @@ export const createIngredientSchema = z.object({
   groupId: z.uuid(),
   name: localized(40),
   emoji: emoji.optional(),
-  inStock: z.boolean().optional(),
 });
 export type CreateIngredient = z.infer<typeof createIngredientSchema>;
 
@@ -46,7 +44,6 @@ export const updateIngredientSchema = z.object({
   groupId: z.uuid().optional(),
   name: localized(40).optional(),
   emoji: emoji.optional(),
-  inStock: z.boolean().optional(),
   sort: z.int().min(0).max(10_000).optional(),
   /** Archived ingredients leave the pantry but stay on old orders. */
   archived: z.boolean().optional(),

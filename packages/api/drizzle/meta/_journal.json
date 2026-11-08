@@ -50,6 +50,13 @@
       "when": 1793362547367,
       "tag": "0006_bilingual_event_name",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794130724975,
+      "tag": "0007_remove_in_stock",
+      "breakpoints": true
     }
   ]
 }

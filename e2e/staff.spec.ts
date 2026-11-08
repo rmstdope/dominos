@@ -40,7 +40,7 @@ test("staff set up the pantry, plan an event and invite a guest", async ({ page 
   await page.getByLabel("Name · English").first().fill("Ham");
   await page.getByLabel("Name · Svenska").first().fill("Skinka");
   await page.getByRole("button", { name: "Add ingredient" }).click();
-  await expect(page.getByRole("checkbox", { name: "Ham in stock" })).toBeChecked();
+  await expect(page.getByText("Ham", { exact: true })).toBeVisible();
 
   // An event with that menu, saved as a draft and then published.
   await page

@@ -31,7 +31,6 @@ export const toIngredient = (i: IngredientRow): Ingredient => ({
   groupId: i.groupId,
   name: { en: i.nameEn, sv: i.nameSv },
   emoji: i.emoji,
-  inStock: i.inStock,
   sort: i.sort,
   archived: i.archivedAt !== null,
 });
@@ -108,7 +107,7 @@ export function ingredientRoutes(deps: AppDeps) {
   });
 
   routes.post("/ingredients", async (c) => {
-    const { groupId, name, emoji, inStock } = await readJson(c, createIngredientSchema);
+    const { groupId, name, emoji } = await readJson(c, createIngredientSchema);
     await requireGroup(db, groupId);
     const [{ last } = { last: null }] = await db
       .select({ last: max(ingredients.sort) })
@@ -121,7 +120,6 @@ export function ingredientRoutes(deps: AppDeps) {
         nameEn: name.en,
         nameSv: name.sv,
         emoji,
-        inStock,
         sort: (last ?? -1) + 1,
       })
       .returning();
@@ -130,17 +128,13 @@ export function ingredientRoutes(deps: AppDeps) {
 
   routes.patch("/ingredients/:id", async (c) => {
     const id = idParam(c);
-    const { groupId, name, emoji, inStock, sort, archived } = await readJson(
-      c,
-      updateIngredientSchema,
-    );
+    const { groupId, name, emoji, sort, archived } = await readJson(c, updateIngredientSchema);
     if (groupId) await requireGroup(db, groupId);
     const changes = definedOnly({
       groupId,
       nameEn: name?.en,
       nameSv: name?.sv,
       emoji,
-      inStock,
       sort,
       archivedAt: archived === undefined ? undefined : archived ? deps.now() : null,
     });

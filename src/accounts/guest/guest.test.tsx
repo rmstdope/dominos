@@ -36,9 +36,9 @@ const detail = (over: Partial<GuestEventDetail> = {}): GuestEventDetail => ({
     { id: "g2", name: { en: "Veg", sv: "Grönt" }, sort: 1 },
   ],
   menu: [
-    { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖", inStock: true },
-    { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, emoji: null, inStock: false },
-    { id: onion, groupId: "g2", name: { en: "Onion", sv: "Lök" }, emoji: null, inStock: true },
+    { id: ham, groupId: "g1", name: { en: "Ham", sv: "Skinka" }, emoji: "🍖" },
+    { id: bacon, groupId: "g1", name: { en: "Bacon", sv: "Bacon" }, emoji: null },
+    { id: onion, groupId: "g2", name: { en: "Onion", sv: "Lök" }, emoji: null },
   ],
   ...over,
 });
@@ -115,7 +115,7 @@ describe("a guest's events", () => {
 });
 
 describe("building a pizza", () => {
-  it("picks toppings up to the limit, skips the ones out, and places the order", async () => {
+  it("picks toppings up to the limit and places the order", async () => {
     const calls = fakeApi({
       "GET /api/me": ok(anna),
       [`GET /api/events/${id}`]: ok(detail()),
@@ -128,12 +128,11 @@ describe("building a pizza", () => {
     expect(
       screen.getByText(/pick up to 2 toppings\. every pizza comes with tomato sauce/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /bacon/i })).toBeDisabled();
-
     await user.click(screen.getByRole("button", { name: "Ham" }));
     await user.click(screen.getByRole("button", { name: "Onion" }));
     expect(screen.getByRole("button", { name: /ham/i })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByText(/that's the maximum/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /bacon/i })).toBeDisabled();
     expect(screen.getByText("2 of 2 toppings")).toBeInTheDocument();
 
     await user.click(screen.getByRole("switch", { name: /make it myself/i }));

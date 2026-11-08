@@ -159,7 +159,6 @@ export function guestEventRoutes(deps: AppDeps) {
         groupId: i.groupId,
         name: { en: i.nameEn, sv: i.nameSv },
         emoji: i.emoji,
-        inStock: i.inStock,
       })),
     };
   }
@@ -217,11 +216,9 @@ export function guestEventRoutes(deps: AppDeps) {
         `Pick at most ${event.maxToppings} toppings.`,
       );
     }
-    const current = (await ordersOf(db, user.id, [eventId])).get(eventId);
-    const kept = new Set(current?.order.toppingIds ?? []);
     const menu = picked.length
       ? await db
-          .select({ id: ingredients.id, inStock: ingredients.inStock })
+          .select({ id: ingredients.id })
           .from(eventIngredients)
           .innerJoin(ingredients, eq(ingredients.id, eventIngredients.ingredientId))
           .where(
@@ -232,14 +229,8 @@ export function guestEventRoutes(deps: AppDeps) {
             ),
           )
       : [];
-    // A topping that ran out can stay on an order that already has it, but not be added.
-    const usable = menu.filter((m) => m.inStock || kept.has(m.id));
-    if (usable.length !== picked.length) {
-      throw new ApiHttpError(
-        400,
-        "validation_failed",
-        "A topping is not on the menu or has run out.",
-      );
+    if (menu.length !== picked.length) {
+      throw new ApiHttpError(400, "validation_failed", "A topping is not on the menu.");
     }
 
     const values = {

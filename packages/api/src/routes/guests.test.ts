@@ -282,19 +282,6 @@ describe("ordering", () => {
     expect((await order(anna, [olives.id])).status).toBe(400);
   });
 
-  it("refuses a topping that ran out, unless the order already has it", async () => {
-    const anna = await guest();
-    await order(anna, [bacon.id]);
-    await staff.json("PATCH", `/api/staff/ingredients/${bacon.id}`, { inStock: false });
-    expect((await order(anna, [bacon.id, onion.id])).status).toBe(200);
-
-    const erik = await guest("erik@example.com");
-    expect((await order(erik, [bacon.id])).status).toBe(400);
-
-    const detail = await erik.json<GuestEventDetail>("GET", `/api/events/${event.id}`);
-    expect(detail.menu.find((m) => m.id === bacon.id)?.inStock).toBe(false);
-  });
-
   it("ignores making your own pizza when the event does not ask", async () => {
     event = await createEvent({ askMakeOwn: false });
     const anna = await guest();

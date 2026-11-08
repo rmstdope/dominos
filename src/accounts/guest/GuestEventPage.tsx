@@ -242,7 +242,7 @@ function orderError(err: unknown, t: GuestText, a: ReturnType<typeof useAccounts
 
 /** Where a new order starts: the favourite, minus what this menu lacks, up to the limit. */
 function startingToppings(event: GuestEventDetail, favourite: string[]): string[] {
-  const available = new Set(event.menu.filter((m) => m.inStock).map((m) => m.id));
+  const available = new Set(event.menu.map((m) => m.id));
   const picked = favourite.filter((id) => available.has(id));
   return event.maxToppings === null ? picked : picked.slice(0, event.maxToppings);
 }
@@ -271,7 +271,6 @@ function Builder({
   const [smallerThicker, setSmallerThicker] = useState(event.order?.smallerThicker ?? false);
   const [comment, setComment] = useState(event.order?.comment ?? "");
   const atLimit = event.maxToppings !== null && picked.length >= event.maxToppings;
-  const had = new Set(event.order?.toppingIds ?? []);
 
   const toggle = (id: string) =>
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -318,9 +317,7 @@ function Builder({
                 .filter((m) => m.groupId === group.id)
                 .map((item) => {
                   const on = picked.includes(item.id);
-                  // A topping that ran out stays pickable for someone who already has it.
-                  const unavailable = !item.inStock && !had.has(item.id);
-                  const disabled = !on && (unavailable || atLimit);
+                  const disabled = !on && atLimit;
                   return (
                     <li key={item.id}>
                       <button
@@ -342,11 +339,6 @@ function Builder({
                           </span>
                         )}
                         <span className="flex-1">{item.name[language]}</span>
-                        {unavailable && !on && (
-                          <span className="text-xs font-bold text-cream-300/60">
-                            {t.outOfStock}
-                          </span>
-                        )}
                         {on && <span aria-hidden="true">✓</span>}
                       </button>
                     </li>
