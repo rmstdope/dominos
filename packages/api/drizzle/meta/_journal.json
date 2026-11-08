@@ -71,6 +71,13 @@
       "when": 1794131434838,
       "tag": "0009_saved_pizzas",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794131958017,
+      "tag": "0010_favourite_becomes_saved_pizza",
+      "breakpoints": true
     }
   ]
 }

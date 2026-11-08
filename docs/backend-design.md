@@ -41,93 +41,15 @@ needs Docker. Production uses a real Postgres with the same schema and queries.
 
 ## Data model
 
-| Table                                  | Key columns                                                                                                                                  | Notes                                                        |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `users`                                | email (unique, lower-cased), name, role, language, password_hash (null until the invitation is accepted), disabled_at                        | ✅ Built                                                     |
-| `auth_tokens`                          | user_id, kind `invite`/`reset`, token_hash, expires_at, used_at                                                                              | ✅ Built. Single use; invitations last 7 days, resets 1 hour |
-| `sessions`                             | token_hash, user_id, expires_at                                                                                                              | ✅ Built. 30 days, extended while in use                     |
-| `ingredient_groups`                    | name_en, name_sv, sort                                                                                                                       | ✅ Built. Meat / Veg / Extras                                |
-| `ingredients`                          | group_id, name_en, name_sv, archived_at, sort                                                                                                | ✅ Built. Archived, never deleted, so old orders keep them   |
-| `events`                               | name, starts_at, location, orders_close_at, max_toppings (null = no limit), note_en/sv, ask_make_own, status `draft`/`published`/`cancelled` | ✅ Built. "Open", "closed" and "past" follow from the times  |
-| `event_ingredients`                    | event_id, ingredient_id                                                                                                                      | ✅ Built. The event's menu                                   |
-| `event_invitations`                    | event_id, user_id, status `invited`/`declined`, invited_at, last_reminded_at, first_seen_at                                                  | "Opened" means seen in the app                               |
-| `orders`                               | event_id, user_id, **unique (event_id, user_id)**, number, make_own, comment, late, baked_at                                                 | `number` is per event (#07)                                  |
-| `order_toppings`                       | order_id, ingredient_id                                                                                                                      |                                                              |
-| `favourite_toppings`                   | user_id, ingredient_id                                                                                                                       | Pre-fills the pizza builder                                  |
-| `saved_pizzas`, `saved_pizza_toppings` | user_id, name; pizza_id, ingredient_id                                                                                                       | Named templates for an order, each person's own              |
-| `reminders_sent`                       | event_id, user_id, kind                                                                                                                      | Keeps the reminder job from sending twice                    |
-
-Rules the API enforces (the screens only mirror them): an order needs an invitation that is not
-declined, a published event and an open deadline; every topping must be on the event's menu and in
-stock, and within `max_toppings`. Declining deletes the order. Removing a topping from a menu keeps
-existing orders and emails those affected. There is always at least one enabled staff member.
-
-## API
-
-JSON under `/api`. Errors are `{ "error": { "code", "message" } }`, with the codes in
-`packages/shared/src/errors.ts`.
-
-**Auth** ✅ built
-
-| Endpoint                        | Does                                                               |
-| ------------------------------- | ------------------------------------------------------------------ |
-| `POST /auth/login`              | Email and password; sets the session cookie, returns the user      |
-| `POST /auth/logout`             | Ends the session on the server and clears the cookie               |
-| `GET /auth/invitations/:token`  | Who the invitation is for, for the accept screen                   |
-| `POST /auth/invitations/:token` | Name and password; activates the account and signs in              |
-| `POST /auth/forgot`             | Emails a reset link if the account exists; always answers 204      |
-| `POST /auth/reset`              | Token and new password; signs out every other session and signs in |
-| `GET /me`                       | The signed-in user                                                 |
-| `GET /health`                   | Checks the database answers                                        |
-
-**Guests** ✅ built: `GET /events` (only invited ones, never drafts), `GET /events/:id` (menu and my
-order; marks it seen), `PUT`/`DELETE /events/:id/order` (after the deadline, until the event starts, a first order is still taken and marked late; placed orders can no longer change), `POST /events/:id/decline`. Also built:
-`PATCH /me` (name, language, reminders; not the email), `POST /me/password` (needs the current one,
-signs out other devices), `GET`/`PUT /me/favourite`, `GET`/`POST /me/pizzas`, `PATCH`/`DELETE /me/pizzas/:id`, `GET /me/pizzas/toppings`.
-
-**Staff** (`/staff/…`, 401 signed out, 403 for customers)
-
-| Endpoints ✅ built                                                                                                                      | Does                                                                                                                    |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `GET`/`POST /ingredient-groups`, `PATCH`/`DELETE /ingredient-groups/:id`                                                                | Groups in both languages; a group is deleted only when empty                                                            |
-| `GET /ingredients[?archived=include]`, `POST`, `PATCH /ingredients/:id`                                                                 | Rename, move group, archive and restore                                                                                 |
-| `GET`/`POST /people`, `PATCH /people/:id`, `POST /people/:id/resend-invitation`                                                         | Invite with a role (emails the link), change email, name or role, disable; always one staff member left                 |
-| `GET`/`POST /events`, `GET`/`PATCH`/`DELETE /events/:id`, `PUT /events/:id/menu`, `POST /events/:id/publish`, `POST /events/:id/cancel` | Drafts with a menu; publishing needs a menu and a future deadline; only drafts are deleted; cancelled events are frozen |
-
-Also built: `GET events/:id/guests` and `POST events/:id/invitations` (existing people and new ones,
-who get the account invitation in the same email), `GET events/:id/orders` (with prep totals),
-`PATCH orders/:id` (baked) and `POST events/:id/reminders` (everyone invited who has not ordered).
-
-Automatic reminders: a day before orders close to those without an order (not to anyone invited in
-the last 12 hours), and a day before the event to those with one, with their pizza. Each person can
-turn either off in their profile.
-
-## Security
-
-- Passwords: Argon2id. Unknown emails are checked against a dummy hash, so timing does not reveal
-  which accounts exist, and `/auth/forgot` sends its email after answering for the same reason.
-- Tokens in cookies and email links are 32 random bytes; the database keeps only their SHA-256.
-- Email links carry the token in the fragment (`/invitation#…`), which browsers never send to a
-  server or in a Referer header.
-- Session cookie: `HttpOnly`, `Secure`, `SameSite=Lax`, replaced on every sign-in.
-- CSRF: request bodies must be JSON, which another site cannot send without a CORS preflight the
-  API never answers, and form posts from other origins are refused.
-- Rate limits, in memory: sign-in per address and per email, token endpoints per address, and
-  reset emails per address and per email.
-
-## Build order
-
-1. **Foundation** ✅ Workspace, API, database and migrations, `create-staff`, every sign-in flow.
-2. **Staff API and sign-in screens** ✅ Ingredients and groups, people and roles, events with menus
-   (API only). Sign in, accept an invitation, forgot and reset password in the frontend, behind
-   `VITE_ACCOUNTS=true`.
-3. **Staff screens** ✅ Events and their menus, ingredients and groups, people and roles (S1, S2,
-   S5, S6 on the canvas), at phone and desktop sizes.
-4. **The core loop** ✅ Event invitations and their emails (one email sets up a new person's account
-   and shows the event), the guest's events, the pizza builder, the order ticket, declining.
-5. **Running the night** ✅ Orders and prep list, baked, reminders (by hand and automatic), profile
-   and favourite pizza.
-6. **Cutover** ✅ The VPS at `dominos.rmstdope.eu`, deployed after every green CI run, with
-   nightly backups and email through HostUp's relay; `config/menu.json` imported as ingredients.
-   The WhatsApp app, its one.com deploy and the `VITE_ACCOUNTS` flag are gone. Running it is
-   described in [deploy.md](deploy.md).
+| Table               | Key columns                                                                                                                                  | Notes                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `users`             | email (unique, lower-cased), name, role, language, password_hash (null until the invitation is accepted), disabled_at                        | ✅ Built                                                     |
+| `auth_tokens`       | user_id, kind `invite`/`reset`, token_hash, expires_at, used_at                                                                              | ✅ Built. Single use; invitations last 7 days, resets 1 hour |
+| `sessions`          | token_hash, user_id, expires_at                                                                                                              | ✅ Built. 30 days, extended while in use                     |
+| `ingredient_groups` | name_en, name_sv, sort                                                                                                                       | ✅ Built. Meat / Veg / Extras                                |
+| `ingredients`       | group_id, name_en, name_sv, archived_at, sort                                                                                                | ✅ Built. Archived, never deleted, so old orders keep them   |
+| `events`            | name, starts_at, location, orders_close_at, max_toppings (null = no limit), note_en/sv, ask_make_own, status `draft`/`published`/`cancelled` | ✅ Built. "Open", "closed" and "past" follow from the times  |
+| `event_ingredients` | event_id, ingredient_id                                                                                                                      | ✅ Built. The event's menu                                   |
+| `event_invitations` | event_id, user_id, status `invited`/`declined`, invited_at, last_reminded_at, first_seen_at                                                  | "Opened" means seen in the app                               |
+| `orders`            | event_id, user_id, **unique (event_id, user_id)**, number, make_own, comment, late, baked_at                                                 | `number` is per event (#07)                                  |
+| `order_toppings`    | order_id, ingredient_id                                                                                                                      |                                                              |

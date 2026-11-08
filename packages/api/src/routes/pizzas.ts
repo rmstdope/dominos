@@ -7,6 +7,7 @@ import {
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Db } from "../db/client.ts";
+import { definedOnly, isEmpty } from "../db/util.ts";
 import { ingredientGroups, ingredients, savedPizzas, savedPizzaToppings } from "../db/schema.ts";
 import type { AppDeps, AppEnv } from "../http/env.ts";
 import { ApiHttpError, readJson } from "../http/errors.ts";
@@ -45,6 +46,7 @@ async function pizzasOf(db: Db, userId: string, id?: string): Promise<SavedPizza
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
+    favourite: r.favourite,
     ingredients: toppings
       .filter((t) => t.pizzaId === r.id)
       .map((t) => ({ id: t.id, name: { en: t.en, sv: t.sv } })),
@@ -72,6 +74,13 @@ async function replaceToppings(tx: Db, pizzaId: string, ids: string[]) {
       .insert(savedPizzaToppings)
       .values(ids.map((ingredientId) => ({ pizzaId, ingredientId })));
   }
+}
+
+async function clearFavourite(tx: Db, userId: string) {
+  await tx
+    .update(savedPizzas)
+    .set({ favourite: false })
+    .where(and(eq(savedPizzas.userId, userId), eq(savedPizzas.favourite, true)));
 }
 
 /** A person's own saved pizzas. Mounted behind sign-in; nobody else's can be seen or changed. */
@@ -108,12 +117,13 @@ export function pizzaRoutes(deps: AppDeps) {
 
   routes.post("/", async (c) => {
     const user = currentUser(c);
-    const { name, ingredientIds } = await readJson(c, createSavedPizzaSchema);
+    const { name, ingredientIds, favourite } = await readJson(c, createSavedPizzaSchema);
     const ids = await requireToppings(db, ingredientIds);
     const id = await db.transaction(async (tx) => {
+      if (favourite) await clearFavourite(tx, user.id);
       const [pizza] = await tx
         .insert(savedPizzas)
-        .values({ userId: user.id, name })
+        .values({ userId: user.id, name, favourite })
         .returning({ id: savedPizzas.id });
       await replaceToppings(tx, pizza!.id, ids);
       return pizza!.id;
@@ -125,12 +135,14 @@ export function pizzaRoutes(deps: AppDeps) {
   routes.patch("/:id", async (c) => {
     const user = currentUser(c);
     const id = idParam(c);
-    const { name, ingredientIds } = await readJson(c, updateSavedPizzaSchema);
+    const { name, ingredientIds, favourite } = await readJson(c, updateSavedPizzaSchema);
     if ((await pizzasOf(db, user.id, id)).length === 0) throw notFound("That pizza");
     const ids = ingredientIds && (await requireToppings(db, ingredientIds));
     await db.transaction(async (tx) => {
-      if (name !== undefined) {
-        await tx.update(savedPizzas).set({ name }).where(eq(savedPizzas.id, id));
+      if (favourite) await clearFavourite(tx, user.id);
+      const changes = definedOnly({ name, favourite });
+      if (!isEmpty(changes)) {
+        await tx.update(savedPizzas).set(changes).where(eq(savedPizzas.id, id));
       }
       if (ids) await replaceToppings(tx, id, ids);
     });

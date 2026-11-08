@@ -1,7 +1,6 @@
 import type {
   EventGuest,
   EventOrders,
-  Favourite,
   Ingredient,
   IngredientGroup,
   Me,
@@ -276,17 +275,6 @@ describe("the profile", () => {
       t.browser().post("/api/auth/login", { email: "anna@example.com", password });
     expect((await login("first password")).status).toBe(401);
     expect((await login("second password")).status).toBe(200);
-  });
-
-  it("keeps a favourite pizza, in menu order, without archived toppings", async () => {
-    const { browser } = await t.signedIn("customer", "anna@example.com");
-    const saved = await browser.json<Favourite>("PUT", "/api/me/favourite", {
-      ingredientIds: [onion.id, ham.id],
-    });
-    expect(saved.ingredients.map((i) => i.name.en)).toEqual(["Ham", "Onion"]);
-    await staff.json("PATCH", `/api/staff/ingredients/${onion.id}`, { archived: true });
-    const now = await browser.json<Favourite>("GET", "/api/me/favourite");
-    expect(now.ingredients.map((i) => i.name.en)).toEqual(["Ham"]);
   });
 });
 

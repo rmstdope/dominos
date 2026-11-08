@@ -63,10 +63,18 @@ function PizzaRow({ pizza, onEdit }: { pizza: SavedPizza; onEdit: () => void }) 
   const a = useAccountsText();
   const { language } = useLanguage();
   const remove = useDeletePizza();
+  const update = useUpdatePizza();
   const [confirming, setConfirming] = useState(false);
   return (
     <article aria-label={pizza.name} className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-      <h3 className="font-bold break-words">{pizza.name}</h3>
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-bold break-words">{pizza.name}</h3>
+        {pizza.favourite && (
+          <span className="rounded-full bg-cheese-300 px-2 py-0.5 text-xs font-bold text-crust-950">
+            {t.favouriteBadge}
+          </span>
+        )}
+      </div>
       <p className="mt-1 text-sm text-cream-300/80">
         {pizza.ingredients.map((i) => i.name[language]).join(", ") || t.plainPizza}
       </p>
@@ -86,7 +94,7 @@ function PizzaRow({ pizza, onEdit }: { pizza: SavedPizza; onEdit: () => void }) 
           </button>
         </div>
       ) : (
-        <div className="mt-2 flex gap-4">
+        <div className="mt-2 flex flex-wrap gap-x-4">
           <button
             type="button"
             className={textButton}
@@ -103,9 +111,28 @@ function PizzaRow({ pizza, onEdit }: { pizza: SavedPizza; onEdit: () => void }) 
           >
             {t.delete}
           </button>
+          <button
+            type="button"
+            className={textButton}
+            disabled={update.isPending}
+            aria-label={
+              pizza.favourite ? t.removeFavouriteFor(pizza.name) : t.makeFavouriteFor(pizza.name)
+            }
+            onClick={() => update.mutate({ id: pizza.id, favourite: !pizza.favourite })}
+          >
+            {pizza.favourite ? t.removeFavourite : t.makeFavourite}
+          </button>
         </div>
       )}
-      <Feedback error={remove.isError ? errorMessage(remove.error, a) : null} />
+      <Feedback
+        error={
+          remove.isError
+            ? errorMessage(remove.error, a)
+            : update.isError
+              ? errorMessage(update.error, a)
+              : null
+        }
+      />
     </article>
   );
 }

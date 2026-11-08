@@ -61,6 +61,28 @@ describe("saved pizzas", () => {
     expect(changed).toMatchObject({ name: "Friday", ingredients: [{ id: onion.id }] });
   });
 
+  it("have at most one favourite each, and it can be taken back", async () => {
+    const first = await anna.json<SavedPizza>(
+      "POST",
+      "/api/me/pizzas",
+      { name: "First", ingredientIds: [ham.id], favourite: true },
+      201,
+    );
+    expect(first.favourite).toBe(true);
+    const second = await create([onion.id], "Second");
+    expect(second.favourite).toBe(false);
+
+    await anna.json("PATCH", `/api/me/pizzas/${second.id}`, { favourite: true });
+    const favourites = async () =>
+      (await anna.json<SavedPizza[]>("GET", "/api/me/pizzas"))
+        .filter((p) => p.favourite)
+        .map((p) => p.name);
+    expect(await favourites()).toEqual(["Second"]);
+
+    await anna.json("PATCH", `/api/me/pizzas/${second.id}`, { favourite: false });
+    expect(await favourites()).toEqual([]);
+  });
+
   it("can be deleted", async () => {
     const pizza = await create([ham.id]);
     expect((await anna.delete(`/api/me/pizzas/${pizza.id}`)).status).toBe(204);

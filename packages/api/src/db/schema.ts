@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -8,6 +9,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -204,29 +206,25 @@ export const orderToppings = pgTable(
   (t) => [primaryKey({ columns: [t.orderId, t.ingredientId] })],
 );
 
-/** The toppings a person saved as their favourite pizza; the builder starts from them. */
-export const favouriteToppings = pgTable(
-  "favourite_toppings",
+/** A pizza someone named and saved, to start an order from later. */
+export const savedPizzas = pgTable(
+  "saved_pizzas",
   {
+    id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    ingredientId: uuid("ingredient_id")
-      .notNull()
-      .references(() => ingredients.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** New orders start from it. At most one per person. */
+    favourite: boolean("favourite").notNull().default(false),
+    createdAt: createdAt(),
   },
-  (t) => [primaryKey({ columns: [t.userId, t.ingredientId] })],
+  (t) => [
+    uniqueIndex("saved_pizzas_one_favourite")
+      .on(t.userId)
+      .where(sql`${t.favourite}`),
+  ],
 );
-
-/** A pizza someone named and saved, to start an order from later. */
-export const savedPizzas = pgTable("saved_pizzas", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  createdAt: createdAt(),
-});
 
 export const savedPizzaToppings = pgTable(
   "saved_pizza_toppings",

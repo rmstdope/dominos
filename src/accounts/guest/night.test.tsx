@@ -122,7 +122,7 @@ describe("the profile", () => {
     renderAccounts("/profile");
     const user = userEvent.setup();
     await user.selectOptions(await screen.findByLabelText(/language for the app/i), "sv");
-    expect(await screen.findByRole("heading", { name: "Min favoritpizza" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Mina pizzor" })).toBeInTheDocument();
     expect(calls.find((c) => c.method === "PATCH")?.body).toEqual({ language: "sv" });
   });
 
@@ -148,22 +148,6 @@ describe("the profile", () => {
     await user.type(screen.getByLabelText("New password"), "a brand new one");
     await user.click(screen.getByRole("button", { name: "Change password" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("The current password is wrong.");
-  });
-
-  it("shows the favourite pizza and clears it", async () => {
-    const calls = fakeApi({
-      "GET /api/me": ok(anna),
-      "GET /api/me/favourite": ok({
-        ingredients: [{ id: ham, name: { en: "Ham", sv: "Skinka" } }],
-      }),
-      "PUT /api/me/favourite": ok({ ingredients: [] }),
-    });
-    renderAccounts("/profile");
-    const card = await screen.findByRole("region", { name: "My favourite pizza" });
-    expect(await within(card).findByText("Ham")).toBeInTheDocument();
-    await userEvent.setup().click(within(card).getByRole("button", { name: "Clear" }));
-    expect(await within(card).findByText(/no favourite yet/i)).toBeInTheDocument();
-    expect(calls.find((c) => c.method === "PUT")?.body).toEqual({ ingredientIds: [] });
   });
 });
 
@@ -193,12 +177,17 @@ describe("the favourite in the pizza builder", () => {
     fakeApi({
       "GET /api/me": ok(anna),
       [`GET /api/events/${id}`]: ok(detail),
-      "GET /api/me/favourite": ok({
-        ingredients: [
-          { id: ham, name: { en: "Ham", sv: "Skinka" } },
-          { id: bacon, name: { en: "Bacon", sv: "Bacon" } },
-        ],
-      }),
+      "GET /api/me/pizzas": ok([
+        {
+          id: "p1",
+          name: "The usual",
+          favourite: true,
+          ingredients: [
+            { id: ham, name: { en: "Ham", sv: "Skinka" } },
+            { id: bacon, name: { en: "Bacon", sv: "Bacon" } },
+          ],
+        },
+      ]),
     });
     renderAccounts(`/events/${id}`);
     expect(await screen.findByRole("button", { name: /ham/i })).toHaveAttribute(
@@ -207,37 +196,9 @@ describe("the favourite in the pizza builder", () => {
     );
     expect(screen.queryByRole("button", { name: /bacon/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /onion/i })).toHaveAttribute("aria-pressed", "false");
-  });
-
-  it("is saved from the order when asked", async () => {
-    const calls = fakeApi({
-      "GET /api/me": ok(anna),
-      [`GET /api/events/${id}`]: ok(detail),
-      [`PUT /api/events/${id}/order`]: ok({
-        ...detail,
-        order: {
-          number: 1,
-          toppingIds: [onion],
-          makeOwn: false,
-          smallerThicker: false,
-          comment: null,
-        },
-      }),
-      "PUT /api/me/favourite": ok({
-        ingredients: [{ id: onion, name: { en: "Onion", sv: "Lök" } }],
-      }),
-    });
-    renderAccounts(`/events/${id}`);
-    const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: "Onion" }));
-    await user.click(screen.getByRole("checkbox", { name: "Save as my favourite" }));
-    await user.click(screen.getByRole("button", { name: "Place order" }));
-    await waitFor(() =>
-      expect(calls.find((c) => c.path === "/api/me/favourite" && c.method === "PUT")?.body).toEqual(
-        {
-          ingredientIds: [onion],
-        },
-      ),
+    expect(screen.getByRole("button", { name: "The usual" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
     );
   });
 });

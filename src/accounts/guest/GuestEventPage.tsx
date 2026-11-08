@@ -7,15 +7,7 @@ import { ApiRequestError } from "../api";
 import { formatWhen } from "../dates";
 import { Feedback, Loaded, inputClass } from "../staff/ui";
 import { errorMessage, useAccountsText } from "../text";
-import {
-  useCreatePizza,
-  useDecline,
-  useFavourite,
-  useGuestEvent,
-  usePizzas,
-  usePlaceOrder,
-  useSetFavourite,
-} from "./api";
+import { useCreatePizza, useDecline, useGuestEvent, usePizzas, usePlaceOrder } from "./api";
 import { GuestLayout } from "./GuestLayout";
 import { useGuestText, type GuestText } from "./text";
 import { ToppingGrid } from "./ToppingGrid";
@@ -24,7 +16,7 @@ export function GuestEventPage({ me }: { me: Me }) {
   const { id = "" } = useParams();
   const t = useGuestText();
   const event = useGuestEvent(id);
-  const favourite = useFavourite();
+  const pizzas = usePizzas();
   return (
     <GuestLayout me={me}>
       <Link
@@ -35,15 +27,8 @@ export function GuestEventPage({ me }: { me: Me }) {
       </Link>
       <Loaded query={event}>
         {(detail) => (
-          <Loaded query={favourite}>
-            {(fav) => (
-              <EventView
-                key={detail.id}
-                me={me}
-                event={detail}
-                favourite={fav.ingredients.map((i) => i.id)}
-              />
-            )}
+          <Loaded query={pizzas}>
+            {(saved) => <EventView key={detail.id} me={me} event={detail} pizzas={saved} />}
           </Loaded>
         )}
       </Loaded>
@@ -55,11 +40,11 @@ export function GuestEventPage({ me }: { me: Me }) {
 function EventView({
   me,
   event,
-  favourite,
+  pizzas,
 }: {
   me: Me;
   event: GuestEventDetail;
-  favourite: string[];
+  pizzas: SavedPizza[];
 }) {
   const t = useGuestText();
   const { language } = useLanguage();
@@ -92,7 +77,7 @@ function EventView({
         {header}
         <Builder
           event={event}
-          favourite={favourite}
+          pizzas={pizzas}
           onPlaced={() => {
             setEditing(false);
             setJustPlaced(true);
@@ -201,10 +186,11 @@ function SavePizza({ toppingIds }: { toppingIds: string[] }) {
   const a = useAccountsText();
   const create = useCreatePizza();
   const [name, setName] = useState("");
+  const [favourite, setFavourite] = useState(false);
   const save = () => {
     if (name.trim() && !create.isPending) {
       create.mutate(
-        { name: name.trim(), ingredientIds: toppingIds },
+        { name: name.trim(), ingredientIds: toppingIds, favourite },
         { onSuccess: () => setName("") },
       );
     }
@@ -240,6 +226,15 @@ function SavePizza({ toppingIds }: { toppingIds: string[] }) {
           {t.savePizza}
         </Button>
       </div>
+      <label className="flex min-h-11 items-center gap-3 text-sm text-cream-300/80">
+        <input
+          type="checkbox"
+          checked={favourite}
+          onChange={(e) => setFavourite(e.target.checked)}
+          className="size-5 accent-cheese-400"
+        />
+        {t.saveAsFavourite}
+      </label>
       <Feedback
         error={create.isError ? errorMessage(create.error, a) : null}
         success={create.data ? t.savedAs(create.data.name) : null}
@@ -316,12 +311,12 @@ function startingToppings(event: GuestEventDetail, wanted: string[]): string[] {
 
 function Builder({
   event,
-  favourite,
+  pizzas,
   onPlaced,
   onCancel,
 }: {
   event: GuestEventDetail;
-  favourite: string[];
+  pizzas: SavedPizza[];
   onPlaced: () => void;
   onCancel?: () => void;
 }) {
@@ -329,18 +324,18 @@ function Builder({
   const a = useAccountsText();
   const { language } = useLanguage();
   const place = usePlaceOrder(event.id);
-  const saveFavourite = useSetFavourite();
+  const favourite = event.order ? undefined : pizzas.find((p) => p.favourite);
   const [picked, setPicked] = useState<string[]>(
-    () => event.order?.toppingIds ?? startingToppings(event, favourite),
+    () =>
+      event.order?.toppingIds ??
+      startingToppings(event, favourite?.ingredients.map((i) => i.id) ?? []),
   );
-  const [asFavourite, setAsFavourite] = useState(false);
   const [makeOwn, setMakeOwn] = useState(event.order?.makeOwn ?? false);
   const [smallerThicker, setSmallerThicker] = useState(event.order?.smallerThicker ?? false);
   const [comment, setComment] = useState(event.order?.comment ?? "");
   const atLimit = event.maxToppings !== null && picked.length >= event.maxToppings;
   const late = event.phase === "closed";
-  const pizzas = usePizzas();
-  const [template, setTemplate] = useState<string | null>(null);
+  const [template, setTemplate] = useState<string | null>(favourite?.id ?? null);
   const [leftOut, setLeftOut] = useState<string[]>([]);
 
   const startFrom = (pizza: SavedPizza) => {
@@ -361,10 +356,7 @@ function Builder({
     place.mutate(
       { toppingIds: picked, makeOwn, smallerThicker, comment: comment.trim() || null },
       {
-        onSuccess: () => {
-          if (asFavourite) saveFavourite.mutate(picked);
-          onPlaced();
-        },
+        onSuccess: onPlaced,
       },
     );
   };
@@ -389,7 +381,7 @@ function Builder({
           {t.atLimit}
         </p>
       )}
-      {pizzas.data && pizzas.data.length > 0 && (
+      {pizzas.length > 0 && (
         <section aria-labelledby="start-from" className="mt-5">
           <h2
             id="start-from"
@@ -398,7 +390,7 @@ function Builder({
             {t.startFrom}
           </h2>
           <ul className="flex flex-wrap gap-2">
-            {pizzas.data.map((pizza) => (
+            {pizzas.map((pizza) => (
               <li key={pizza.id}>
                 <button
                   type="button"
@@ -464,15 +456,6 @@ function Builder({
         </label>
       )}
 
-      <label className="mt-4 flex min-h-11 items-center gap-3 text-sm text-cream-300/80">
-        <input
-          type="checkbox"
-          checked={asFavourite}
-          onChange={(e) => setAsFavourite(e.target.checked)}
-          className="size-5 accent-cheese-400"
-        />
-        {t.saveFavourite}
-      </label>
       <SavePizza toppingIds={picked} />
 
       <label

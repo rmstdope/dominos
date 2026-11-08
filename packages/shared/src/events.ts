@@ -91,20 +91,14 @@ export const inviteToEventSchema = z
   });
 export type InviteToEvent = z.input<typeof inviteToEventSchema>;
 
-// --- Favourites ----------------------------------------------------------------------------------
-
-/** A person's favourite pizza, which the builder starts from. */
-export type Favourite = { ingredients: { id: string; name: Localized }[] };
-
-export const setFavouriteSchema = z.object({ ingredientIds: z.array(z.uuid()).max(30) });
-export type SetFavourite = z.infer<typeof setFavouriteSchema>;
-
 // --- Saved pizzas --------------------------------------------------------------------------------
 
 /** A pizza someone named and saved; an order can start from it and change it before sending. */
 export type SavedPizza = {
   id: string;
   name: string;
+  /** New orders start from it. At most one per person. */
+  favourite: boolean;
   ingredients: { id: string; name: Localized }[];
 };
 
@@ -114,12 +108,18 @@ export type Toppings = { groups: IngredientGroup[]; items: MenuItem[] };
 const pizzaName = z.string().trim().min(1).max(40);
 const pizzaToppings = z.array(z.uuid()).max(30);
 
-export const createSavedPizzaSchema = z.object({ name: pizzaName, ingredientIds: pizzaToppings });
-export type CreateSavedPizza = z.infer<typeof createSavedPizzaSchema>;
+export const createSavedPizzaSchema = z.object({
+  name: pizzaName,
+  ingredientIds: pizzaToppings,
+  favourite: z.boolean().default(false),
+});
+export type CreateSavedPizza = z.input<typeof createSavedPizzaSchema>;
 
 export const updateSavedPizzaSchema = z.object({
   name: pizzaName.optional(),
   ingredientIds: pizzaToppings.optional(),
+  /** Making one the favourite takes that away from any other. */
+  favourite: z.boolean().optional(),
 });
 export type UpdateSavedPizza = z.infer<typeof updateSavedPizzaSchema>;
 

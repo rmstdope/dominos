@@ -5,10 +5,10 @@ import { Button } from "../../components/Button";
 import { useLanguage } from "../../i18n/useLanguage";
 import { LANGUAGE_LABELS } from "../../i18n/translations";
 import { ApiRequestError } from "../api";
-import { Feedback, Loaded, inputClass, labelClass } from "../staff/ui";
+import { Feedback, inputClass, labelClass } from "../staff/ui";
 import { errorMessage, useAccountsText } from "../text";
 import { useSession } from "../useSession";
-import { changePassword, updateMe, useFavourite, useSetFavourite } from "./api";
+import { changePassword, updateMe } from "./api";
 import { GuestLayout } from "./GuestLayout";
 import { SavedPizzasCard } from "./SavedPizzas";
 import { useGuestText } from "./text";
@@ -34,7 +34,6 @@ export function ProfilePage({ me }: { me: Me }) {
         </div>
       </div>
       <div className="mt-6 space-y-5">
-        <FavouriteCard />
         <SavedPizzasCard className={card} />
         <AccountCard me={me} />
         <RemindersCard me={me} />
@@ -51,55 +50,6 @@ export function ProfilePage({ me }: { me: Me }) {
 function useUpdateMe() {
   const { signedIn } = useSession();
   return useMutation({ mutationFn: (body: UpdateMe) => updateMe(body), onSuccess: signedIn });
-}
-
-function FavouriteCard() {
-  const t = useGuestText();
-  const a = useAccountsText();
-  const { language } = useLanguage();
-  const favourite = useFavourite();
-  const clear = useSetFavourite();
-  return (
-    <section aria-labelledby="favourite" className={card}>
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 id="favourite" className={sectionTitle}>
-          {t.favouriteTitle}
-        </h2>
-        {favourite.data && favourite.data.ingredients.length > 0 && (
-          <button
-            type="button"
-            disabled={clear.isPending}
-            onClick={() => clear.mutate([])}
-            className="min-h-10 text-sm font-semibold text-cheese-300 hover:underline"
-          >
-            {t.clearFavourite}
-          </button>
-        )}
-      </div>
-      <Loaded query={favourite}>
-        {({ ingredients }) =>
-          ingredients.length ? (
-            <>
-              <ul className="flex flex-wrap gap-1.5">
-                {ingredients.map((i) => (
-                  <li
-                    key={i.id}
-                    className="rounded-full bg-cheese-400/15 px-3 py-1 text-sm font-semibold text-cheese-300"
-                  >
-                    {i.name[language]}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-sm text-cream-300/70">{t.favouriteHint}</p>
-            </>
-          ) : (
-            <p className="text-sm text-cream-300/70">{t.noFavourite}</p>
-          )
-        }
-      </Loaded>
-      <Feedback error={clear.isError ? errorMessage(clear.error, a) : null} />
-    </section>
-  );
 }
 
 function AccountCard({ me }: { me: Me }) {

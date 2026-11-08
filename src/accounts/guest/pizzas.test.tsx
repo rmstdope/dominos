@@ -18,6 +18,7 @@ const name = (en: string) => ({ en, sv: en });
 const usual: SavedPizza = {
   id: pizzaId,
   name: "The usual",
+  favourite: false,
   ingredients: [
     { id: ham, name: name("Ham") },
     { id: bacon, name: name("Bacon") },
@@ -96,8 +97,47 @@ describe("saved pizzas in the builder", () => {
     expect(calls.find((c) => c.method === "POST")?.body).toEqual({
       name: "Hammy",
       ingredientIds: [ham],
+      favourite: false,
     });
     expect(calls.some((c) => c.method === "PUT")).toBe(false);
+  });
+
+  it("can be saved as the new favourite", async () => {
+    const calls = fakeApi({
+      "GET /api/me": ok(anna),
+      [`GET /api/events/${id}`]: ok(detail),
+      "POST /api/me/pizzas": ok(usual),
+    });
+    renderAccounts(`/events/${id}`);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("checkbox", { name: "Make this my favourite" }));
+    await user.type(screen.getByLabelText("Save this pizza for later"), "Mine");
+    await user.click(screen.getByRole("button", { name: "Save pizza" }));
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "POST")?.body).toMatchObject({ favourite: true }),
+    );
+  });
+
+  it("leave an order already placed alone, even with a favourite", async () => {
+    fakeApi({
+      "GET /api/me": ok(anna),
+      [`GET /api/events/${id}`]: ok({
+        ...detail,
+        order: {
+          number: 1,
+          toppingIds: [onion],
+          makeOwn: false,
+          smallerThicker: false,
+          comment: null,
+          late: false,
+        },
+      }),
+      "GET /api/me/pizzas": ok([{ ...usual, favourite: true }]),
+    });
+    renderAccounts(`/events/${id}`);
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Change order" }));
+    expect(screen.getByRole("button", { name: /onion/i })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /ham/i })).toHaveAttribute("aria-pressed", "false");
   });
 });
 
@@ -153,6 +193,24 @@ describe("saved pizzas on the profile", () => {
         name: "Friday",
         ingredientIds: [ham, onion],
       }),
+    );
+  });
+
+  it("show the favourite, and can change it", async () => {
+    const calls = fakeApi({
+      "GET /api/me": ok(anna),
+      "GET /api/me/pizzas": ok([usual, { ...usual, id: "p2", name: "Veggie", favourite: true }]),
+      [`PATCH /api/me/pizzas/${pizzaId}`]: ok(usual),
+    });
+    renderAccounts("/profile");
+    const pizzas = await card();
+    const veggie = await within(pizzas).findByRole("article", { name: "Veggie" });
+    expect(within(veggie).getByText("Favourite")).toBeInTheDocument();
+    await userEvent
+      .setup()
+      .click(within(pizzas).getByRole("button", { name: "Make The usual my favourite" }));
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "PATCH")?.body).toEqual({ favourite: true }),
     );
   });
 
